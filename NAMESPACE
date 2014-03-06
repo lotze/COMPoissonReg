@@ -1,0 +1,6 @@
+export(cmp,chisq,pval,chisq.cmp,sdev,nu,parametric_bootstrap,parametric_bootstrap.cmp,nu.cmp,sdev.cmp,pval.cmp,leverage,leverage.cmp,deviance.cmp,predict.cmp,residuals.cmp)
+S3method(pval, cmp)
+S3method(chisq, cmp)
+S3method(sdev, cmp)
+S3method(nu, cmp)
+S3method(parametric_bootstrap, cmp)
