@@ -4,12 +4,12 @@ cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
 		initial.est = coef(initial_glm)
 	}
 	print(initial.est)
-	
+
 	data_frame = model.frame(formula, ...)
-	
+
 	response_name = names(data_frame)[1]
 	x_names = names(data_frame)[-1]
-	
+
 	object_result = list()
 	object_result$formula = formula
 	object_result$response_name = response_name
@@ -17,17 +17,17 @@ cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
 	object_result$response = data_frame[,response_name]
 	object_result$predictors = as.data.frame(data_frame[,x_names])
 	names(object_result$predictors) = x_names
-	
+
 	object_result$max = max
 
-	internal_result = ComputeBetasAndNuHat(object_result$predictors, object_result$response, betainit=initial.est, nuinit=nuinit, max=object_result$max) 
+	internal_result = ComputeBetasAndNuHat(object_result$predictors, object_result$response, betainit=initial.est, nuinit=nuinit, max=object_result$max)
 	if(internal_result$convergence == 1) {stop(sprintf("Constant CMP estimates could not be determined.  Optimization scheme did not converge: ", internal_result))}
-	
+
 	num_pars = length(internal_result$par)
 	object_result$glm_coefficients = coef(initial_glm)
 	object_result$coefficients = internal_result$par[1:(num_pars -1)]
 	object_result$nu = internal_result$par[num_pars]
-	
+
 	attr(object_result, "class") <- c("cmp", attr(object_result, "class"))
 	#class(object_result) = c("cmp", class(internal_result))
 	return(object_result)

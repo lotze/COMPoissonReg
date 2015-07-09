@@ -30,14 +30,14 @@ From here, there are lots of ways to proceed, so order doesn't matter:
 
 \author{
 Kimberly Sellers, Thomas Lotze
-Maintainer: Thomas Lotze <thomas.lotze@thomaslotze.com> 
+Maintainer: Thomas Lotze <thomas.lotze@thomaslotze.com>
 }
 
 \references{A Flexible Regression Model for Count Data, by Sellers & Shmueli, http://ssrn.com/abstract=1127359}
 
 \examples{
 # load freight data
-  data(freight)                                             
+  data(freight)
 
 # Compute Standard Poisson estimates
   glm_model <- glm(broken ~ transfers, data=freight,
@@ -94,7 +94,7 @@ Maintainer: Thomas Lotze <thomas.lotze@thomaslotze.com>
   freight.predicted = predict(cmp_model, newdata=new_data)
   plot(0:10, freight.predicted, type="l",
     xlab="number of transfers", ylab="predicted number broken")
-  
+
 # Compute parametric bootstrap results and use them to generate
 #  0.95 confidence intervals for parameters
 # Note: n=5 is used here for speed of automated package checking;
