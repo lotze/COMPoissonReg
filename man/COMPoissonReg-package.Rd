@@ -46,6 +46,7 @@ Maintainer: Thomas Lotze <thomas.lotze@thomaslotze.com>
   print(coef(glm_model))
 
 # Compute COM-Poisson estimates (under constant dispersion model)
+start.time <- Sys.time()
   cmp_model = cmp(formula = broken ~ transfers, data=freight)
   print("The COM-Poisson estimates for the beta vector are")
   print(coef(cmp_model))
@@ -70,9 +71,10 @@ Maintainer: Thomas Lotze <thomas.lotze@thomaslotze.com>
   print(freight.lev)
 
 # Compute constant COM-Poisson deviances
-  freight.CMPDev <- deviance(cmp_model)
-  print("The approximate constant dispersion standardized CMP Deviance is")
-  print(freight.CMPDev)
+  # commented-out for speed
+  # freight.CMPDev <- deviance(cmp_model)
+  # print("The approximate constant dispersion standardized CMP Deviance is")
+  # print(freight.CMPDev)
 
 # Compute fitted values
   freight.fitted = predict(cmp_model, newdata=freight)
@@ -97,8 +99,7 @@ Maintainer: Thomas Lotze <thomas.lotze@thomaslotze.com>
 
 # Compute parametric bootstrap results and use them to generate
 #  0.95 confidence intervals for parameters
-# Note: n=5 is used here for speed of automated package checking;
-#  actual code should use a value such as the default, n=1000
-  freight.CMPParamBoot <- parametric_bootstrap(cmp_model, n=5)
-  print(apply(freight.CMPParamBoot,2,quantile,c(0.025,0.975)))
+  #  commented-out for speed
+  #  freight.CMPParamBoot <- parametric_bootstrap(cmp_model, n=1000)
+  #  print(apply(freight.CMPParamBoot,2,quantile,c(0.025,0.975)))
 }

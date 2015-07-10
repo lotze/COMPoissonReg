@@ -28,8 +28,5 @@
 
 \seealso{leverage}
 
-\examples{	
-}
-
 \keyword{regression}
 \keyword{deviance}

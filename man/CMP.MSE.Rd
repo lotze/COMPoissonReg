@@ -13,7 +13,7 @@
 
 \details{ CMP.MSE computes the mean-squared error associated with
 the estimated residuals determined from a COM-Poisson regression relating
-the matrix x and vector y.} 
+the matrix x and vector y.}
 
 \value{numeric, mean-squared error associated with
 the estimated residuals determined from a COM-Poisson regression relating
@@ -23,10 +23,6 @@ the matrix x and vector y.}
 \author{Kimberly Sellers}
 
 \seealso{CMPStdErrors}
-
-\examples{
-}
-
 
 \keyword{regression}
 \keyword{standard error}

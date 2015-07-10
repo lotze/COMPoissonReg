@@ -10,10 +10,10 @@ CMPDeviance <- function(x,y,betahat,nuhat,leverage,max = 150){
 
 
 #  create vector of ones
-   if(is.matrix(x)==TRUE || is.data.frame(x) == TRUE) {onevec <- rep(1,length(x[,1]))} else onevec <- rep(1,length(x)) 
+   if(is.matrix(x)==TRUE || is.data.frame(x) == TRUE) {onevec <- rep(1,length(x[,1]))} else onevec <- rep(1,length(x))
 
 #  create real X matrix, namely where 1st col is vector of 1s to incorporate beta0 effect
-   newx <- cbind(onevec,x) 
+   newx <- cbind(onevec,x)
    xmat <- as.matrix(newx)
 
 

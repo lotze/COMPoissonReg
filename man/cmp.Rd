@@ -68,9 +68,6 @@
        \code{\link{ComputeBetasAndNuHat}}
      }
 
-\examples{
-}
-
 \keyword{maximum likelihood estimation}
 \keyword{regression}
 \keyword{estimate}
