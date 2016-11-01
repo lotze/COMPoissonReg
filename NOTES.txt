@@ -1,0 +1,18 @@
+compute-z functions
+o We both have versions of these. We only need one version.
+o Mine might be more general because they don't need to know about X
+o We could consider programming some of these functions in Rcpp.
+  Especially the function Z(lambda, nu), and maybe just the whole likelihood.
+o If we use Thomas', maybe consolidate them into one file
+
+Interface for ZICMP fitting function
+o We could add an optional ZI model term with "|" or with a 2nd formula.
+o Should we update Thomas' original function, or start a new one for ZI?
+
+FIM functions
+o Consolidate Thomas' CMP FIM functions into one file
+o Add my file for ZICMP FIM functions
+
+RQRES
+o Add my file for ZICMP, and write a function for CMP as well.
+o Make it easier to call, maybe just pass in the fit object.
