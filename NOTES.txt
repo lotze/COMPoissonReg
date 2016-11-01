@@ -1,3 +1,8 @@
+First things
+o Thomas directly coded Rd files, so I will do that too
+o Try to make ZICMP conform to cmp.R on the interface
+o For Thomas' computational code, try to keep changes to the abs minimum 
+
 compute-z functions
 o We both have versions of these. We only need one version.
 o Mine might be more general because they don't need to know about X
@@ -16,3 +21,13 @@ o Add my file for ZICMP FIM functions
 RQRES
 o Add my file for ZICMP, and write a function for CMP as well.
 o Make it easier to call, maybe just pass in the fit object.
+o Maybe they could be piggybacked into the S3 residuals function
+
+Displaying results
+o Add proper print and summary functions for CMP fitting
+o Also include for ZICMP
+
+Test for Equidispersion
+o Might want to change from the S3 functions to "equi.test"
+o Could return both p-value and test statistic from same function
+o Or we could just put ZICMP into this same framework
