@@ -14,7 +14,7 @@ ComputeBetasAndNuHat <- function(x,y,betainit,nuinit,max){
    xmat <- as.matrix(newx)
 
 # Create -logL so that we take the minimum of this function (which equals the max of logL)
-   minusloglike <- function(par){-sum((y * (xmat %*% par[1:length(betainit)])) - (par[length(betainit)+1] * log(factorial(y))) - log(computez(xmat,par[1:length(betainit)],par[length(betainit)+1],max)))}
+   minusloglike <- function(par){-sum((y * (xmat %*% par[1:length(betainit)])) - (par[length(betainit)+1] * log(factorial(y))) - log(computez(exp(xmat %*% par[1:length(betainit)]),par[length(betainit)+1],max)))}
 
 # Determine the MLEs
    BetaNuEst <- nlminb(start=c(betainit,nuinit),minusloglike,lower = c(rep(-Inf,length(betainit)),0), upper = c(rep(Inf,length(betainit)),Inf))

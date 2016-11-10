@@ -23,7 +23,7 @@ makeCMPdata <- function(x,beta,nu){
      # start counter for y
        y <- 0
      # Compute Z-inverse.  This equals P(Y=0).
-       zinv <- 1/computez.lambdaest(lambda[i],nu,max=200)
+       zinv <- 1/computez(lambda[i],nu,max=200)
        py <- zinv
        while (py < unifvals[i]){
            y <- y+1

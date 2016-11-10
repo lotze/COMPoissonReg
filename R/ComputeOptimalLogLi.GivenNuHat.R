@@ -20,7 +20,7 @@ for(i in 1:length(y)){
 #for(i in 1:1){
 
 # Create -logL = -logf (because considering single observation) so that we take the minimum of this function (which equals the max of logL)
-   minuslogf <- function(par){-((y[i] * (xmat[i,] %*% par[1:length(betainit)])) - (nuhat * log(factorial(y[i]))) - log(computez(xmat[i,],par[1:length(betainit)],nuhat,max)))}
+   minuslogf <- function(par){-((y[i] * (xmat[i,] %*% par[1:length(betainit)])) - (nuhat * log(factorial(y[i]))) - log(computez(exp(xmat[i,] %*% par[1:length(betainit)]),nuhat,max)))}
 
 # Determine the MLEs
    BetaEstResult <- nlm(p=betainit,f=minuslogf)

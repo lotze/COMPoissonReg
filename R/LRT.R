@@ -11,7 +11,7 @@ LRT <- function(x,y,betahat0,betahat,nuhat,max){
 # Compute the test statistic
   teststat <- -2*((t(y)%*%(xmat %*% betahat0)) - sum(log(factorial(y))) - sum(exp(xmat %*% betahat0)) - 
               ((t(y)%*%(xmat %*% betahat)) - (nuhat*sum(log(factorial(y)))) - 
-              sum(log(computez(xmat,betahat,nuhat,max)))))
+              sum(log(computez(exp(xmat %*% betahat),nuhat,max)))))
 
 # Determine the associated p-value
   pvalue <- pchisq(teststat,df=1,lower.tail=FALSE)

@@ -8,9 +8,9 @@ weights <- function(x,beta,nu,max){
   xmat <- as.matrix(newx)
 
 # Compute the parts that comprise the weight functions
-  w1 <- computez.prodj2(xmat,beta,nu,max)
-  w2 <- computez.prodj(xmat,beta,nu,max)
-  w3 <- computez(xmat,beta,nu,max)
+  w1 <- computez.prodj2(exp(xmat %*% beta),nu,max)
+  w2 <- computez.prodj(exp(xmat %*% beta),nu,max)
+  w3 <- computez(exp(xmat %*% beta),nu,max)
 
   Ey2 <- w1/w3
   E2y <- (w2/w3)^2

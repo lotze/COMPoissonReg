@@ -25,7 +25,7 @@ iterct <- rep(0,length(y))
 
 for(i in 1:length(y)){
   # Create -logL = -logf (because considering single observation) so that we take the minimum of this function (which equals the max of logL)
-    minuslogf <- function(par){-((y[i] * (xmat[i,] %*% par[1:length(betainit)])) - (nuhat * log(factorial(y[i]))) - log(computez(xmat[i,],par[1:length(betainit)],nuhat,max)))}
+    minuslogf <- function(par){-((y[i] * (xmat[i,] %*% par[1:length(betainit)])) - (nuhat * log(factorial(y[i]))) - log(computez(exp(xmat[i,] %*% par[1:length(betainit)]),nuhat,max)))}
 
   # Determine the MLEs
     BetaEstResult <- nlm(p=betainit,f=minuslogf)
@@ -38,7 +38,7 @@ for(i in 1:length(y)){
 
 lambdahat <- exp(xmat %*% betahat)
 
-OptimalLogL.mu <- (y*log(lambdahat)) - (nuhat * log(factorial(y))) - log(computez.lambdaest(lambdahat,nuhat,max))
+OptimalLogL.mu <- (y*log(lambdahat)) - (nuhat * log(factorial(y))) - log(computez(lambdahat,nuhat,max))
 OptimalLogL.y <- OptimalLogLi
 
 d <- -2*(OptimalLogL.mu - OptimalLogL.y)

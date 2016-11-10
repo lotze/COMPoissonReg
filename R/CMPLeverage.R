@@ -13,8 +13,8 @@ CMPLeverage <- function(x,y,betahat,nuhat,max){
 
 #    and X matrix (in Appendix)
 
-   E.y <- computez.prodj(xmat,betahat,nuhat,max)/computez(xmat,betahat,nuhat,max)
-   E.logfacty <- computez.prodlogj(xmat,betahat,nuhat,max)/computez(xmat,betahat,nuhat,max)
+   E.y <- computez.prodj(exp(xmat %*% betahat),nuhat,max)/computez(exp(xmat %*% betahat),nuhat,max)
+   E.logfacty <- computez.prodlogj(exp(xmat %*% betahat),nuhat,max)/computez(exp(xmat %*% betahat),nuhat,max)
    extravec <- (-log(factorial(y)) + E.logfacty)/(y - E.y)
    curlyX.mat <- cbind(xmat,extravec)
 
