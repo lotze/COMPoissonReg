@@ -1,0 +1,6 @@
+chisq <- function(object, ...) UseMethod("chisq")
+leverage <- function(object, ...) UseMethod("leverage")
+nu <- function(object, ...) UseMethod("nu")
+pval <- function(object, ...) UseMethod("pval")
+sdev <- function (object, ...) UseMethod("sdev")
+parametric_bootstrap <- function(object, ...) UseMethod("parametric_bootstrap")

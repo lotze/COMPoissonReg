@@ -3,8 +3,9 @@ computez <- function(lambda, nu, max)
 {
 	n <- length(lambda)
 	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
 	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
-	log.res <- J*L - nu*lgamma(J+1)
+	log.res <- J*L - M*lgamma(J+1)
 	rowSums(exp(log.res))
 }
 
@@ -13,8 +14,9 @@ computez.prodj <- function(lambda, nu, max)
 {
 	n <- length(lambda)
 	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
 	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
-	log.res <- log(J) + J*L - nu*lgamma(J+1)
+	log.res <- log(J) + J*L - M*lgamma(J+1)
 	rowSums(exp(log.res))
 }
 
@@ -23,8 +25,9 @@ computez.prodj2 <- function(lambda, nu, max)
 {
 	n <- length(lambda)
 	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
 	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
-	log.res <- 2*log(J) + J*L - nu*lgamma(J+1)
+	log.res <- 2*log(J) + J*L - M*lgamma(J+1)
 	rowSums(exp(log.res))
 }
 
@@ -33,8 +36,9 @@ computez.prodjlogj <- function(lambda, nu, max)
 {
 	n <- length(lambda)
 	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
 	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
-	log.res <- log(J) + log(lgamma(J+1)) + J*L - nu*lgamma(J+1)
+	log.res <- log(J) + log(lgamma(J+1)) + J*L - M*lgamma(J+1)
 	rowSums(exp(log.res))
 }
 
@@ -43,8 +47,9 @@ computez.prodlogj <- function(lambda, nu, max)
 {
 	n <- length(lambda)
 	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
 	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
-	log.res <- log(lgamma(J+1)) + J*L - nu*lgamma(J+1)
+	log.res <- log(lgamma(J+1)) + J*L - M*lgamma(J+1)
 	rowSums(exp(log.res))
 }
 
@@ -53,8 +58,9 @@ computez.prodlogj2 <- function(lambda, nu, max)
 {
 	n <- length(lambda)
 	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
 	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
-	log.res <- 2*log(lgamma(J+1)) + J*L - nu*lgamma(J+1)
+	log.res <- 2*log(lgamma(J+1)) + J*L - M*lgamma(J+1)
 	rowSums(exp(log.res))
 }
 
