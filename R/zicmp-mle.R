@@ -20,18 +20,14 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 			zeta = par[1:d3 + d1 + d2]
 		)
 	}
-	
-	# The log-likelihood function
-	loglik <- function(par)
-	{
+
+	loglik <- function(par) {
 		theta <- tx(par)
 		lambda <- exp(X %*% theta$beta)
 		nu <- exp(S %*% theta$gamma)
 		p <- plogis(W %*% theta$zeta)
 		z <- computez(lambda, nu, max)
 
-		#sum(d.zi.compoisson(y, lambda, nu, p, log = TRUE))
-		#browser()
 		t(u) %*% log(p*z + (1-p)) + t(1 - u) %*% (log(1-p) +
 			y*log(lambda) - nu*lgamma(y+1)) - sum(log(z))
 	}
@@ -56,29 +52,18 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 			W, theta.hat$zeta, max = max)
 		V <- solve(FIM)
 	}
-	
+
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)
 	p.hat <- plogis(W %*% theta.hat$zeta)
 	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat, max)
 	mse <- mean( (y - mu.hat)^2 )
 
-	loglik <- res$objective
-
-	labels <- c(
-		sprintf("X:%s", colnames(X)),
-		sprintf("S:%s", colnames(S)),
-		sprintf("W:%s", colnames(W))
-	)
-
+	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
 
 	res <- list(theta.hat = theta.hat, V = V, H = H, opt.res = res,
-		elapsed.sec = elapsed.sec, loglik = loglik, n = n,
-		aic = -2*loglik + 2*qq,
-		bic = -2*loglik + qq*log(n),
-		mse = mse, labels = labels)
-	class(res) <- "fit.zicmp"
+		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
 	return(res)
 }
 
@@ -96,33 +81,4 @@ expected.y.reg <- function(X, W, beta, gamma, zeta, max)
 	nu <- exp(S %*% gamma)
 	p <- plogis(W %*% zeta)
 	expected.y(lambda, nu, p, max)
-}
-
-print.fit.zicmp <- function(fit.out)
-{
-	est <- unlist(fit.out$theta.hat)
-	se <- sqrt(diag(fit.out$V))
-	z.val <- est / se
-	p.val <- 2*(1 - pnorm(abs(est / se)))
-
-	cat("Fit for ZICMP model\n")
-	DF <- data.frame(
-		Estimate = round(est, 4),
-		SE = round(se, 4),
-		z.value = round(z.val, 6),
-		p.value = sprintf("%0.4g", p.val)
-	)
-
-	rownames(DF) <- fit.out$labels
-	print(DF)
-
-	cat("--\n")
-	cat(sprintf("Elapsed Sec: %0.2f   ", fit.out$elapsed.sec))
-	cat(sprintf("Degrees of freedom: %d\n", fit.out$n))
-	cat(sprintf("LogLik: %0.4f   ", fit.out$loglik))
-	cat(sprintf("AIC: %0.4f   ", fit.out$aic))
-	cat(sprintf("BIC: %0.4f   ", fit.out$bic))
-	cat(sprintf("MSE: %0.4f\n", fit.out$mse))
-	cat(sprintf("Converged status: %d   ", fit.out$opt.res$convergence))
-	cat(sprintf("Message: %s\n", fit.out$opt.res$message))
 }
