@@ -1,4 +1,4 @@
-zicmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
+zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 	beta.init = NULL, gamma.init = NULL, zeta.init = NULL, max = 100, ...)
 {
 	# Parse formula.lambda. This one should have the response.
@@ -133,24 +133,28 @@ sdev.zicmp <- function(object, ...)
 # TBD: Update
 chisq.zicmp <- function(object, ...)
 {
+	stop("TBD: Implement this function")
 	LRT(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$teststat[1,1]
 }
 
 # TBD: Update
 pval.zicmp <- function(object, ...)
 {
+	stop("TBD: Implement this function")
 	LRT(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$pvalue
 }
 
 # TBD: Update
 leverage.zicmp <- function(object, ...)
 {
+	stop("TBD: Implement this function")
 	CMPLeverage(object$predictors, object$response, object$coef, object$nu, object$max)
 }
 
 # TBD: Update
 deviance.zicmp <- function(object, ...)
 {
+	stop("TBD: Implement this function")
 	CMPDeviance(object$predictors, object$response, object$coef, object$nu, leverage.cmp(object), object$max)
 }
 
@@ -159,7 +163,7 @@ residuals.zicmp <- function(object, type = c("raw", "quantile"), ...)
 	lambda.hat <- exp(object$X %*% object$beta)
 	nu.hat <- exp(object$S %*% object$gamma)
 	p.hat <- plogis(object$W %*% object$zeta)
-	y.hat <- expected.y(lambda.hat, nu.hat, p.hat, object$max)
+	y.hat <- predict.zicmp(object)
 
 	type <- match.arg(type)
 	if (type == "raw") {
@@ -173,16 +177,29 @@ residuals.zicmp <- function(object, type = c("raw", "quantile"), ...)
 	return(as.numeric(res))
 }
 
-# TBD: Update
-predict.zicmp <- function(object, ...)
+predict.zicmp <- function(object, newdata = NULL, ...)
 {
-	newdata = list(...)[["newdata"]]
-	return(constantCMPfitsandresids(object$coef, object$nu, newdata[,object$x_names])$fit)
+	if (!is.null(newdata)) {
+		X <- newdata[,colnames(object$X)]
+		S <- newdata[,colnames(object$S)]
+		W <- newdata[,colnames(object$X)]
+	} else {
+		X <- object$X
+		S <- object$S
+		W <- object$W
+	}
+
+	lambda.hat <- exp(X %*% object$beta)
+	nu.hat <- exp(S %*% object$gamma)
+	p.hat <- plogis(W %*% object$zeta)
+	y.hat <- expected.y(lambda.hat, nu.hat, p.hat, object$max)
+	return(y.hat)
 }
 
 # TBD: Update
 parametric_bootstrap.zicmp <- function(object, ...)
 {
+	stop("TBD: Implement this function")
 	n = list(...)[["n"]]
 	if (is.null(n)) {
 		n = 1000

@@ -84,9 +84,17 @@ residuals.cmp <- function(object, type = c("raw", "quantile"), ...) {
 	return(as.numeric(res))
 }
 
-predict.cmp <- function(object, ...) {
-	newdata = list(...)[["newdata"]]
-	return(constantCMPfitsandresids(object$coef, object$nu, newdata[,object$x_names])$fit)
+predict.cmp <- function(object, newdata = NULL, ...)
+{
+	if (!is.null(newdata)) {
+		X <- newdata[,object$x_names]
+	} else {
+		X <- object$predictors
+	}
+
+	out <- constantCMPfitsandresids(object$coef, object$nu, X)
+	y.hat <- out$fit
+	return(y.hat)
 }
 
 parametric_bootstrap.cmp <- function(object, ...) {

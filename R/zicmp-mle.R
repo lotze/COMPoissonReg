@@ -39,9 +39,9 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 	H <- res$hessian
 
 	theta.hat <- list(
-		beta = beta.init,
-		gamma = gamma.init,
-		zeta = zeta.init
+		beta = res$par[1:d1],
+		gamma = res$par[1:d2 + d1],
+		zeta = res$par[1:d3 + d1 + d2]
 	)
 
 	warning("DID NOT PROGRAM FULL FIM YET")
