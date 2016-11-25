@@ -4,8 +4,8 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 	start <- Sys.time()
 	u <- as.integer(y == 0)
 	d1 <- ncol(X)
-	d2 <- ncol(W)
-	d3 <- ncol(S)
+	d2 <- ncol(S)
+	d3 <- ncol(W)
 	n <- length(y)
 	qq <- d1 + d2 + d3
 

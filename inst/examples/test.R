@@ -6,11 +6,15 @@ cmp.out <- cmp(formula = broken ~ transfers, data = freight)
 print(cmp.out)
 coef(cmp.out)
 nu(cmp.out)
+resid(cmp.out, type = "quantile")
+resid(cmp.out, type = "raw")
 
 zicmp.out <- zicmp(formula.lambda = broken ~ transfers, 
-	formula.nu = ~ transfers,
+#	formula.nu = ~ transfers,
 	formula.p = ~ transfers,
 	data = freight)
 print(zicmp.out)
 
-zicmp.out$opt.res$message
+resid(zicmp.out)
+resid(zicmp.out, type = "quantile")
+

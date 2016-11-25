@@ -8,5 +8,4 @@ Maintainer:  Thomas Lotze <thomas.lotze@thomaslotze.com>
 Description: Fit a CMP regression model to count data. The code provides functions for model estimation, dispersion testing, and diagnostics.
 License: GPL-2 | GPL-3
 LazyLoad: yes
-Depends:
-  stats
+Depends: stats, compoisson

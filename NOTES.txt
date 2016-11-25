@@ -1,7 +1,11 @@
-First things
+*** Overall ***
 o Thomas directly coded Rd files, so I will do that too
 o Try to make ZICMP conform to cmp.R on the interface
 o For Thomas' computational code, try to keep changes to the abs minimum 
+o Thomas does not support regression on nu, so maybe my initial version
+  should not either... but this can be future work.
+
+*** Specific Items ***
 
 compute-z functions
 o (DONE) We both have versions of these. We only need one version.
@@ -11,12 +15,13 @@ o We could consider programming some of these functions in Rcpp.
 
 Interface for ZICMP fitting function
 o We could add an optional ZI model term with "|" or with a 2nd formula.
+  But to unify the two models, all the add-on functions should be able to
+  handle the unified version.
 o Should we update Thomas' original function, or start a new one for ZI?
 
 FIM functions
 o (DONE) Consolidate Thomas' CMP FIM functions into one file
-o Add my file for ZICMP FIM functions
-o Extend my FIM to include regression on nu parameter
+o (DONE) Add my file for ZICMP FIM functions
 
 RQRES
 o Add my file for ZICMP, and write a function for CMP as well.
@@ -24,8 +29,8 @@ o Make it easier to call, maybe just pass in the fit object.
 o Maybe they could be piggybacked into the S3 residuals function
 
 Displaying results
-o Add proper print and summary functions for CMP fitting
-o Also include for ZICMP
+o (DONE) Add proper print and summary functions for CMP fitting
+o (DONE) Also include for ZICMP
 
 Test for Equidispersion
 o Might want to change from the S3 functions to "equi.test"

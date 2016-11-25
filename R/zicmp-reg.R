@@ -1,4 +1,4 @@
-zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
+zicmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	beta.init = NULL, gamma.init = NULL, zeta.init = NULL, max = 100, ...)
 {
 	# Parse formula.lambda. This one should have the response.
@@ -87,7 +87,7 @@ print.zicmp <- function(x, ...)
 	cat("Fit for ZICMP model\n")
 	s <- summary(x)
 	print(s$DF)
-	
+
 	cat("--\n")
 	cat(sprintf("Elapsed Sec: %0.2f   ", s$elapsed.sec))
 	cat(sprintf("Sample size: %d\n", s$n))
@@ -154,10 +154,23 @@ deviance.zicmp <- function(object, ...)
 	CMPDeviance(object$predictors, object$response, object$coef, object$nu, leverage.cmp(object), object$max)
 }
 
-# TBD: Update
-residuals.zicmp <- function(object, ...)
+residuals.zicmp <- function(object, type = c("raw", "quantile"), ...)
 {
-	return(object$response - predict(object, newdata=object$predictors))
+	lambda.hat <- exp(object$X %*% object$beta)
+	nu.hat <- exp(object$S %*% object$gamma)
+	p.hat <- plogis(object$W %*% object$zeta)
+	y.hat <- expected.y(lambda.hat, nu.hat, p.hat, object$max)
+
+	type <- match.arg(type)
+	if (type == "raw") {
+		res <- object$y - y.hat
+	} else if (type == "quantile") {
+		res <- rqres.zicmp(object$y, lambda.hat, nu.hat, p.hat)
+	} else {
+		stop("Unsupported residual type")
+	}
+
+	return(as.numeric(res))
 }
 
 # TBD: Update

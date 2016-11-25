@@ -66,8 +66,22 @@ deviance.cmp <- function(object, ...) {
 	CMPDeviance(object$predictors, object$response, object$coef, object$nu, leverage.cmp(object), object$max)
 }
 
-residuals.cmp <- function(object, ...) {
-	return(object$response - predict(object, newdata=object$predictors))
+residuals.cmp <- function(object, type = c("raw", "quantile"), ...) {
+	X <- as.matrix(cbind(intercept = 1, object$predictors))
+	lambda.hat <- exp(X %*% coef(object))
+	nu.hat <- nu(object)
+	y.hat <- predict(object, newdata = object$predictors)
+
+	type <- match.arg(type)
+	if (type == "raw") {
+		res <- object$response - y.hat
+	} else if (type == "quantile") {
+		res <- rqres.cmp(object$response, lambda = lambda.hat, nu = nu.hat)
+	} else {
+		stop("Unsupported residual type")
+	}
+
+	return(as.numeric(res))
 }
 
 predict.cmp <- function(object, ...) {
