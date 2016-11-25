@@ -27,6 +27,9 @@ cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
 	object_result$glm_coefficients = coef(initial_glm)
 	object_result$coefficients = internal_result$par[1:(num_pars -1)]
 	object_result$nu = internal_result$par[num_pars]
+	object_result$loglik <- -internal_result$objective
+	object_result$convergence <- internal_result$convergence
+	object_result$message <- internal_result$message
 
 	attr(object_result, "class") <- c("cmp", attr(object_result, "class"))
 	#class(object_result) = c("cmp", class(internal_result))

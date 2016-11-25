@@ -160,12 +160,14 @@ residuals.zicmp <- function(object, ...)
 	return(object$response - predict(object, newdata=object$predictors))
 }
 
+# TBD: Update
 predict.zicmp <- function(object, ...)
 {
 	newdata = list(...)[["newdata"]]
 	return(constantCMPfitsandresids(object$coef, object$nu, newdata[,object$x_names])$fit)
 }
 
+# TBD: Update
 parametric_bootstrap.zicmp <- function(object, ...)
 {
 	n = list(...)[["n"]]

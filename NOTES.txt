@@ -14,8 +14,9 @@ o We could add an optional ZI model term with "|" or with a 2nd formula.
 o Should we update Thomas' original function, or start a new one for ZI?
 
 FIM functions
-o Consolidate Thomas' CMP FIM functions into one file
+o (DONE) Consolidate Thomas' CMP FIM functions into one file
 o Add my file for ZICMP FIM functions
+o Extend my FIM to include regression on nu parameter
 
 RQRES
 o Add my file for ZICMP, and write a function for CMP as well.
