@@ -1,5 +1,8 @@
 library(COMPoissonReg)
 
+set.seed(1234)
+
+# ----- Generate the data -----
 n <- 400
 x <- runif(n, 1, 4)
 X <- model.matrix(~ x)
@@ -13,9 +16,11 @@ for (i in 1:n) {
 }
 dat <- data.frame(y = y, x = x)
 
+# ----- Fit ZICMP model -----
 cmp.out <- cmp(y ~ x, data = dat)
 print(cmp.out)
 
+# ----- Residuals -----
 res <- resid(cmp.out, type = "quantile")
 y.hat <- predict(cmp.out)
 qqnorm(res); qqline(res, lty = 2, col = "red", lwd = 2)

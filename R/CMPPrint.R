@@ -53,6 +53,6 @@ AIC.cmp <- function(object, k, ...)
 
 BIC.cmp <- function(object, ...)
 {
-	n <- length(object$y)
+	n <- length(object$response)
 	-2*object$loglik + log(n)*length(coef(object))
 }

@@ -44,14 +44,9 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 		zeta = res$par[1:d3 + d1 + d2]
 	)
 
-	warning("DID NOT PROGRAM FULL FIM YET")
-	V <- diag(qq)
-	if (FALSE) {
-		# TBD: Need to work out algebra and code with regression on nu
-		FIM <- fim.zicmp.reg(X, theta.hat$beta, S, theta.hat$gamma,
-			W, theta.hat$zeta, max = max)
-		V <- solve(FIM)
-	}
+	FIM <- fim.zicmp.reg(X, S, W, theta.hat$beta, theta.hat$gamma,
+		theta.hat$zeta, max = max)
+	V <- solve(FIM)
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)

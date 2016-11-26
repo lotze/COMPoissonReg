@@ -3,7 +3,6 @@ cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
 	if (is.null(initial.est)) {
 		initial.est = coef(initial_glm)
 	}
-	print(initial.est)
 
 	data_frame = model.frame(formula, ...)
 
