@@ -20,7 +20,8 @@ o We could add an optional ZI model term with "|" or with a 2nd formula.
   But to unify the two models, all the add-on functions should be able to
   handle the unified version.
 o We could unify the FIM functions.
-o Do we want to support a regression on nu for CMP? Maybe I should ask...
+o Do we want to support an optional regression on nu for CMP? Maybe I should
+  ask...
 
 FIM functions
 o (DONE) Consolidate Thomas' CMP FIM functions into one file

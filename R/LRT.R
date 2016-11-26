@@ -1,4 +1,4 @@
-LRT <- function(x,y,betahat0,betahat,nuhat,max){
+LRT.cmp <- function(x,y,betahat0,betahat,nuhat,max){
 # This function computes the -2logLRT value and associated p-value for significance
 
 #create vector of ones
@@ -39,6 +39,6 @@ LRT.zicmp <- function(y, X, S, W, beta.hat, gamma.hat, zeta.hat, beta0.hat, zeta
 	}
 
 	X2 <- 2*(sum(log(ff)) - sum(log(ff0)))
-	pvalue <- pchisq(X2, df = 1, lower.tail = FALSE)
+	pvalue <- pchisq(X2, df = length(gamma.hat), lower.tail = FALSE)
 	list(stat = X2, pvalue = pvalue)
 }

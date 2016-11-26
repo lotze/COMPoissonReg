@@ -50,11 +50,11 @@ sdev.cmp <- function(object, ...) {
 }
 
 chisq.cmp <- function(object, ...) {
-	LRT(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$teststat[1,1]
+	LRT.cmp(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$teststat[1,1]
 }
 
 pval.cmp <- function(object, ...) {
-	LRT(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$pvalue
+	LRT.cmp(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$pvalue
 }
 
 leverage.cmp <- function(object, ...) {
