@@ -17,16 +17,17 @@ Interface for ZICMP fitting function
 o We could add an optional ZI model term with "|" or with a 2nd formula.
   But to unify the two models, all the add-on functions should be able to
   handle the unified version.
-o Should we update Thomas' original function, or start a new one for ZI?
+o We could unify the FIM functions.
+o Do we want to support a regression on nu for CMP? Maybe I should ask...
 
 FIM functions
 o (DONE) Consolidate Thomas' CMP FIM functions into one file
 o (DONE) Add my file for ZICMP FIM functions
 
 RQRES
-o Add my file for ZICMP, and write a function for CMP as well.
-o Make it easier to call, maybe just pass in the fit object.
-o Maybe they could be piggybacked into the S3 residuals function
+o (DONE) Add my file for ZICMP, and write a function for CMP as well.
+o (DONE) Make it easier to call, maybe just pass in the fit object.
+o (DONE) Maybe they could be piggybacked into the S3 residuals function
 
 Displaying results
 o (DONE) Add proper print and summary functions for CMP fitting
