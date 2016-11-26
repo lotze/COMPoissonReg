@@ -58,7 +58,7 @@ summary.zicmp <- function(object, ...)
 	d1 <- ncol(object$X)
 	d2 <- ncol(object$S)
 	d3 <- ncol(object$W)
-	
+
 	est <- coef(object)
 	se <- sdev(object)
 	z.val <- est / se
@@ -168,7 +168,7 @@ print.zicmp <- function(x, ...)
 	cat(sprintf("Message: %s\n", s$opt.res$message))
 }
 
-logLik.zicmp <- function(object, k, ...)
+logLik.zicmp <- function(object, ...)
 {
 	object$loglik
 }
@@ -217,18 +217,44 @@ pval.zicmp <- function(object, ...)
 	return(res$pvalue)
 }
 
-# TBD: Update
+# TBD: discuss this. How to define leverage for ZICMP?
 leverage.zicmp <- function(object, ...)
 {
-	stop("TBD: Implement this function")
-	CMPLeverage(object$predictors, object$response, object$coef, object$nu, object$max)
+	stop("This function is not yet implemented")
 }
 
-# TBD: Update
 deviance.zicmp <- function(object, ...)
 {
-	stop("TBD: Implement this function")
-	CMPDeviance(object$predictors, object$response, object$coef, object$nu, leverage.cmp(object), object$max)
+	n <- length(y)
+	d1 <- ncol(object$X)
+	d2 <- ncol(object$S)
+	d3 <- ncol(object$W)
+
+	par.hat <- c(object$beta, object$gamma, object$zeta)
+	par.init <- par.hat
+	ll <- numeric(n)
+	ll.star <- numeric(n)
+
+	for(i in 1:n) {
+		loglik <- function(par){
+			lambda <- exp(X[i,] %*% par[1:d1])
+			nu <- exp(S[i,] %*% par[1:d2 + d1])
+			p <- plogis(W[i,] %*% par[1:d3 + d1 + d2])
+			d.zi.compoisson(y[i], lambda, nu, p, max = object$max, log = TRUE)
+		}
+
+		# Maximize loglik for ith obs
+		res <- optim(par.init, loglik, control = list(fnscale = -1))
+		ll.star[i] <- res$value
+
+		# loglik maximized over all the obs, evaluated for ith obs
+		ll[i] <- loglik(par.hat)
+	}
+
+	dev <- -2*(ll - ll.star)
+	leverage <- leverage(object)
+	cmpdev <- dev / sqrt(1 - leverage)
+	return(cmpdev)
 }
 
 residuals.zicmp <- function(object, type = c("raw", "quantile"), ...)
@@ -269,15 +295,42 @@ predict.zicmp <- function(object, newdata = NULL, ...)
 	return(y.hat)
 }
 
-# TBD: Update
-parametric_bootstrap.zicmp <- function(object, ...)
+parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps+1, ...)
 {
-	stop("TBD: Implement this function")
-	n = list(...)[["n"]]
-	if (is.null(n)) {
-		n = 1000
+	n <- length(object$y)
+	qq <- length(object$beta) + length(object$gamma) + length(object$zeta)
+	theta.boot <- matrix(NA, reps, qq)
+
+	lambda.hat <- exp(object$X %*% object$beta)
+	nu.hat <- exp(object$S %*% object$gamma)
+	p.hat <- plogis(object$W %*% object$zeta)
+
+	for (r in 1:reps) {
+		if (r %% report.period == 0) {
+			logger("Starting boostrap rep %d\n", r)
+		}
+
+		# Generate bootstrap samples of the full dataset using MLE
+		y.boot <- r.zi.compoisson(n, lambda.hat, nu.hat, p.hat)
+
+		# Take each of the bootstrap samples, along with the x matrix, and fit model
+		# to generate bootstrap estimates
+		tryCatch({
+			fit.boot <- fit.zicmp.reg(y.boot, object$X, object$S, object$W,
+				object$beta.init, object$gamma.init, object$zeta.init, object$max)
+			theta.boot[r,] <- unlist(fit.boot$theta.hat)
+		},
+		error = function(e) {
+			print(e)
+			theta.boot[r,] <- NA
+		})
 	}
-	bootstrap_results = as.data.frame(CMPParamBoot(x=object$predictors, object$glm_coefficients, betahat=object$coef, nuhat=object$nu, n=n)$CMPresult)
-	names(bootstrap_results) = c("(Intercept)",object$x_names,"nu",recursive=TRUE)
-	return(bootstrap_results)
+
+	colnames(theta.boot) <- c(
+		sprintf("X:%s", colnames(object$X)),
+		sprintf("S:%s", colnames(object$S)),
+		sprintf("W:%s", colnames(object$W))
+	)
+
+	return(theta.boot)
 }

@@ -3,7 +3,7 @@ library(COMPoissonReg)
 set.seed(1235)
 
 # ----- Generate the data -----
-n <- 800
+n <- 400
 x <- runif(n, 1, 4)
 X <- model.matrix(~ x)
 S <- matrix(1, n, 1)
@@ -34,3 +34,14 @@ plot(y.hat, res)
 # ----- Test for equidispersion -----
 chisq(zicmp.out)
 pval(zicmp.out)
+
+# ----- Deviance -----
+deviance(zicmp.out)
+
+# ----- Bootstrap -----
+boot.out <- parametric_bootstrap(zicmp.out, reps = 50, report.period = 10)
+hist(boot.out[,1])
+hist(boot.out[,2])
+hist(boot.out[,3])
+hist(boot.out[,4])
+hist(boot.out[,5])

@@ -26,24 +26,15 @@ y.hat <- predict(cmp.out)
 qqnorm(res); qqline(res, lty = 2, col = "red", lwd = 2)
 plot(y.hat, res)
 
-nu.hat <- cmp.out$nu
-beta.hat <- cmp.out$coefficients
-beta0.hat <- cmp.out$glm_coefficients
-LRT(X[,-1], y, beta0.hat, beta.hat, nu.hat, max = 1000)
+# ----- Test for equidispersion -----
+chisq(cmp.out)
+pval(cmp.out)
 
-z <- computez(lambda.hat, nu.hat, max = 100)
-z0 <- computez(lambda0.hat, nu = 1, max = 100)
-lambda.hat <- exp(X %*% beta.hat)
-lambda0.hat <- exp(X %*% beta0.hat)
+# ----- Deviance -----
+deviance(cmp.out)
 
-ff <- numeric(n)
-ff0 <- numeric(n)
-for (i in 1:n) {
-	ff[i] <- dcom(y[i], lambda.hat[i], nu.hat, z = z[i])
-	ff0[i] <- dcom(y[i], lambda0.hat[i], 1, z = z0[i])
-}
-X2 <- 2*(sum(log(ff)) - sum(log(ff0)))
-pvalue <- pchisq(X2, df = 1, lower.tail = FALSE)
-
-
-	
+# ----- Bootstrap -----
+boot.out <- parametric_bootstrap(cmp.out, reps = 50, report.period = 10)
+hist(boot.out[,1])
+hist(boot.out[,2])
+hist(boot.out[,3])

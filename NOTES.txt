@@ -1,42 +1,26 @@
-*** Overall ***
+*** Notes ***
 o Thomas directly coded Rd files, so I will do that too
 o Try to make ZICMP conform to cmp.R on the interface
 o For Thomas' computational code, try to keep changes to the abs minimum 
-o Thomas does not support regression on nu, so maybe my initial version
-  should not either... but this can be future work.
+
+*** Questions ***
+o Thomas does not support regression on nu, should we add support?
 o Not sure if I like the handling of the intercept (automatically added).
   Should I attempt to change it?
+o We could consider programming some of these functions in Rcpp. Especially
+  the function Z(lambda, nu), and maybe just the whole likelihood. But this
+  would make the package harder to maintain...
+o Should we attempt to merge the CMP functions into ZICMP? For example, the
+  FIM functions for ZICMP might be usable for CMP.
+o Do we want to support an optional regression on nu for CMP?
+o Should we merge chisq and pval into a single "equi.test" function?
+o Am I computing the deviance correctly?
 
-*** Specific Items ***
+*** Done ***
+o Combined the two versions of compute-z functions
+o Added ZICMP functions
+o Added print functions to nicely print CMP and ZICMP results
+o Added quantile residuals for both CMP and ZICMP
+o For ZICMP, if any of the formulas are intercept-only, show estimates for
+  non-regression parameters.
 
-compute-z functions
-o (DONE) We both have versions of these. We only need one version.
-o (DONE) Mine might be more general because they don't need to know about X
-o We could consider programming some of these functions in Rcpp.
-  Especially the function Z(lambda, nu), and maybe just the whole likelihood.
-
-Interface for ZICMP fitting function
-o We could add an optional ZI model term with "|" or with a 2nd formula.
-  But to unify the two models, all the add-on functions should be able to
-  handle the unified version.
-o We could unify the FIM functions.
-o Do we want to support an optional regression on nu for CMP? Maybe I should
-  ask...
-
-FIM functions
-o (DONE) Consolidate Thomas' CMP FIM functions into one file
-o (DONE) Add my file for ZICMP FIM functions
-
-RQRES
-o (DONE) Add my file for ZICMP, and write a function for CMP as well.
-o (DONE) Make it easier to call, maybe just pass in the fit object.
-o (DONE) Maybe they could be piggybacked into the S3 residuals function
-
-Displaying results
-o (DONE) Add proper print and summary functions for CMP fitting
-o (DONE) Also include for ZICMP
-
-Test for Equidispersion
-o Might want to change from the S3 functions to "equi.test"
-o Could return both p-value and test statistic from same function
-o Or we could just put ZICMP into this same framework

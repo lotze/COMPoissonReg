@@ -41,7 +41,7 @@ print.cmp <- function(x, ...)
 	cat(sprintf("Message: %s\n", s$opt.message))
 }
 
-logLik.cmp <- function(object, k, ...)
+logLik.cmp <- function(object, ...)
 {
 	object$loglik
 }

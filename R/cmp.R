@@ -96,12 +96,8 @@ predict.cmp <- function(object, newdata = NULL, ...)
 	return(y.hat)
 }
 
-parametric_bootstrap.cmp <- function(object, ...) {
-	n = list(...)[["n"]]
-	if (is.null(n)) {
-		n = 1000
-	}
-	bootstrap_results = as.data.frame(CMPParamBoot(x=object$predictors, object$glm_coefficients, betahat=object$coef, nuhat=object$nu, n=n)$CMPresult)
+parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1, ...) {
+	bootstrap_results = as.data.frame(CMPParamBoot(x=object$predictors, object$glm_coefficients, betahat=object$coef, nuhat=object$nu, n=reps, report.period=report.period)$CMPresult)
 	names(bootstrap_results) = c("(Intercept)",object$x_names,"nu",recursive=TRUE)
 	return(bootstrap_results)
 }
