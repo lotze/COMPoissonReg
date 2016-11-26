@@ -1,5 +1,5 @@
 # Warning: This should be improved for efficiency and convenience
-pcom <- function(x, lambda, nu)
+pcom <- function(x, lambda, nu, max = 100)
 {
 	if (length(x) > 1)
 		stop("Currently, x must be a single integer")
@@ -8,29 +8,33 @@ pcom <- function(x, lambda, nu)
 	if (length(length(nu)) > 1)
 		stop("Currently, nu must be a single number")
 
-	if (x < 0)
+	if (x < 0) {
 		return(0)
-	else
-		return(sum(dcom(0:floor(x), lambda, nu)))
+	}
+	else {
+		z <- computez(lambda, nu, max)
+		return(sum(dcom(0:floor(x), lambda, nu, z)))
+	}
 }
 
 r.zi.compoisson <- function(n, lambda, nu, p)
 {
 	x <- integer(n)
-	z <- rbinom(n, size = 1, prob = p)
-	x[z == 1] <- 0
-	x[z == 0] <- rcom(sum(z == 0), lambda, nu)
+	s <- rbinom(n, size = 1, prob = p)
+	x[s == 1] <- 0
+	x[s == 0] <- rcom(sum(s == 0), lambda, nu)
 	return(x)
 }
 
-d.zi.compoisson <- function(x, lambda, nu, p, log = FALSE)
+d.zi.compoisson <- function(x, lambda, nu, p, max = 100, log = FALSE)
 {
-	fx <- p*(x==0) + (1-p)*dcom(x, lambda, nu)
+	z <- computez(lambda, nu, max)
+	fx <- p*(x==0) + (1-p)*dcom(x, lambda, nu, z)
 	if (log) return(log(fx))
 	else return(fx)
 }
 
-p.zi.compoisson <- function(x, lambda, nu, p)
+p.zi.compoisson <- function(x, lambda, nu, p, max = 100)
 {
-	p*(x >= 0) + (1-p)*pcom(x, lambda, nu)
+	p*(x >= 0) + (1-p)*pcom(x, lambda, nu, max = 100)
 }

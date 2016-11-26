@@ -4,6 +4,8 @@ o Try to make ZICMP conform to cmp.R on the interface
 o For Thomas' computational code, try to keep changes to the abs minimum 
 o Thomas does not support regression on nu, so maybe my initial version
   should not either... but this can be future work.
+o Not sure if I like the handling of the intercept (automatically added).
+  Should I attempt to change it?
 
 *** Specific Items ***
 

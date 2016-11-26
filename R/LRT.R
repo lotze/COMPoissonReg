@@ -19,3 +19,26 @@ LRT <- function(x,y,betahat0,betahat,nuhat,max){
 return(list(teststat=teststat,pvalue=pvalue))
 }
 
+LRT.zicmp <- function(y, X, S, W, beta.hat, gamma.hat, zeta.hat, beta0.hat, zeta0.hat, max)
+{
+	n <- length(y)
+	ff <- numeric(n)
+	ff0 <- numeric(n)
+
+	lambda.hat <- exp(X %*% beta.hat)
+	nu.hat <- exp(S %*% gamma.hat)	
+	p.hat <- plogis(W %*% zeta.hat)
+
+	lambda0.hat <- exp(X %*% beta0.hat)
+	nu0.hat <- rep(1, n)
+	p0.hat <- plogis(W %*% zeta0.hat)
+
+	for (i in 1:n) {
+		ff[i] <- d.zi.compoisson(y[i], lambda.hat[i], nu.hat[i], p.hat[i], max)
+		ff0[i] <- d.zi.compoisson(y[i], lambda0.hat[i], nu0.hat[i], p0.hat[i], max)
+	}
+
+	X2 <- 2*(sum(log(ff)) - sum(log(ff0)))
+	pvalue <- pchisq(X2, df = 1, lower.tail = FALSE)
+	list(stat = X2, pvalue = pvalue)
+}

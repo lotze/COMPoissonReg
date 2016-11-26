@@ -32,7 +32,6 @@ zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 	res$W <- W
 	res$max <- max
 
-	# TBD: Maybe include this in output object instead...
 	res$beta.init <- beta.init
 	res$gamma.init <- gamma.init
 	res$zeta.init <- zeta.init
@@ -44,6 +43,7 @@ zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 	res$beta <- fit.out$theta.hat$beta
 	res$gamma <- fit.out$theta.hat$gamma
 	res$zeta <- fit.out$theta.hat$zeta
+	res$FIM <- fit.out$FIM
 	res$V <- fit.out$V
 	res$loglik <- fit.out$loglik
 	res$opt.res <- fit.out$opt.res
@@ -55,10 +55,15 @@ zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 
 summary.zicmp <- function(object, ...)
 {
+	d1 <- ncol(object$X)
+	d2 <- ncol(object$S)
+	d3 <- ncol(object$W)
+	
 	est <- coef(object)
 	se <- sdev(object)
 	z.val <- est / se
-	p.val <- 2*(1 - pnorm(abs(est / se)))
+	p.val <- 2*(1 - pnorm(abs(z.val)))
+	qq <- length(est)
 
 	DF <- data.frame(
 		Estimate = round(est, 4),
@@ -72,7 +77,65 @@ summary.zicmp <- function(object, ...)
 		sprintf("W:%s", colnames(object$W))
 	)
 
-	list(DF = DF,
+	# If X, S, or W are intercept only, compute results for non-regression parameters
+	DF.lambda <- NULL
+	DF.nu <- NULL
+	DF.p <- NULL
+	X.int <- matrix(1, n, 1)
+
+	is.intercept.only <- function(A, eps = 1e-12) {
+		prod(dim(A) == c(n,1)) & norm(A - 1, type = "F") < eps
+	}
+
+	if (is.intercept.only(object$X)) {
+		est <- exp(object$beta)
+		J <- c(exp(object$beta), rep(0, d2), rep(0, d3))
+		se <- sqrt(t(J) %*% object$V %*% J)
+		z.val <- est / se
+		p.val <- 2*(1 - pnorm(abs(z.val)))
+
+		DF.lambda <- data.frame(
+			Estimate = round(est, 4),
+			SE = round(se, 4),
+			z.value = round(z.val, 6),
+			p.value = sprintf("%0.4g", p.val)
+		)
+		rownames(DF.lambda) <- "lambda"
+	}
+
+	if (is.intercept.only(object$S)) {
+		est <- exp(object$gamma)
+		J <- c(rep(0, d1), exp(object$gamma), rep(0, d3))
+		se <- sqrt(t(J) %*% object$V %*% J)
+		z.val <- est / se
+		p.val <- 2*(1 - pnorm(abs(z.val)))
+
+		DF.nu <- data.frame(
+			Estimate = round(est, 4),
+			SE = round(se, 4),
+			z.value = round(z.val, 6),
+			p.value = sprintf("%0.4g", p.val)
+		)
+		rownames(DF.nu) <- "nu"
+	}
+
+	if (is.intercept.only(object$W)) {
+		est <- plogis(object$zeta)
+		J <- c(rep(0, d1), rep(0, d2), dlogis(object$zeta))
+		se <- sqrt(t(J) %*% object$V %*% J)
+		z.val <- est / se
+		p.val <- 2*(1 - pnorm(abs(z.val)))
+
+		DF.p <- data.frame(
+			Estimate = round(est, 4),
+			SE = round(se, 4),
+			z.value = round(z.val, 6),
+			p.value = sprintf("%0.4g", p.val)
+		)
+		rownames(DF.p) <- "p"
+	}
+
+	list(DF = DF, DF.lambda = DF.lambda, DF.nu = DF.nu, DF.p = DF.p,
 		n = length(object$y),
 		loglik = logLik(object),
 		aic = AIC(object),
@@ -87,6 +150,12 @@ print.zicmp <- function(x, ...)
 	cat("Fit for ZICMP model\n")
 	s <- summary(x)
 	print(s$DF)
+
+	if (!is.null(s$DF.lambda) || !is.null(s$DF.nu) || !is.null(s$DF.p)) {
+		cat("--\n")
+		cat("Estimates for non-regression parameters\n")
+		print(rbind(s$DF.lambda, s$DF.nu, s$DF.p))
+	}
 
 	cat("--\n")
 	cat(sprintf("Elapsed Sec: %0.2f   ", s$elapsed.sec))
@@ -130,18 +199,22 @@ sdev.zicmp <- function(object, ...)
 	sqrt(diag(object$V))
 }
 
-# TBD: Update
 chisq.zicmp <- function(object, ...)
 {
-	stop("TBD: Implement this function")
-	LRT(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$teststat[1,1]
+	fit0.out <- fit.zip.reg(object$y, object$X, object$W, beta.init = object$beta,
+		zeta.init = object$zeta, max = object$max)
+	res <- LRT.zicmp(object$y, object$X, object$S, object$W, object$beta, object$gamma,
+		object$zeta, fit0.out$theta.hat$beta, fit0.out$theta.hat$zeta, object$max)
+	return(res$stat)
 }
 
-# TBD: Update
 pval.zicmp <- function(object, ...)
 {
-	stop("TBD: Implement this function")
-	LRT(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$pvalue
+	fit0.out <- fit.zip.reg(object$y, object$X, object$W, beta.init = object$beta,
+		zeta.init = object$zeta, max = object$max)
+	res <- LRT.zicmp(object$y, object$X, object$S, object$W, object$beta, object$gamma,
+		object$zeta, fit0.out$theta.hat$beta, fit0.out$theta.hat$zeta, object$max)
+	return(res$pvalue)
 }
 
 # TBD: Update
