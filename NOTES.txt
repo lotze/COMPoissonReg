@@ -1,20 +1,21 @@
 *** Notes ***
-o Thomas directly coded Rd files, so I will do that too
-o Try to make ZICMP conform to cmp.R on the interface
-o For Thomas' computational code, try to keep changes to the abs minimum 
+o Thomas directly coded Rd files, so I will do that too. (No Roxygen2)
+o I tried to make the ZICMP interface conform to CMP's interface
+o For Thomas' computational code, try to keep changes to the minimum
+  until we've talked
 
 *** Questions ***
 o Thomas does not support regression on nu, should we add support?
-o Not sure if I like the handling of the intercept (automatically added).
-  Should I attempt to change it?
+o Should we attempt to change the handling of the intercept for CMP?
+  For example, I don't think a no-intercept model is possible now.
 o We could consider programming some of these functions in Rcpp. Especially
   the function Z(lambda, nu), and maybe just the whole likelihood. But this
   would make the package harder to maintain...
-o Should we attempt to merge the CMP functions into ZICMP? For example, the
+o Should we attempt to unify the CMP functions with ZICMP? For example, the
   FIM functions for ZICMP might be usable for CMP.
 o Do we want to support an optional regression on nu for CMP?
-o Should we merge chisq and pval into a single "equi.test" function?
-o Am I computing the deviance correctly?
+o Should we merge chisq and pval into a single "equidispersion.test" function?
+o Does leverage function make sense for ZICMP?
 
 *** Done ***
 o Combined the two versions of compute-z functions
