@@ -26,7 +26,7 @@ summary.cmp <- function(object, ...)
 
 print.cmp <- function(x, ...)
 {
-	cat("Fit for ZICMP model\n")
+	cat("Fit for CMP model\n")
 	s <- summary(x)
 	print(s$DF)
 

@@ -8,17 +8,14 @@ x <- runif(n, 1, 4)
 X <- model.matrix(~ x)
 S <- matrix(1, n, 1)
 W <- model.matrix(~ x)
-beta.true <- c(1, 0.75)
+beta.true <- c(1, 2)
 gamma.true <- 1
 zeta.true <- c(0.05, -1)
 lambda.true <- exp(X %*% beta.true)
 nu.true <- exp(S %*% gamma.true)
 p.true <- plogis(W %*% zeta.true)
 
-y <- numeric(n)
-for (i in 1:n) {
-	y[i] <- r.zi.compoisson(1, lambda = lambda.true[i], nu = nu.true[i], p = p.true[i])
-}
+y <- r.zi.compoisson(n, lambda = lambda.true, nu = nu.true, p = p.true)
 dat <- data.frame(y = y, x = x)
 
 # ----- Fit ZICMP model -----
