@@ -52,7 +52,7 @@ pcmp <- function(x, lambda, nu, max = 100, z = NULL)
 	return(Fx)
 }
 
-rzicmp <- function(n, lambda, nu, p)
+rzicmp <- function(n, lambda, nu, p, max = 100)
 {
 	if (length(lambda) == 1) { lambda <- rep(lambda,n) }
 	if (length(nu) == 1) { nu <- rep(nu,n) }
@@ -60,14 +60,7 @@ rzicmp <- function(n, lambda, nu, p)
 
 	x <- integer(n)
 	s <- rbinom(n, size = 1, prob = p)
-	x[s == 1] <- 0
-
-	# rcom gives warnings if we try to do a vectorized call.
-	# Just use a loop for now.
-	for (i in which(s == 0)) {
-		x[i] <- rcom(1, lambda[i], nu[i])
-	}
-
+	x[s == 0] <- rcmp(sum(s == 0), lambda[s == 0], nu[s == 0], max = max)
 	return(x)
 }
 
