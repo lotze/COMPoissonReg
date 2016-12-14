@@ -44,12 +44,9 @@ sdev.cmp <- function(object, ...) {
 	return(object$sdev)
 }
 
-chisq.cmp <- function(object, ...) {
-	LRT.cmp(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$teststat[1,1]
-}
-
-pval.cmp <- function(object, ...) {
-	LRT.cmp(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)$pvalue
+equitest.cmp <- function(object, ...) {
+	res <- LRT.cmp(object$predictors, object$response, object$glm_coefficients, object$coef, object$nu, object$max)
+	list(teststat = res$teststat[1,1], pvalue = res$pvalue)
 }
 
 leverage.cmp <- function(object, ...) {
@@ -70,7 +67,7 @@ residuals.cmp <- function(object, type = c("raw", "quantile"), ...) {
 	if (type == "raw") {
 		res <- object$response - y.hat
 	} else if (type == "quantile") {
-		res <- rqres.cmp(object$response, lambda = lambda.hat, nu = nu.hat)
+		res <- rqres.cmp(object$response, lambda = lambda.hat, nu = nu.hat, max = object$max)
 	} else {
 		stop("Unsupported residual type")
 	}
@@ -92,7 +89,7 @@ predict.cmp <- function(object, newdata = NULL, ...)
 }
 
 parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1, ...) {
-	bootstrap_results = as.data.frame(CMPParamBoot(x=object$predictors, object$glm_coefficients, betahat=object$coef, nuhat=object$nu, n=reps, report.period=report.period)$CMPresult)
+	bootstrap_results = as.data.frame(CMPParamBoot(x=object$predictors, object$glm_coefficients, betahat=object$coef, nuhat=object$nu, n=reps, report.period=report.period, max=object$max)$CMPresult)
 	names(bootstrap_results) = c(colnames(object$predictors), "nu", recursive=TRUE)
 	return(bootstrap_results)
 }

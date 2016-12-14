@@ -203,22 +203,13 @@ sdev.zicmp <- function(object, ...)
 	sqrt(diag(object$V))
 }
 
-chisq.zicmp <- function(object, ...)
+equitest.zicmp <- function(object, ...)
 {
 	fit0.out <- fit.zip.reg(object$y, object$X, object$W, beta.init = object$beta,
 		zeta.init = object$zeta, max = object$max)
 	res <- LRT.zicmp(object$y, object$X, object$S, object$W, object$beta, object$gamma,
 		object$zeta, fit0.out$theta.hat$beta, fit0.out$theta.hat$zeta, object$max)
-	return(res$stat)
-}
-
-pval.zicmp <- function(object, ...)
-{
-	fit0.out <- fit.zip.reg(object$y, object$X, object$W, beta.init = object$beta,
-		zeta.init = object$zeta, max = object$max)
-	res <- LRT.zicmp(object$y, object$X, object$S, object$W, object$beta, object$gamma,
-		object$zeta, fit0.out$theta.hat$beta, fit0.out$theta.hat$zeta, object$max)
-	return(res$pvalue)
+	list(teststat = res$stat, pvalue = res$pvalue)
 }
 
 # TBD: discuss this. How to define leverage for ZICMP?
@@ -272,7 +263,7 @@ residuals.zicmp <- function(object, type = c("raw", "quantile"), ...)
 	if (type == "raw") {
 		res <- object$y - y.hat
 	} else if (type == "quantile") {
-		res <- rqres.zicmp(object$y, lambda.hat, nu.hat, p.hat)
+		res <- rqres.zicmp(object$y, lambda.hat, nu.hat, p.hat, object$max)
 	} else {
 		stop("Unsupported residual type")
 	}
@@ -315,7 +306,7 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 		}
 
 		# Generate bootstrap samples of the full dataset using MLE
-		y.boot <- rzicmp(n, lambda.hat, nu.hat, p.hat)
+		y.boot <- rzicmp(n, lambda.hat, nu.hat, p.hat, max = object$max)
 
 		# Take each of the bootstrap samples, along with the x matrix, and fit model
 		# to generate bootstrap estimates

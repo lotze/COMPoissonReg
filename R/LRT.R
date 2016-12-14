@@ -26,8 +26,8 @@ LRT.zicmp <- function(y, X, S, W, beta.hat, gamma.hat, zeta.hat, beta0.hat, zeta
 	nu0.hat <- rep(1, n)
 	p0.hat <- plogis(W %*% zeta0.hat)
 
-	ff <- dzicmp(y, lambda.hat, nu.hat, p.hat, max)
-	ff0 <- dzicmp(y, lambda0.hat, nu0.hat, p0.hat, max)
+	ff <- dzicmp(y, lambda.hat, nu.hat, p.hat, max = max)
+	ff0 <- dzicmp(y, lambda0.hat, nu0.hat, p0.hat, max = max)
 
 	X2 <- 2*(sum(log(ff)) - sum(log(ff0)))
 	pvalue <- pchisq(X2, df = length(gamma.hat), lower.tail = FALSE)

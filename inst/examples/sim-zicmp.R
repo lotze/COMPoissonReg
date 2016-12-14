@@ -8,9 +8,10 @@ x <- runif(n, 1, 4)
 X <- model.matrix(~ x)
 S <- matrix(1, n, 1)
 W <- model.matrix(~ x)
-beta.true <- c(1, 2)
-gamma.true <- 1
-zeta.true <- c(0.05, -1)
+beta.true <- c(-1, 0.6)
+gamma.true <- -0.9
+# zeta.true <- c(-2.5, 0.3)
+zeta.true <- c(-5, 0.001)
 lambda.true <- exp(X %*% beta.true)
 nu.true <- exp(S %*% gamma.true)
 p.true <- plogis(W %*% zeta.true)
@@ -28,8 +29,7 @@ qqnorm(res); qqline(res, lty = 2, col = "red", lwd = 2)
 plot(y.hat, res)
 
 # ----- Test for equidispersion -----
-chisq(zicmp.out)
-pval(zicmp.out)
+equitest(zicmp.out)
 
 # ----- Deviance -----
 deviance(zicmp.out)

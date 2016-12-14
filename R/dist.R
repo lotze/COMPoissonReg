@@ -22,30 +22,28 @@ rcmp <- function(n, lambda, nu, max = 100)
 	z <- computez(lambda, nu, max)
 	
 	for (i in 1:n) {
-		px <- dcmp(x[i], lambda[i], nu[i], z = z[i])
+		px <- dcmp(x[i], lambda[i], nu[i], z = z[i], max = max)
 		while (px < u[i]) {
 			x[i] <- x[i] + 1
-			px <- px + dcmp(x[i], lambda[i], nu[i], z = z[i])
+			px <- px + dcmp(x[i], lambda[i], nu[i], z = z[i], max = max)
 		}
 	}
 
-	return(y)
+	return(x)
 }
 
-pcmp <- function(x, lambda, nu, max = 100, z = NULL)
+pcmp <- function(x, lambda, nu, max = 100)
 {
 	n <- length(x)
 	if (length(lambda) == 1) { lambda <- rep(lambda, n) }
 	if (length(nu) == 1) { nu <- rep(nu, n) }
 
-	if (is.null(z)) {
-		z <- computez(lambda, nu, max)
-	}
+	z <- computez(lambda, nu, max)
 	Fx <- numeric(n)
 
 	for (i in 1:n) {
 		if (x[i] > 0) {
-			Fx[i] <- sum(dcmp(0:floor(x[i]), lambda[i], nu[i], z[i]))
+			Fx[i] <- sum(dcmp(0:floor(x[i]), lambda[i], nu[i], z = z[i], max = max))
 		}
 	}
 
@@ -81,7 +79,8 @@ rzicmp <- function(n, lambda, nu, p, max = 100)
 
 	x <- integer(n)
 	s <- rbinom(n, size = 1, prob = p)
-	x[s == 0] <- rcmp(sum(s == 0), lambda[s == 0], nu[s == 0], max = max)
+	idx <- which(s == 0)
+	x[idx] <- rcmp(length(idx), lambda[idx], nu[idx], max = max)
 	return(x)
 }
 
@@ -90,7 +89,7 @@ dzicmp <- function(x, lambda, nu, p, z = NULL, max = 100, log = FALSE)
 	if (is.null(z)) {
 		z <- computez(lambda, nu, max)
 	}
-	fx <- p*(x==0) + (1-p)*dcmp(x, lambda, nu, z)
+	fx <- p*(x==0) + (1-p)*dcmp(x, lambda, nu, z = z, max = max)
 	if (log) return(log(fx))
 	else return(fx)
 }

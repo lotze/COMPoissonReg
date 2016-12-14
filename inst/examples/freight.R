@@ -8,6 +8,7 @@ coef(cmp.out)
 nu(cmp.out)
 resid(cmp.out, type = "quantile")
 resid(cmp.out, type = "raw")
+equitest(cmp.out)
 
 zicmp.out <- glm.zicmp(formula.lambda = broken ~ 1,
 	formula.nu = ~ 1,
@@ -17,4 +18,4 @@ print(zicmp.out)
 
 resid(zicmp.out)
 resid(zicmp.out, type = "quantile")
-
+equitest(zicmp.out)

@@ -1,4 +1,4 @@
-rqres.zicmp <- function(y, lambda, nu, p)
+rqres.zicmp <- function(y, lambda, nu, p, max = 100)
 {
 	n <- length(y)
 	if (length(lambda) == 1) lambda <- rep(lambda, n)
@@ -6,18 +6,18 @@ rqres.zicmp <- function(y, lambda, nu, p)
 	if (length(p) == 1) p <- rep(p, n)
 
 	F <- function(y) {
-		pzicmp(y, lambda, nu, p)
+		pzicmp(y, lambda, nu, p, max = max)
 	}
 	rqres(y, F)
 }
 
-rqres.cmp <- function(y, lambda, nu)
+rqres.cmp <- function(y, lambda, nu, max = 100)
 {
 	n <- length(y)
 	if (length(lambda) == 1) lambda <- rep(lambda, n)
 
 	F <- function(y) {
-		pcmp(y, lambda, nu)
+		pcmp(y, lambda, nu, max = max)
 	}
 	rqres(y, F)
 }
@@ -31,3 +31,4 @@ rqres <- function(y, F, eps = 1e-6)
 	qres <- qnorm(u)
 	return(qres)
 }
+
