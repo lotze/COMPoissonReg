@@ -1,4 +1,4 @@
-cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
+glm.cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
 	initial_glm = glm(formula, family='poisson', ...)
 	if (is.null(initial.est)) {
 		initial.est = coef(initial_glm)

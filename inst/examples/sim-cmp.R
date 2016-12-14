@@ -9,15 +9,11 @@ X <- model.matrix(~ x)
 beta.true <- c(1, 0.5)
 lambda.true <- exp(X %*% beta.true)
 nu.true <- 0.75
-
-y <- numeric(n)
-for (i in 1:n) {
-	y[i] <- rcom(1, lambda = lambda.true[i], nu = nu.true)
-}
+y <- rcmp(n, lambda = lambda.true, nu = nu.true)
 dat <- data.frame(y = y, x = x)
 
 # ----- Fit ZICMP model -----
-cmp.out <- cmp(y ~ x, data = dat)
+cmp.out <- glm.cmp(y ~ x, data = dat)
 print(cmp.out)
 
 # ----- Residuals -----

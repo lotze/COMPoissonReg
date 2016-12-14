@@ -1,4 +1,4 @@
-zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
+glm.zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 	beta.init = NULL, gamma.init = NULL, zeta.init = NULL, max = 100, ...)
 {
 	# Parse formula.lambda. This one should have the response.

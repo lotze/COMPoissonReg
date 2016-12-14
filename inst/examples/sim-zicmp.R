@@ -14,12 +14,11 @@ zeta.true <- c(0.05, -1)
 lambda.true <- exp(X %*% beta.true)
 nu.true <- exp(S %*% gamma.true)
 p.true <- plogis(W %*% zeta.true)
-
-y <- r.zi.compoisson(n, lambda = lambda.true, nu = nu.true, p = p.true)
+y <- rzicmp(n, lambda = lambda.true, nu = nu.true, p = p.true)
 dat <- data.frame(y = y, x = x)
 
 # ----- Fit ZICMP model -----
-zicmp.out <- zicmp(y ~ x, formula.nu = ~ 1, formula.p = ~ x, data = dat)
+zicmp.out <- glm.zicmp(y ~ x, formula.nu = ~ 1, formula.p = ~ x, data = dat)
 print(zicmp.out)
 
 # ----- Residuals -----
