@@ -8,7 +8,7 @@ rqres.zicmp <- function(y, lambda, nu, p)
 	F <- function(y) {
 		ret <- numeric(n)
 		for (i in 1:n) {
-			ret[i] <- p.zi.compoisson(y[i], lambda[i], nu[i], p[i])
+			ret[i] <- pzicmp(y[i], lambda[i], nu[i], p[i])
 		}
 		return(ret)
 	}
@@ -23,7 +23,7 @@ rqres.cmp <- function(y, lambda, nu)
 	F <- function(y) {
 		ret <- numeric(n)
 		for (i in 1:n) {
-			ret[i] <- pcom(y[i], lambda[i], nu)
+			ret[i] <- pcmp(y[i], lambda[i], nu)
 		}
 		return(ret)
 	}

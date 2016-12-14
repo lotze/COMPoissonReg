@@ -240,7 +240,7 @@ deviance.zicmp <- function(object, ...)
 			lambda <- exp(X[i,] %*% par[1:d1])
 			nu <- exp(S[i,] %*% par[1:d2 + d1])
 			p <- plogis(W[i,] %*% par[1:d3 + d1 + d2])
-			d.zi.compoisson(y[i], lambda, nu, p, max = object$max, log = TRUE)
+			dzicmp(y[i], lambda, nu, p, max = object$max, log = TRUE)
 		}
 
 		# Maximize loglik for ith obs
@@ -311,7 +311,7 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 		}
 
 		# Generate bootstrap samples of the full dataset using MLE
-		y.boot <- r.zi.compoisson(n, lambda.hat, nu.hat, p.hat)
+		y.boot <- rzicmp(n, lambda.hat, nu.hat, p.hat)
 
 		# Take each of the bootstrap samples, along with the x matrix, and fit model
 		# to generate bootstrap estimates
