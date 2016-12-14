@@ -11,7 +11,7 @@ summary.cmp <- function(object, ...)
 		z.value = round(z.val, 6),
 		p.value = sprintf("%0.4g", p.val)
 	)
-	rownames(DF) <- c("X:Intercept", sprintf("X:%s", object$x_names), "nu")
+	rownames(DF) <- c(sprintf("X:%s", colnames(object$predictors)), "nu")
 
 	list(DF = DF,
 		n = nrow(object$predictors),
@@ -56,3 +56,4 @@ BIC.cmp <- function(object, ...)
 	n <- length(object$response)
 	-2*object$loglik + log(n)*length(coef(object))
 }
+

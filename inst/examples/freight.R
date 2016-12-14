@@ -9,9 +9,9 @@ nu(cmp.out)
 resid(cmp.out, type = "quantile")
 resid(cmp.out, type = "raw")
 
-zicmp.out <- glm.zicmp(formula.lambda = broken ~ transfers, 
-#	formula.nu = ~ transfers,
-	formula.p = ~ transfers,
+zicmp.out <- glm.zicmp(formula.lambda = broken ~ 1,
+	formula.nu = ~ 1,
+	formula.p = ~ 1,
 	data = freight)
 print(zicmp.out)
 

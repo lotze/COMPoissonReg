@@ -8,24 +8,14 @@ CMPDeviance <- function(x,y,betahat,nuhat,leverage,max = 150){
 # nuhat = COM-Poisson estimate for dispersion parameter
 # max = maximum number used to approximate infinite sum calculation
 
-
-#  create vector of ones
-   if(is.matrix(x)==TRUE || is.data.frame(x) == TRUE) {onevec <- rep(1,length(x[,1]))} else onevec <- rep(1,length(x))
-
-#  create real X matrix, namely where 1st col is vector of 1s to incorporate beta0 effect
-   newx <- cbind(onevec,x)
-   xmat <- as.matrix(newx)
-
-
 #### Compute optimal log likelihood value for given nu-hat value
-
 betainit <- betahat
 OptimalLogLi <- rep(0,length(y))
 iterct <- rep(0,length(y))
 
 for(i in 1:length(y)){
   # Create -logL = -logf (because considering single observation) so that we take the minimum of this function (which equals the max of logL)
-    minuslogf <- function(par){-((y[i] * (xmat[i,] %*% par[1:length(betainit)])) - (nuhat * log(factorial(y[i]))) - log(computez(exp(xmat[i,] %*% par[1:length(betainit)]),nuhat,max)))}
+    minuslogf <- function(par){-((y[i] * (x[i,] %*% par[1:length(betainit)])) - (nuhat * log(factorial(y[i]))) - log(computez(exp(x[i,] %*% par[1:length(betainit)]),nuhat,max)))}
 
   # Determine the MLEs
     BetaEstResult <- nlm(p=betainit,f=minuslogf)
@@ -36,7 +26,7 @@ for(i in 1:length(y)){
 #### Compute exact deviances
 
 
-lambdahat <- exp(xmat %*% betahat)
+lambdahat <- exp(x %*% betahat)
 
 OptimalLogL.mu <- (y*log(lambdahat)) - (nuhat * log(factorial(y))) - log(computez(lambdahat,nuhat,max))
 OptimalLogL.y <- OptimalLogLi

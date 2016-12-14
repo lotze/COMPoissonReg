@@ -1,17 +1,10 @@
 LRT.cmp <- function(x,y,betahat0,betahat,nuhat,max){
 # This function computes the -2logLRT value and associated p-value for significance
 
-#create vector of ones
-  if(is.matrix(x)==TRUE || is.data.frame(x) == TRUE) {onevec <- rep(1,length(x[,1]))} else onevec <- rep(1,length(x)) 
-
-#create real X matrix, namely where 1st col is vector of 1s to incorporate beta0 effect
-  newx <- cbind(onevec,x) 
-  xmat <- as.matrix(newx)
-
 # Compute the test statistic
-  teststat <- -2*((t(y)%*%(xmat %*% betahat0)) - sum(log(factorial(y))) - sum(exp(xmat %*% betahat0)) - 
-              ((t(y)%*%(xmat %*% betahat)) - (nuhat*sum(log(factorial(y)))) - 
-              sum(log(computez(exp(xmat %*% betahat),nuhat,max)))))
+  teststat <- -2*((t(y)%*%(x %*% betahat0)) - sum(lgamma(y+1)) - sum(exp(x %*% betahat0)) - 
+              ((t(y)%*%(x %*% betahat)) - (nuhat*sum(lgamma(y+1))) - 
+              sum(log(computez(exp(x %*% betahat),nuhat,max)))))
 
 # Determine the associated p-value
   pvalue <- pchisq(teststat,df=1,lower.tail=FALSE)
@@ -33,10 +26,8 @@ LRT.zicmp <- function(y, X, S, W, beta.hat, gamma.hat, zeta.hat, beta0.hat, zeta
 	nu0.hat <- rep(1, n)
 	p0.hat <- plogis(W %*% zeta0.hat)
 
-	for (i in 1:n) {
-		ff[i] <- d.zi.compoisson(y[i], lambda.hat[i], nu.hat[i], p.hat[i], max)
-		ff0[i] <- d.zi.compoisson(y[i], lambda0.hat[i], nu0.hat[i], p0.hat[i], max)
-	}
+	ff <- dzicmp(y, lambda.hat, nu.hat, p.hat, max)
+	ff0 <- dzicmp(y, lambda0.hat, nu0.hat, p0.hat, max)
 
 	X2 <- 2*(sum(log(ff)) - sum(log(ff0)))
 	pvalue <- pchisq(X2, df = length(gamma.hat), lower.tail = FALSE)

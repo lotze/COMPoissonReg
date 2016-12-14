@@ -4,19 +4,15 @@ glm.cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
 		initial.est = coef(initial_glm)
 	}
 
-	data_frame = model.frame(formula, ...)
-
-	response_name = names(data_frame)[1]
-	x_names = names(data_frame)[-1]
+	# Parse formula
+	mf <- model.frame(formula, ...)
+	y <- model.response(mf)
+	X <- model.matrix(formula, mf)
 
 	object_result = list()
 	object_result$formula = formula
-	object_result$response_name = response_name
-	object_result$x_names = x_names
-	object_result$response = data_frame[,response_name]
-	object_result$predictors = as.data.frame(data_frame[,x_names])
-	names(object_result$predictors) = x_names
-
+	object_result$response = y
+	object_result$predictors = X
 	object_result$max = max
 
 	internal_result = ComputeBetasAndNuHat(object_result$predictors, object_result$response, betainit=initial.est, nuinit=nuinit, max=object_result$max)
@@ -31,7 +27,6 @@ glm.cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
 	object_result$message <- internal_result$message
 
 	attr(object_result, "class") <- c("cmp", attr(object_result, "class"))
-	#class(object_result) = c("cmp", class(internal_result))
 	return(object_result)
 }
 
@@ -45,7 +40,7 @@ nu.cmp <- function(object, ...) {
 
 sdev.cmp <- function(object, ...) {
 	object$sdev <- CMPStdErrors(object$predictors, object$coef, object$nu, max=object$max)
-	names(object$sdev) = c("(Intercept)",object$x_names, "nu")
+	names(object$sdev) = c(colnames(object$predictors), "nu")
 	return(object$sdev)
 }
 
@@ -66,7 +61,7 @@ deviance.cmp <- function(object, ...) {
 }
 
 residuals.cmp <- function(object, type = c("raw", "quantile"), ...) {
-	X <- as.matrix(cbind(intercept = 1, object$predictors))
+	X <- object$predictors
 	lambda.hat <- exp(X %*% coef(object))
 	nu.hat <- nu(object)
 	y.hat <- predict(object, newdata = object$predictors)
@@ -86,7 +81,7 @@ residuals.cmp <- function(object, type = c("raw", "quantile"), ...) {
 predict.cmp <- function(object, newdata = NULL, ...)
 {
 	if (!is.null(newdata)) {
-		X <- newdata[,object$x_names]
+		X <- newdata[,colnames(object$predictors)]
 	} else {
 		X <- object$predictors
 	}
@@ -98,6 +93,6 @@ predict.cmp <- function(object, newdata = NULL, ...)
 
 parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1, ...) {
 	bootstrap_results = as.data.frame(CMPParamBoot(x=object$predictors, object$glm_coefficients, betahat=object$coef, nuhat=object$nu, n=reps, report.period=report.period)$CMPresult)
-	names(bootstrap_results) = c("(Intercept)",object$x_names,"nu",recursive=TRUE)
+	names(bootstrap_results) = c(colnames(object$predictors), "nu", recursive=TRUE)
 	return(bootstrap_results)
 }

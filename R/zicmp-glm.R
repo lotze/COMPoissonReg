@@ -7,6 +7,9 @@ glm.zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 	X <- model.matrix(formula.lambda, mf)
 	d1 <- ncol(X)
 
+	if (is.null(formula.nu)) { formula.nu <- ~ 1 }
+	if (is.null(formula.p)) { formula.p <- ~ 1 }
+	
 	# Parse formula.nu
 	mf <- model.frame(formula.nu, ...)
 	S <- model.matrix(formula.nu, mf)
@@ -55,6 +58,7 @@ glm.zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 
 summary.zicmp <- function(object, ...)
 {
+	n <- nrow(object$X)
 	d1 <- ncol(object$X)
 	d2 <- ncol(object$S)
 	d3 <- ncol(object$W)
@@ -334,3 +338,4 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 
 	return(theta.boot)
 }
+

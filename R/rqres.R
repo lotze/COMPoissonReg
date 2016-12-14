@@ -6,11 +6,7 @@ rqres.zicmp <- function(y, lambda, nu, p)
 	if (length(p) == 1) p <- rep(p, n)
 
 	F <- function(y) {
-		ret <- numeric(n)
-		for (i in 1:n) {
-			ret[i] <- pzicmp(y[i], lambda[i], nu[i], p[i])
-		}
-		return(ret)
+		pzicmp(y, lambda, nu, p)
 	}
 	rqres(y, F)
 }
@@ -21,11 +17,7 @@ rqres.cmp <- function(y, lambda, nu)
 	if (length(lambda) == 1) lambda <- rep(lambda, n)
 
 	F <- function(y) {
-		ret <- numeric(n)
-		for (i in 1:n) {
-			ret[i] <- pcmp(y[i], lambda[i], nu)
-		}
-		return(ret)
+		pcmp(y, lambda, nu)
 	}
 	rqres(y, F)
 }
