@@ -9,43 +9,45 @@
 \alias{predict.cmp}
 \alias{residuals.cmp}
 
-\title{Functions to estimate COM-Poisson model parameters (betas and nu)}
-\description{ Estimates maximum likelihood estimates for betas and nu using nlminb. }
+\title{Functions to fit Zero-Inflated COM-Poisson model}
+\description{ Compute maximum likelihood estimates for parameters using optim. }
 
 \usage{
-	glm.cmp(formula, initial.est = NULL, nuinit = 1, max = 100, ...)
+	glm.zicmp(formula.lambda, formula.nu = NULL, formula.p = NULL,
+        beta.init = NULL, gamma.init = NULL, zeta.init = NULL, max = 100, ...)
 
-	\method{AIC}{cmp}(object, ..., k = 2)
-	\method{BIC}{cmp}(object, ...)
-	\method{coef}{cmp}(object, ...)
-	\method{deviance}{cmp}(object, ...)
-	\method{equitest}{cmp}(object, ...)
-	\method{leverage}{cmp}(object, ...)
-	\method{logLik}{cmp}(object, ...)
-	\method{nu}{cmp}(object, ...)
-	\method{parametric_bootstrap}{cmp}(object, ...)
-	\method{predict}{cmp}(object, ...)
-	\method{print}{cmp}(x, ...)
-	\method{residuals}{cmp}(object, type = c("raw", "quantile"), ...)
-	\method{sdev}{cmp}(object, ...)
-	\method{summary}{cmp}(object, ...)
+	\method{AIC}{zicmp}(object, ..., k = 2)
+	\method{BIC}{zicmp}(object, ...)
+	\method{coef}{zicmp}(object, ...)
+	\method{deviance}{zicmp}(object, ...)
+	\method{equitest}{zicmp}(object, ...)
+	\method{leverage}{zicmp}(object, ...)
+	\method{logLik}{zicmp}(object, ...)
+	\method{nu}{zicmp}(object, ...)
+	\method{parametric_bootstrap}{zicmp}(object, ...)
+	\method{predict}{zicmp}(object, ...)
+	\method{print}{zicmp}(x, ...)
+	\method{residuals}{zicmp}(object, type = c("raw", "quantile"), ...)
+	\method{sdev}{zicmp}(object, ...)
+	\method{summary}{zicmp}(object, ...)
 }
 
 \arguments{
-  \item{formula}{formula for the COM-Poisson model}
-  \item{initial.est}{initial vector of betas, b0_1, ..., b0_p; if NULL, estimated using Poisson GLM}
-  \item{nuinit}{initial value for nu}
-  \item{max}{maximum number to use for truncating infinite sums}
+  \item{formula.lambda}{regression formula linked to \code{log(lambda)}}
+  \item{formula.nu}{regression formula linked to \code{log(nu)}. If NULL, is taken to be intercept only.}
+  \item{formula.p}{regression formula linked to \code{logit(p)}. If NULL, is taken to be intercept only.}
+  \item{beta.init}{initial values for regression coefficients of \code{lambda}.}
+  \item{gamma.init}{initial values for regression coefficients of \code{nu}.}
+  \item{zeta.init}{initial values for regression coefficients of \code{p}.}
+  \item{max}{maximum number to use for truncating infinite sums.}
   \item{...}{other model parameters, such as data}
-  \item{object}{object of type 'cmp'}
-  \item{x}{object of type 'cmp'}
-}
-\details{
-  \code{glm.cmp} finds the maximum likelihood estimates for the COM-Poisson estimators (betas and nu) using the function ComputeBetasAndNuHat.
+  \item{object}{object of type 'zicmp'}
+  \item{x}{object of type 'zicmp'}
 }
 
 \value{
- An object of class "cmp", from which the coefficients and other information can be computed.
+\code{glm.zicmp} produces an object of class "zicmp", from which
+coefficients and other information can be computed.
 }
 
 \references{
