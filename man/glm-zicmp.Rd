@@ -1,13 +1,20 @@
-\name{glm.cmp}
-\alias{glm.cmp}
-\alias{deviance.cmp}
-\alias{equitest.cmp}
-\alias{nu.cmp}
-\alias{sdev.cmp}
-\alias{leverage.cmp}
-\alias{parametric_bootstrap.cmp}
-\alias{predict.cmp}
-\alias{residuals.cmp}
+\name{glm.zicmp}
+\alias{AIC.zicmp}
+\alias{BIC.zicmp}
+\alias{coef.zicmp}
+\alias{deviance.zicmp}
+\alias{equitest.zicmp}
+\alias{glm.zicmp}
+\alias{leverage.zicmp}
+\alias{logLik.zicmp}
+\alias{nu.zicmp}
+\alias{parametric_bootstrap.zicmp}
+\alias{predict.zicmp}
+\alias{print.zicmp}
+\alias{residuals.zicmp}
+\alias{sdev.zicmp}
+\alias{summary.zicmp}
+
 
 \title{Functions to fit Zero-Inflated COM-Poisson model}
 \description{ Compute maximum likelihood estimates for parameters using optim. }
@@ -24,8 +31,8 @@
 	\method{leverage}{zicmp}(object, ...)
 	\method{logLik}{zicmp}(object, ...)
 	\method{nu}{zicmp}(object, ...)
-	\method{parametric_bootstrap}{zicmp}(object, ...)
-	\method{predict}{zicmp}(object, ...)
+	\method{parametric_bootstrap}{zicmp}(object, reps = 1000, report.period = reps + 1, ...)
+	\method{predict}{zicmp}(object, newdata = NULL, ...)
 	\method{print}{zicmp}(x, ...)
 	\method{residuals}{zicmp}(object, type = c("raw", "quantile"), ...)
 	\method{sdev}{zicmp}(object, ...)
@@ -41,8 +48,13 @@
   \item{zeta.init}{initial values for regression coefficients of \code{p}.}
   \item{max}{maximum number to use for truncating infinite sums.}
   \item{...}{other model parameters, such as data}
-  \item{object}{object of type 'zicmp'}
-  \item{x}{object of type 'zicmp'}
+  \item{object}{object of type 'zicmp'.}
+  \item{x}{object of type 'zicmp'.}
+  \item{k}{Penalty per parameter to be used in AIC calculation.}
+  \item{newdata}{New covariates to be used for prediction.}
+  \item{type}{Type of residual to be computed.}
+  \item{reps}{Number of bootstrap reps.}
+  \item{report.period}{Report progress every \code{report.period} reps.}
 }
 
 \value{
@@ -53,12 +65,15 @@ coefficients and other information can be computed.
 \references{
 Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
 Count Data. Annals of Applied Statistics, 4(2), 943-961.
+
+Kimberly F. Sellers and Andrew~M. Raim (2016). A Flexible Zero-Inflated Model
+to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
+68-80.
 }
 \author{Kimberly Sellers}
 
  \seealso{
        \code{\link{COMPoissonReg}}
-       \code{\link{ComputeBetasAndNuHat}}
      }
 
 \keyword{maximum likelihood estimation}

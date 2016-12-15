@@ -177,7 +177,7 @@ logLik.zicmp <- function(object, ...)
 	object$loglik
 }
 
-AIC.zicmp <- function(object, k, ...)
+AIC.zicmp <- function(object, ..., k = 2)
 {
 	-2*object$loglik + 2*length(coef(object))
 }
@@ -188,7 +188,7 @@ BIC.zicmp <- function(object, ...)
 	-2*object$loglik + log(n)*length(coef(object))
 }
 
-coef.zicmp <- function(object)
+coef.zicmp <- function(object, ...)
 {
 	c(object$beta, object$gamma, object$zeta)
 }
@@ -220,10 +220,14 @@ leverage.zicmp <- function(object, ...)
 
 deviance.zicmp <- function(object, ...)
 {
+	y <- object$y
+	X <- object$X
+	S <- object$S
+	W <- object$W
 	n <- length(y)
-	d1 <- ncol(object$X)
-	d2 <- ncol(object$S)
-	d3 <- ncol(object$W)
+	d1 <- ncol(X)
+	d2 <- ncol(S)
+	d3 <- ncol(W)
 
 	par.hat <- c(object$beta, object$gamma, object$zeta)
 	par.init <- par.hat

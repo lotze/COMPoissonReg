@@ -5,7 +5,9 @@
 \description{
   Generates n sample estimates for beta and nu.
 }
-\usage{ CMPParamBoot(x, poissonest, betahat, nuhat, n=1000) }
+\usage{ 
+CMPParamBoot(x, poissonest, betahat, nuhat, n=1000, report.period = n+1,
+	max = 100) }
 
 \arguments{
   \item{x}{explanatory variable data}
@@ -13,6 +15,8 @@
   \item{betahat}{COM-Poisson estimates from full data set}
   \item{nuhat}{COM-Poisson dispersion estimate from full data set}
   \item{n}{number of sample estimates to create}
+  \item{report.period}{Report progress every \code{report.period} iterations}
+  \item{max}{maximum number to use for truncating infinite sums}
 }
 
 \details{ CMPParamBoot generates n columns of simulated output

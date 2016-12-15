@@ -46,7 +46,7 @@ logLik.cmp <- function(object, ...)
 	object$loglik
 }
 
-AIC.cmp <- function(object, k, ...)
+AIC.cmp <- function(object, ..., k=2)
 {
 	-2*object$loglik + 2*length(coef(object))
 }

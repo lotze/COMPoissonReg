@@ -1,13 +1,19 @@
 \name{glm.cmp}
-\alias{glm.cmp}
+\alias{AIC.cmp}
+\alias{BIC.cmp}
+\alias{coef.cmp}
 \alias{deviance.cmp}
 \alias{equitest.cmp}
-\alias{nu.cmp}
-\alias{sdev.cmp}
+\alias{glm.cmp}
 \alias{leverage.cmp}
+\alias{logLik.cmp}
+\alias{nu.cmp}
 \alias{parametric_bootstrap.cmp}
 \alias{predict.cmp}
+\alias{print.cmp}
 \alias{residuals.cmp}
+\alias{sdev.cmp}
+\alias{summary.cmp}
 
 \title{Functions to estimate COM-Poisson model parameters (betas and nu)}
 \description{ Estimates maximum likelihood estimates for betas and nu using nlminb. }
@@ -23,8 +29,8 @@
 	\method{leverage}{cmp}(object, ...)
 	\method{logLik}{cmp}(object, ...)
 	\method{nu}{cmp}(object, ...)
-	\method{parametric_bootstrap}{cmp}(object, ...)
-	\method{predict}{cmp}(object, ...)
+	\method{parametric_bootstrap}{cmp}(object, reps = 1000, report.period = reps + 1, ...)
+	\method{predict}{cmp}(object, newdata = NULL, ...)
 	\method{print}{cmp}(x, ...)
 	\method{residuals}{cmp}(object, type = c("raw", "quantile"), ...)
 	\method{sdev}{cmp}(object, ...)
@@ -39,6 +45,11 @@
   \item{...}{other model parameters, such as data}
   \item{object}{object of type 'cmp'}
   \item{x}{object of type 'cmp'}
+  \item{k}{Penalty per parameter to be used in AIC calculation.}
+  \item{newdata}{New covariates to be used for prediction.}
+  \item{type}{Type of residual to be computed.}
+  \item{reps}{Number of bootstrap reps.}
+  \item{report.period}{Report progress every \code{report.period} reps.}
 }
 \details{
   \code{glm.cmp} finds the maximum likelihood estimates for the COM-Poisson estimators (betas and nu) using the function ComputeBetasAndNuHat.

@@ -30,7 +30,7 @@ glm.cmp <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
 	return(object_result)
 }
 
-coef.cmp <- function(object) {
+coef.cmp <- function(object, ...) {
 	return(object$coefficients)
 }
 
@@ -78,7 +78,12 @@ residuals.cmp <- function(object, type = c("raw", "quantile"), ...) {
 predict.cmp <- function(object, newdata = NULL, ...)
 {
 	if (!is.null(newdata)) {
-		X <- newdata[,colnames(object$predictors)]
+		# If any of the original models had an intercept added via model.matrix, they
+		# will have an "(Intercept)" column. Let's add an "(Intercept)" to newdata
+		# in case the user didn't make one.
+		newdata <- as.data.frame(newdata)
+        newdata$'(Intercept)' <- 1
+		X <- as.matrix(newdata[,colnames(object$predictors)])
 	} else {
 		X <- object$predictors
 	}

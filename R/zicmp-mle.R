@@ -127,7 +127,7 @@ expected.y <- function(lambda, nu, p, max)
 	(1-p) * lambda * dlogzdlambda	
 }
 
-expected.y.reg <- function(X, W, beta, gamma, zeta, max)
+expected.y.reg <- function(X, S, W, beta, gamma, zeta, max)
 {
 	lambda <- exp(X %*% beta)
 	nu <- exp(S %*% gamma)

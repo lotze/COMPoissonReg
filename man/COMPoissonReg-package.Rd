@@ -145,7 +145,7 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   plot(y.hat, res.quan)
 
   # Compute predictions on new data
-  new_data <- data.frame(EDUCATION = 1:20 %% 2, ANXIETY = seq(-3,3, length.out = 20))
+  new_data <- data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
   y.hat.new <- predict(zicmp.out, newdata=new_data)
   plot(y.hat.new)
 }
