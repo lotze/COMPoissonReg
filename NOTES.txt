@@ -1,3 +1,28 @@
+export(rzicmp)
+export(dzicmp)
+export(pzicmp)
+export(qzicmp)
+export(glm.zicmp)
+S3method(AIC, zicmp)
+S3method(BIC, zicmp)
+S3method(equitest, zicmp)
+S3method(coef, zicmp)
+S3method(deviance, zicmp)
+S3method(leverage, zicmp)
+S3method(logLik, zicmp)
+S3method(nu, zicmp)
+S3method(parametric_bootstrap, zicmp)
+S3method(predict, zicmp)
+S3method(print, zicmp)
+S3method(residuals, zicmp)
+S3method(sdev, zicmp)
+S3method(summary, zicmp)
+
+# Should we hide these?
+export(fim.zicmp)
+export(fim.zicmp.reg)
+
+
 *** Notes ***
 o Thomas directly coded Rd files, so I will do that too. (No Roxygen2)
 o I tried to make the ZICMP interface conform to CMP's interface
