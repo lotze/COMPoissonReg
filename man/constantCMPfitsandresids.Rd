@@ -24,7 +24,10 @@ Computes estimated fitted values, and associated residuals from a COM-Poisson re
    A numeric array of suitable size.
 } 
 
-\references{A Flexible Regression Model for Count Data, by Sellers & Shmueli, http://ssrn.com/abstract=1127359}
+\references{
+Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
+Count Data. Annals of Applied Statistics, 4(2), 943-961.
+}
 \author{Kimberly Sellers}
 
 \examples{ # Compute Poisson estimates

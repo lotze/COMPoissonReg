@@ -24,7 +24,10 @@ data to produce n estimates for beta and nu. }
   \item{CMPresult}{a matrix of beta and nu estimates containing n rows}
 }
 
-\references{A Flexible Regression Model for Count Data, by Sellers & Shmueli, http://ssrn.com/abstract=1127359}
+\references{
+Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
+Count Data. Annals of Applied Statistics, 4(2), 943-961.
+}
 \author{Kimberly Sellers}
 
 

@@ -1,9 +1,8 @@
-\name{cmp}
-\alias{cmp}
-\alias{chisq.cmp}
+\name{glm.cmp}
+\alias{glm.cmp}
 \alias{deviance.cmp}
+\alias{equitest.cmp}
 \alias{nu.cmp}
-\alias{pval.cmp}
 \alias{sdev.cmp}
 \alias{leverage.cmp}
 \alias{parametric_bootstrap.cmp}
@@ -14,16 +13,13 @@
 \description{ Estimates maximum likelihood estimates for betas and nu using nlminb. }
 
 \usage{
-	cmp(formula, initial.est=NULL, nuinit=1, max=100, ...)
+	glm.cmp(formula, initial.est=NULL, nuinit=1, max=100, ...)
 
 	## S3 function for class 'cmp'
 	\method{nu}{cmp}(object, ...)
 
 	## S3 function for class 'cmp'
-	\method{chisq}{cmp}(object, ...)
-
-	## S3 function for class 'cmp'
-	\method{pval}{cmp}(object, ...)
+	\method{equitest}{cmp}(object, ...)
 
 	## S3 function for class 'cmp'
 	\method{sdev}{cmp}(object, ...)
@@ -53,14 +49,17 @@
   \item{object}{object of type 'cmp'}
 }
 \details{
-  cmp finds the maximum likelihood estimates for the COM-Poisson estimators (betas and nu) using the function ComputeBetasAndNuHat.
+  \code{glm.cmp} finds the maximum likelihood estimates for the COM-Poisson estimators (betas and nu) using the function ComputeBetasAndNuHat.
 }
 
 \value{
  An object of class "cmp", from which the coefficients and other information can be computed.
 }
 
-\references{A Flexible Regression Model for Count Data, by Sellers & Shmueli, http://ssrn.com/abstract=1127359}
+\references{
+Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
+Count Data. Annals of Applied Statistics, 4(2), 943-961.
+}
 \author{Kimberly Sellers}
 
  \seealso{

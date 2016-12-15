@@ -20,7 +20,10 @@ ComputeBetasAndNuHat finds the maximum likelihood estimates for the COM-Poisson 
  Maximum likelihood estimates for betas and nu using constrained optimization (nlminb).
 }
 
-\references{A Flexible Regression Model for Count Data, by Sellers & Shmueli, http://ssrn.com/abstract=1127359}
+\references{
+Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
+Count Data. Annals of Applied Statistics, 4(2), 943-961.
+}
 \author{Kimberly Sellers}
 
 \keyword{maximum likelihood estimation}

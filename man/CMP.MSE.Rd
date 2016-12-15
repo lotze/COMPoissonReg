@@ -19,7 +19,10 @@ the matrix x and vector y.}
 the estimated residuals determined from a COM-Poisson regression relating
 the matrix x and vector y.}
 
-\references{A Flexible Regression Model for Count Data, by Sellers & Shmueli, http://ssrn.com/abstract=1127359}
+\references{
+Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
+Count Data. Annals of Applied Statistics, 4(2), 943-961.
+}
 \author{Kimberly Sellers}
 
 \seealso{CMPStdErrors}
