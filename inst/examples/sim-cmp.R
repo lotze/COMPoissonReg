@@ -23,8 +23,7 @@ qqnorm(res); qqline(res, lty = 2, col = "red", lwd = 2)
 plot(y.hat, res)
 
 # ----- Test for equidispersion -----
-chisq(cmp.out)
-pval(cmp.out)
+equitest(cmp.out)
 
 # ----- Deviance -----
 deviance(cmp.out)

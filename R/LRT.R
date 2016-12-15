@@ -19,7 +19,7 @@ LRT.zicmp <- function(y, X, S, W, beta.hat, gamma.hat, zeta.hat, beta0.hat, zeta
 	ff0 <- numeric(n)
 
 	lambda.hat <- exp(X %*% beta.hat)
-	nu.hat <- exp(S %*% gamma.hat)	
+	nu.hat <- exp(S %*% gamma.hat)
 	p.hat <- plogis(W %*% zeta.hat)
 
 	lambda0.hat <- exp(X %*% beta0.hat)
