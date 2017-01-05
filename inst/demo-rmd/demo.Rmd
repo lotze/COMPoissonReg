@@ -1,7 +1,7 @@
 ---
 title: "COMPoissonReg Demo"
 author: "Andrew Raim"
-date: "November 26, 2016"
+date: "January 5, 2017"
 output: pdf_document
 ---
 
@@ -19,19 +19,14 @@ X <- model.matrix(~ x)
 beta.true <- c(1, 0.5)
 lambda.true <- exp(X %*% beta.true)
 nu.true <- 0.75
-
-# compoisson::rcom doesn't seem to support vectorization
-y <- numeric(n)
-for (i in 1:n) {
-	y[i] <- rcom(1, lambda = lambda.true[i], nu = nu.true)
-}
+y <- rcmp(n, lambda = lambda.true, nu = nu.true)
 dat <- data.frame(y = y, x = x)
 ```
 
 Fit the model.
 
 ```{r}
-cmp.out <- cmp(y ~ x, data = dat)
+cmp.out <- glm.cmp(y ~ x, data = dat)
 print(cmp.out)
 ```
 
@@ -47,8 +42,7 @@ plot(y.hat, res)
 Run the test for equidispersion.
 
 ```{r, fig.width=4, fig.height=4}
-chisq(cmp.out)
-pval(cmp.out)
+equitest(cmp.out)
 ```
 
 ## Zero-Inflated COM Poisson Regression
@@ -76,14 +70,14 @@ lambda.true <- exp(X %*% beta.true)
 nu.true <- exp(S %*% gamma.true)
 p.true <- plogis(W %*% zeta.true)
 
-y <- r.zi.compoisson(n, lambda = lambda.true, nu = nu.true, p = p.true)
+y <- rzicmp(n, lambda = lambda.true, nu = nu.true, p = p.true)
 dat <- data.frame(y = y, x = x)
 ```
 
 Fit the model. The package notices that we specify only an intercept for $\nu$, and also displays an estimate for $\nu$ directly by using the appropriate transformation.
 
 ```{r}
-zicmp.out <- zicmp(y ~ x, formula.nu = ~ 1, formula.p = ~ x, data = dat)
+zicmp.out <- glm.zicmp(y ~ x, formula.nu = ~ 1, formula.p = ~ x, data = dat)
 print(zicmp.out)
 ```
 
@@ -99,6 +93,5 @@ plot(y.hat, res)
 Run the test for equidispersion.
 
 ```{r, fig.width=4, fig.height=4}
-chisq(zicmp.out)
-pval(zicmp.out)
+equitest(zicmp.out)
 ```
