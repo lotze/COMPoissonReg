@@ -1,61 +1,3 @@
-glm.zicmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
-	beta.init = NULL, gamma.init = NULL, zeta.init = NULL, max = 100, ...)
-{
-	# Parse formula.lambda. This one should have the response.
-	mf <- model.frame(formula.lambda, ...)
-	y <- model.response(mf)
-	X <- model.matrix(formula.lambda, mf)
-	d1 <- ncol(X)
-
-	if (is.null(formula.nu)) { formula.nu <- ~ 1 }
-	if (is.null(formula.p)) { formula.p <- ~ 1 }
-	
-	# Parse formula.nu
-	mf <- model.frame(formula.nu, ...)
-	S <- model.matrix(formula.nu, mf)
-	d2 <- ncol(S)
-
-	# Parse formula.p
-	mf <- model.frame(formula.p, ...)
-	W <- model.matrix(formula.p, mf)
-	d3 <- ncol(W)
-
-	initial.glm <- glm(formula.lambda, family='poisson', ...)
-	if (is.null(beta.init)) { beta.init <- coef(initial.glm) }
-	if (is.null(gamma.init)) { gamma.init <- rep(0, d2) }
-	if (is.null(zeta.init)) { zeta.init <- rep(0, d3) }
-
-	res <- list()
-	res$formula.lambda <- formula.lambda
-	res$formula.nu <- formula.nu
-	res$formula.p <- formula.p
-	res$y <- y
-	res$X <- X
-	res$S <- S
-	res$W <- W
-	res$max <- max
-
-	res$beta.init <- beta.init
-	res$gamma.init <- gamma.init
-	res$zeta.init <- zeta.init
-
-	fit.out <- fit.zicmp.reg(res$y, res$X, res$S, res$W, beta.init = beta.init,
-		gamma.init = gamma.init, zeta.init = zeta.init, max = res$max)
-
-	res$beta.glm <- coef(initial.glm)
-	res$beta <- fit.out$theta.hat$beta
-	res$gamma <- fit.out$theta.hat$gamma
-	res$zeta <- fit.out$theta.hat$zeta
-	res$FIM <- fit.out$FIM
-	res$V <- fit.out$V
-	res$loglik <- fit.out$loglik
-	res$opt.res <- fit.out$opt.res
-	res$elapsed.sec <- fit.out$elapsed.sec
-
-	attr(res, "class") <- c("zicmp", attr(res, "class"))
-	return(res)
-}
-
 summary.zicmp <- function(object, ...)
 {
 	n <- nrow(object$X)
@@ -96,7 +38,7 @@ summary.zicmp <- function(object, ...)
 		J <- c(exp(object$beta), rep(0, d2), rep(0, d3))
 		se <- sqrt(t(J) %*% object$V %*% J)
 		z.val <- est / se
-		p.val <- 2*(1 - pnorm(abs(z.val)))
+		p.val <- 2*pnorm(-abs(z.val))
 
 		DF.lambda <- data.frame(
 			Estimate = round(est, 4),
@@ -112,7 +54,7 @@ summary.zicmp <- function(object, ...)
 		J <- c(rep(0, d1), exp(object$gamma), rep(0, d3))
 		se <- sqrt(t(J) %*% object$V %*% J)
 		z.val <- est / se
-		p.val <- 2*(1 - pnorm(abs(z.val)))
+		p.val <- 2*pnorm(-abs(z.val))
 
 		DF.nu <- data.frame(
 			Estimate = round(est, 4),
@@ -128,7 +70,7 @@ summary.zicmp <- function(object, ...)
 		J <- c(rep(0, d1), rep(0, d2), dlogis(object$zeta))
 		se <- sqrt(t(J) %*% object$V %*% J)
 		z.val <- est / se
-		p.val <- 2*(1 - pnorm(abs(z.val)))
+		p.val <- 2*pnorm(-abs(z.val))
 
 		DF.p <- data.frame(
 			Estimate = round(est, 4),
@@ -205,11 +147,34 @@ sdev.zicmp <- function(object, ...)
 
 equitest.zicmp <- function(object, ...)
 {
+	beta.hat <- object$beta
+	gamma.hat <- object$gamma
+	zeta.hat <- object$zeta
+	max <- object$max
+
 	fit0.out <- fit.zip.reg(object$y, object$X, object$W, beta.init = object$beta,
 		zeta.init = object$zeta, max = object$max)
-	res <- LRT.zicmp(object$y, object$X, object$S, object$W, object$beta, object$gamma,
-		object$zeta, fit0.out$theta.hat$beta, fit0.out$theta.hat$zeta, object$max)
-	list(teststat = res$stat, pvalue = res$pvalue)
+	beta0.hat <- fit0.out$theta.hat$beta
+	zeta0.hat <- fit0.out$theta.hat$zeta
+
+	n <- length(y)
+	ff <- numeric(n)
+	ff0 <- numeric(n)
+
+	lambda.hat <- exp(X %*% beta.hat)
+	nu.hat <- exp(S %*% gamma.hat)
+	p.hat <- plogis(W %*% zeta.hat)
+
+	lambda0.hat <- exp(X %*% beta0.hat)
+	nu0.hat <- rep(1, n)
+	p0.hat <- plogis(W %*% zeta0.hat)
+
+	ff <- dzicmp(y, lambda.hat, nu.hat, p.hat, max = max)
+	ff0 <- dzicmp(y, lambda0.hat, nu0.hat, p0.hat, max = max)
+
+	X2 <- 2*(sum(log(ff)) - sum(log(ff0)))
+	pvalue <- pchisq(X2, df = length(gamma.hat), lower.tail = FALSE)
+	list(teststat = X2, pvalue = pvalue)
 }
 
 # TBD: discuss this. How to define leverage for ZICMP?

@@ -62,6 +62,65 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 	return(res)
 }
 
+fit.cmp.reg <- function(y, X, S, beta.init, gamma.init,
+	max, optim.control = list(maxit = 150))
+{
+	start <- Sys.time()
+	u <- as.integer(y == 0)
+	d1 <- ncol(X)
+	d2 <- ncol(S)
+	n <- length(y)
+	qq <- d1 + d2
+
+	if (is.null(beta.init)) { beta.init <- rep(0, d1) }
+	if (is.null(gamma.init)) { gamma.init <- rep(0, d2) }
+
+	tx <- function(par) {
+		list(
+			beta = par[1:d1],
+			gamma = par[1:d2 + d1]
+		)
+	}
+
+	loglik <- function(par) {
+		theta <- tx(par)
+		lambda <- exp(X %*% theta$beta)
+		nu <- exp(S %*% theta$gamma)
+		z <- computez(lambda, nu, max)
+		sum(y*log(lambda) - nu*lgamma(y+1) - log(z))
+	}
+
+	optim.control$fnscale = -1
+	par.init <- c(beta.init, gamma.init)
+	res <- optim(par.init, loglik, method = 'L-BFGS-B',
+		control = optim.control, hessian = TRUE)
+	H <- res$hessian
+
+	theta.hat <- list(
+		beta = res$par[1:d1],
+		gamma = res$par[1:d2 + d1]
+	)
+
+	W <- matrix(1, n, 1)
+	FIM.full <- fim.zicmp.reg(X, S, W = W, theta.hat$beta, theta.hat$gamma,
+		zeta = -Inf, max = max)
+	FIM <- FIM.full[1:(d1+d2), 1:(d1+d2)]
+	V <- solve(FIM)
+
+	lambda.hat <- exp(X %*% theta.hat$beta)
+	nu.hat <- exp(S %*% theta.hat$gamma)
+	p.hat <- 0
+	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat, max)
+	mse <- mean( (y - mu.hat)^2 )
+
+	loglik <- res$value
+	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
+
+	res <- list(theta.hat = theta.hat, V = V, H = H, FIM = FIM, opt.res = res,
+		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
+	return(res)
+}
+
 fit.zip.reg <- function(y, X, W, beta.init, zeta.init,
 	max, optim.control = list(maxit = 150))
 {

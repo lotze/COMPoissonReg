@@ -77,7 +77,7 @@ dat <- data.frame(y = y, x = x)
 Fit the model. The package notices that we specify only an intercept for $\nu$, and also displays an estimate for $\nu$ directly by using the appropriate transformation.
 
 ```{r}
-zicmp.out <- glm.zicmp(y ~ x, formula.nu = ~ 1, formula.p = ~ x, data = dat)
+zicmp.out <- glm.cmp(y ~ x, formula.nu = ~ 1, formula.p = ~ x, data = dat)
 print(zicmp.out)
 ```
 
