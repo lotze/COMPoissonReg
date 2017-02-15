@@ -66,7 +66,7 @@ summary.zicmp <- function(object, ...)
 	est <- coef(object)
 	se <- sdev(object)
 	z.val <- est / se
-	p.val <- 2*(1 - pnorm(abs(z.val)))
+	p.val <- 2*pnorm(-abs(z.val))
 	qq <- length(est)
 
 	DF <- data.frame(

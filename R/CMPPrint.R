@@ -3,7 +3,7 @@ summary.cmp <- function(object, ...)
 	est <- c(coef(object), nu(object))
 	se <- sdev(object)
 	z.val <- est / se
-	p.val <- 2*(1 - pnorm(abs(est / se)))
+	p.val <- 2*pnorm(-abs(z.val))
 
 	DF <- data.frame(
 		Estimate = round(est, 4),

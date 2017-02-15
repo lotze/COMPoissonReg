@@ -1,2 +1,4 @@
 LICENSE
 internal-tests
+^.*\.Rproj$
+^\.Rproj\.user$
