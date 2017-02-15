@@ -28,9 +28,9 @@ rcmp(n, lambda, nu, max = 100)
 
 \value{
 \code{dcmp} gives the density,
-\code{pcmp} gives the cumulative distribution function,
+\code{pcmp} gives the cumulative probability,
 \code{qcmp} gives the quantile function, and
-\code{rcmp} generates random deviates.
+\code{rcmp} generates random values.
 }
 
 \references{

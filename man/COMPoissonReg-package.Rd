@@ -11,14 +11,15 @@
 \description{ This package offers the ability to compute the COM-Poisson parameter estimates and associated standard errors.  This package also provides a hypothesis test for determining statistically significant data dispersion, and other model diagnostics.}
 
 \details{
-This package offers the ability to compute the COM-Poisson parameter estimates (via the glm.cmp function) and associated standard errors.
+This package offers the ability to compute the COM-Poisson parameter estimates and associated standard errors for a regular regression model (via the glm.cmp function) or a zero-inflated regression model (via the glm.zicmp function).
 
 Further, the user can perform a hypothesis test to determine the statistically significant need for using COM-Poisson regression to model the data.  The test addresses the matter of statistically significant dispersion.
 
 The main order of functions is as follows:
 \enumerate{
-\item  Compute Poisson estimates (using standard glm)
-\item  Use Poisson estimates as starting values to determine COM-Poisson estimates (using glm.cmp)
+\item  Compute Poisson estimates (using glm for Poisson regression or pscl for
+ZIP regression)
+\item  Use Poisson estimates as starting values to determine COM-Poisson estimates (using glm.cmp or glm.zicmp, respectively)
 \item  Compute associated standard errors (using sdev function)
 }
 
@@ -34,7 +35,7 @@ Most of the tools available for COM-Poisson are also available for ZICMP.
 }
 
 \author{
-Kimberly Sellers, Thomas Lotze, Andrew M. Raim
+Kimberly Sellers, Thomas Lotze, Andrew M. Raim;
 Maintainer: Thomas Lotze <thomas.lotze@thomaslotze.com>
 }
 

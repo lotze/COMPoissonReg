@@ -9,7 +9,7 @@
 data(freight)
 }
 \format{
-broken = number of ampules found broken upon arrival.
+broken = number of ampules found broken upon arrival
 
 transfers = number of times carton was transferred from one aircraft to another
 }

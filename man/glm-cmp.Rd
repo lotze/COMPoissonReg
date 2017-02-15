@@ -40,7 +40,7 @@
 \arguments{
   \item{formula}{formula for the COM-Poisson model}
   \item{initial.est}{initial vector of betas, b0_1, ..., b0_p; if NULL, estimated using Poisson GLM}
-  \item{nuinit}{initial value for nu}
+  \item{nuinit}{initial value for dispersion parameter}
   \item{max}{maximum number to use for truncating infinite sums}
   \item{...}{other model parameters, such as data}
   \item{object}{object of type 'cmp'}
@@ -48,11 +48,11 @@
   \item{k}{Penalty per parameter to be used in AIC calculation.}
   \item{newdata}{New covariates to be used for prediction.}
   \item{type}{Type of residual to be computed.}
-  \item{reps}{Number of bootstrap reps.}
-  \item{report.period}{Report progress every \code{report.period} reps.}
+  \item{reps}{Number of bootstrap repetitions.}
+  \item{report.period}{Report progress every \code{report.period} iterations.}
 }
 \details{
-  \code{glm.cmp} finds the maximum likelihood estimates for the COM-Poisson estimators (betas and nu) using the function ComputeBetasAndNuHat.
+  \code{glm.cmp} finds the maximum likelihood estimates for COM-Poisson.
 }
 
 \value{
@@ -64,11 +64,6 @@ Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
 Count Data. Annals of Applied Statistics, 4(2), 943-961.
 }
 \author{Kimberly Sellers}
-
- \seealso{
-       \code{\link{COMPoissonReg}}
-       \code{\link{ComputeBetasAndNuHat}}
-     }
 
 \keyword{maximum likelihood estimation}
 \keyword{regression}

@@ -53,8 +53,8 @@
   \item{k}{Penalty per parameter to be used in AIC calculation.}
   \item{newdata}{New covariates to be used for prediction.}
   \item{type}{Type of residual to be computed.}
-  \item{reps}{Number of bootstrap reps.}
-  \item{report.period}{Report progress every \code{report.period} reps.}
+  \item{reps}{Number of bootstrap repetitions.}
+  \item{report.period}{Report progress every \code{report.period} iterations.}
 }
 
 \value{
@@ -70,11 +70,7 @@ Kimberly F. Sellers and Andrew~M. Raim (2016). A Flexible Zero-Inflated Model
 to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
 68-80.
 }
-\author{Kimberly Sellers}
-
- \seealso{
-       \code{\link{COMPoissonReg}}
-     }
+\author{Kimberly Sellers, Andrew Raim}
 
 \keyword{maximum likelihood estimation}
 \keyword{regression}

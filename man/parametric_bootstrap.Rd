@@ -9,15 +9,15 @@
 \arguments{
   \item{object}{a model object}
   \item{...}{other parameters which might be required by the model}
-  \item{reps}{Number of bootstrap reps.}
-  \item{report.period}{Report progress every \code{report.period} reps.}
+  \item{reps}{Number of bootstrap repetitions.}
+  \item{report.period}{Report progress every \code{report.period} iterations.}
 }
 \details{
 See the documentation of the particular methods for details.
 } 
 
 \seealso{
-       \code{\link{parametric_bootstrap.cmp}}
+       \code{\link{parametric_bootstrap.cmp}},
        \code{\link{parametric_bootstrap.zicmp}}
 }
 \value{

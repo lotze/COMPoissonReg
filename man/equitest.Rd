@@ -17,10 +17,10 @@ See the documentation of the particular methods for details.
 }
 
 \seealso{
-       \code{\link{equitest.cmp}}
+       \code{\link{equitest.cmp}},
        \code{\link{equitest.zicmp}}
 }
 \value{
-The form of the value returned depends on the class of its argument. See the documentation of the particular methods for details of what is produced by that method.}
-
+Returns the test statistic and p-value determined from the \eqn{chi_1^2} distribution.
+}
 \author{Thomas Lotze}

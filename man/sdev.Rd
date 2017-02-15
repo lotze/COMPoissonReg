@@ -15,7 +15,7 @@ See the documentation of the particular methods for details.
 } 
 
 \seealso{
-       \code{\link{sdev.cmp}}
+       \code{\link{sdev.cmp}},
        \code{\link{sdev.zicmp}}
 }
 \value{
