@@ -177,7 +177,6 @@ equitest.zicmp <- function(object, ...)
 	list(teststat = X2, pvalue = pvalue)
 }
 
-# TBD: discuss this. How to define leverage for ZICMP?
 leverage.zicmp <- function(object, ...)
 {
 	stop("This function is not yet implemented")

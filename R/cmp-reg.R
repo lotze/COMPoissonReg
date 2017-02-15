@@ -1,57 +1,3 @@
-glm.cmp.old <- function(formula, initial.est=NULL, nuinit=1, max=100, ...){
-	initial_glm = glm(formula, family='poisson', ...)
-	if (is.null(initial.est)) {
-		initial.est = coef(initial_glm)
-	}
-
-	# Parse formula
-	mf <- model.frame(formula, ...)
-	y <- model.response(mf)
-	X <- model.matrix(formula, mf)
-
-	object_result = list()
-	object_result$formula = formula
-	object_result$response = y
-	object_result$predictors = X
-	object_result$max = max
-
-	internal_result = ComputeBetasAndNuHat(object_result$predictors, object_result$response, betainit=initial.est, nuinit=nuinit, max=object_result$max)
-	if(internal_result$convergence == 1) {stop(sprintf("Constant CMP estimates could not be determined.  Optimization scheme did not converge: ", internal_result))}
-
-	num_pars = length(internal_result$par)
-	object_result$glm_coefficients = coef(initial_glm)
-	object_result$coefficients = internal_result$par[1:(num_pars -1)]
-	object_result$nu = internal_result$par[num_pars]
-	object_result$loglik <- -internal_result$objective
-	object_result$convergence <- internal_result$convergence
-	object_result$message <- internal_result$message
-
-	attr(object_result, "class") <- c("cmp", attr(object_result, "class"))
-	return(object_result)
-}
-
-ComputeBetasAndNuHat <- function(x, y, betainit, nuinit, max)
-{
-	# Uses nlminb to solve for the MLE estimates for betas and nu
-	# Create -logL so that we take the minimum of this function (which equals the max of logL)
-	minusloglike <- function(par) {
-		beta <- par[1:length(betainit)]
-		nu <- par[length(betainit)+1]
-		z <- computez(exp(x %*% beta), nu, max)
-		-sum((y * (x %*% beta)) - (nu * lgamma(y+1)) - log(z))
-	}
-
-	# Determine the MLEs
-	BetaNuEst <- nlminb(start=c(betainit,nuinit),minusloglike,lower = c(rep(-Inf,length(betainit)),0), upper = c(rep(Inf,length(betainit)),Inf))
-
-	if (BetaNuEst$convergence != 0) {
-		# Determine the MLEs
-		BetaNuEst <- optim(par=c(betainit,nuinit),fn=minusloglike,control=list(maxit=1000))#$par
-	}
-
-	return(BetaNuEst)
-}
-
 summary.cmp <- function(object, ...)
 {
 	n <- nrow(object$X)
@@ -186,6 +132,7 @@ equitest.cmp <- function(object, ...)
 	lambda0 <- exp(X %*% object$beta.glm)
 	lambda <- exp(X %*% object$beta)
 	nu <- exp(S %*% object$gamma)
+	max <- object$max
 
 	z <- computez(lambda, nu, max)
 	teststat <- -2 * sum(y*log(lambda0) - lgamma(y+1) - lambda0 -
