@@ -143,6 +143,7 @@ equitest.cmp <- function(object, ...)
 
 leverage.cmp <- function(object, ...)
 {
+	y <- object$y
 	x <- object$X
 	betahat <- object$beta
 	nuhat <- exp(object$S %*% object$gamma)
@@ -168,6 +169,7 @@ leverage.cmp <- function(object, ...)
 deviance.cmp <- function(object, ...)
 {
 	# Compute the COM-Poisson deviances exactly
+	y <- object$y
 	x <- object$X
 	betahat <- object$beta
 	nuhat <- exp(object$S %*% object$gamma)

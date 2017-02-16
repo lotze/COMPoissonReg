@@ -11,7 +11,7 @@
 \description{ This package offers the ability to compute the COM-Poisson parameter estimates and associated standard errors.  This package also provides a hypothesis test for determining statistically significant data dispersion, and other model diagnostics.}
 
 \details{
-This package offers the ability to compute the COM-Poisson parameter estimates and associated standard errors for a regular regression model (via the glm.cmp function) or a zero-inflated regression model (via the glm.zicmp function).
+This package offers the ability to compute the COM-Poisson parameter estimates and associated standard errors for a regular regression model or a zero-inflated regression model (via the glm.cmp function).
 
 Further, the user can perform a hypothesis test to determine the statistically significant need for using COM-Poisson regression to model the data.  The test addresses the matter of statistically significant dispersion.
 
@@ -19,7 +19,7 @@ The main order of functions is as follows:
 \enumerate{
 \item  Compute Poisson estimates (using glm for Poisson regression or pscl for
 ZIP regression)
-\item  Use Poisson estimates as starting values to determine COM-Poisson estimates (using glm.cmp or glm.zicmp, respectively)
+\item  Use Poisson estimates as starting values to determine COM-Poisson estimates (using glm.cmp)
 \item  Compute associated standard errors (using sdev function)
 }
 
@@ -60,7 +60,7 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
 
   # Compute COM-Poisson estimates (under constant dispersion model)
   start.time <- Sys.time()
-  cmp_model = glm.cmp(formula = broken ~ transfers, data=freight)
+  cmp_model = glm.cmp(broken ~ transfers, data=freight)
   print("The COM-Poisson estimates for the beta vector are")
   print(coef(cmp_model))
   print("The COM-Poisson estimate for the dispersion parameter nu is")
@@ -124,7 +124,7 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   print(glm.out)
 
   # Fit ZICMP model
-  zicmp.out <- glm.zicmp(UPB ~ EDUCATION + ANXIETY,
+  zicmp.out <- glm.cmp(UPB ~ EDUCATION + ANXIETY,
     formula.nu = ~ 1,
     formula.p = ~ EDUCATION + ANXIETY,
     data=couple)

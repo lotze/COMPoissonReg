@@ -147,17 +147,21 @@ sdev.zicmp <- function(object, ...)
 
 equitest.zicmp <- function(object, ...)
 {
+	y <- object$y
+	X <- object$X
+	S <- object$S
+	W <- object$W
 	beta.hat <- object$beta
 	gamma.hat <- object$gamma
 	zeta.hat <- object$zeta
 	max <- object$max
+	n <- length(y)
 
-	fit0.out <- fit.zip.reg(object$y, object$X, object$W, beta.init = object$beta,
-		zeta.init = object$zeta, max = object$max)
+	fit0.out <- fit.zip.reg(y, X, W, beta.init = beta.hat,
+		zeta.init = zeta.hat, max = max)
 	beta0.hat <- fit0.out$theta.hat$beta
 	zeta0.hat <- fit0.out$theta.hat$zeta
 
-	n <- length(y)
 	ff <- numeric(n)
 	ff0 <- numeric(n)
 
