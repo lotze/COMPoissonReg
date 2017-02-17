@@ -184,16 +184,18 @@ deviance.cmp <- function(object, ...)
 	for (i in 1:length(y)){
 		# Create -logL = -logf (because considering single observation) so that we
 		# take the minimum of this function (which equals the max of logL)
-		minuslogf <- function(par){
+		logf <- function(par){
 			beta <- par[1:length(betainit)]
-			ll <- y[i]*(x[i,] %*% beta) - nuhat[i]*lgamma(y[i]+1) -
-				log(computez(exp(x[i,] %*% beta), nuhat[i], max))
-			return(-ll)
+			lambda <- exp(x[i,] %*% beta)
+			ll <- y[i]*log(lambda) - nuhat[i]*lgamma(y[i]+1) -
+				log(computez(lambda, nuhat[i], max))
+			return(ll)
 		}
 		
 		# Determine the MLEs
-		BetaEstResult <- nlm(p=betainit, f=minuslogf)
-		OptimalLogLi[i] <- -BetaEstResult$min
+		# Using optim rather than nlm because optim handles -Inf more gracefully, if encountered
+		BetaEstResult <- optim(betainit, logf, method = "L-BFGS-B", control = list(fnscale = -1))
+		OptimalLogLi[i] <- BetaEstResult$value
 	}
 
 	#### Compute exact deviances
@@ -228,7 +230,6 @@ residuals.cmp <- function(object, type = c("raw", "quantile"), ...)
 
 predict.cmp <- function(object, newdata = NULL, ...)
 {
-	browser()
 	if (!is.null(newdata)) {
 		# If any of the original models had an intercept added via model.matrix, they
 		# will have an "(Intercept)" column. Let's add an "(Intercept)" to newdata

@@ -23,7 +23,7 @@ y <- rcmp(n, lambda = lambda.true, nu = nu.true)
 dat <- data.frame(y = y, x = x)
 ```
 
-Fit the model.
+Fit the model. The package notices that we specify only an intercept for $\nu$, and also displays an estimate for $\nu$ directly by using the appropriate transformation.
 
 ```{r}
 cmp.out <- glm.cmp(y ~ x, data = dat)

@@ -32,7 +32,9 @@
 \alias{summary.cmp}
 
 \title{COM-Poisson and Zero-Inflated COM-Poisson regression}
-\description{ Compute maximum likelihood estimates for parameters using optim. }
+\description{Fit COM-Poisson regression using maximum likelihood estimation.
+Zero-Inflated COM-Poisson can be fit by specifying a regression for the
+overdispersion parameter.}
 
 \usage{
 	glm.cmp(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
@@ -74,7 +76,7 @@
 
 \value{
 \code{glm.cmp} produces an object of either class "cmp" or "zicmp", depending
-on whether zero-inflation is used in the mode. From this object, coefficients
+on whether zero-inflation is used in the model. From this object, coefficients
 and other information can be extracted.
 }
 
