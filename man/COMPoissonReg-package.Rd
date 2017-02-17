@@ -35,8 +35,8 @@ Most of the tools available for COM-Poisson are also available for ZICMP.
 }
 
 \author{
-Kimberly Sellers, Thomas Lotze, Andrew M. Raim;
-Maintainer: Thomas Lotze <thomas.lotze@thomaslotze.com>
+Kimberly Sellers, Thomas Lotze (Maintainer, <thomas.lotze@thomaslotze.com>),
+Andrew M. Raim
 }
 
 \references{
