@@ -228,6 +228,7 @@ residuals.cmp <- function(object, type = c("raw", "quantile"), ...)
 
 predict.cmp <- function(object, newdata = NULL, ...)
 {
+	browser()
 	if (!is.null(newdata)) {
 		# If any of the original models had an intercept added via model.matrix, they
 		# will have an "(Intercept)" column. Let's add an "(Intercept)" to newdata
@@ -235,12 +236,15 @@ predict.cmp <- function(object, newdata = NULL, ...)
 		newdata <- as.data.frame(newdata)
         newdata$'(Intercept)' <- 1
 		X <- as.matrix(newdata[,colnames(object$X)])
+		S <- as.matrix(newdata[,colnames(object$S)])
 	} else {
 		X <- object$X
+		S <- object$S
 	}
 
-	nu <- exp(object$S %*% object$gamma)
-	out <- constantCMPfitsandresids(object$beta, nu, X)
+	lambda <- exp(X %*% object$beta)
+	nu <- exp(S %*% object$gamma)
+	out <- constantCMPfitsandresids(lambda, nu)
 	y.hat <- out$fit
 	return(y.hat)
 }
@@ -276,10 +280,11 @@ parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1
 	return(boot.out)
 }
 
-constantCMPfitsandresids <- function(betahat, nuhat, x, y=0)
+constantCMPfitsandresids <- function(lambdahat, nuhat, y=0)
 {
 	# Determine estimated lambdahat, fit, and residuals
-	lambdahat <- exp(x %*% betahat)
+	lambdahat <- as.numeric(lambdahat)
+	nuhat <- as.numeric(nuhat)
 	fit <- lambdahat^(1/nuhat) - ((nuhat - 1)/(2*nuhat))
 	resid <- y - fit
 	list(fit = fit, resid = resid)
@@ -302,7 +307,8 @@ weights <- function(x,beta,nu,max)
 
 CMP.MSE <- function(CMPbetas,CMPnu,x,y)
 {
-	CMPresids <- constantCMPfitsandresids(CMPbetas,CMPnu,x,y)$resid
+	lambda <- exp(x %*% CMPbetas)
+	CMPresids <- constantCMPfitsandresids(lambda,CMPnu,y)$resid
 	MSE <- mean(CMPresids^2)
 	return(MSE)
 }

@@ -64,7 +64,7 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   print("The COM-Poisson estimates for the beta vector are")
   print(coef(cmp_model))
   print("The COM-Poisson estimate for the dispersion parameter nu is")
-  print(nu(cmp_model))
+  print(nu(cmp_model)[1])
 
   # Compute associated standard errors for constant COM-Poisson estimates
   print("The associated standard errors for the betas in the constant dispersion case are")
@@ -142,11 +142,11 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   # Compute residuals
   res.raw <- residuals(zicmp.out, type = "raw")
   res.quan <- residuals(zicmp.out, type = "quantile")
-  plot(y.hat, res.raw)
-  plot(y.hat, res.quan)
+  print(summary(res.raw))
+  print(summary(res.quan))
 
   # Compute predictions on new data
   new_data <- data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
   y.hat.new <- predict(zicmp.out, newdata=new_data)
-  plot(y.hat.new)
+  print(y.hat.new)
 }
