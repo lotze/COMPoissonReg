@@ -70,7 +70,7 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   print("The associated standard errors for the betas in the constant dispersion case are")
   print(sdev(cmp_model))
 
-  # Perform likelihood ratio test for dispersion parameter
+  # Likelihood ratio test for dispersion parameter
   # Test for dispersion equal or not equal to 1 (ie performing Poisson vs COM-Poisson regression)
   freight.test <- equitest(cmp_model)
   print(sprintf("The likelihood ratio chi-squared test statistic is \%0.5f
@@ -133,7 +133,7 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   # Compute standard errors for estimates of coefficients
   sdev(zicmp.out)
 
-  # Perform likelihood ratio test for equidispersion (H0: nu = 1 vs H1: not)
+  # Likelihood ratio test for equidispersion (H0: nu = 1 vs H1: not)
   equitest(zicmp.out)
 
   # Compute fitted values

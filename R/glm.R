@@ -8,6 +8,9 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	d1 <- ncol(X)
 
 	# Parse formula.nu
+	if (is.null(formula.nu)) {
+		stop("formula.nu must be specified (can not be NULL)")
+	}
 	mf <- model.frame(formula.nu, ...)
 	S <- model.matrix(formula.nu, mf)
 	d2 <- ncol(S)
@@ -66,6 +69,9 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 
 		attr(res, "class") <- c("cmp", attr(res, "class"))
 	}
+
+	# Add the test for equidispersion
+	res$equitest <- equitest(res)
 
 	return(res)
 }

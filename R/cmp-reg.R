@@ -31,14 +31,10 @@ summary.cmp <- function(object, ...)
 		est <- exp(object$beta)
 		J <- c(exp(object$beta), rep(0, d2))
 		se <- sqrt(t(J) %*% object$V %*% J)
-		z.val <- est / se
-		p.val <- 2*pnorm(-abs(z.val))
 
 		DF.lambda <- data.frame(
 			Estimate = round(est, 4),
-			SE = round(se, 4),
-			z.value = round(z.val, 6),
-			p.value = sprintf("%0.4g", p.val)
+			SE = round(se, 4)
 		)
 		rownames(DF.lambda) <- "lambda"
 	}
@@ -47,14 +43,10 @@ summary.cmp <- function(object, ...)
 		est <- exp(object$gamma)
 		J <- c(rep(0, d1), exp(object$gamma))
 		se <- sqrt(t(J) %*% object$V %*% J)
-		z.val <- est / se
-		p.val <- 2*pnorm(-abs(z.val))
 
 		DF.nu <- data.frame(
 			Estimate = round(est, 4),
-			SE = round(se, 4),
-			z.value = round(z.val, 6),
-			p.value = sprintf("%0.4g", p.val)
+			SE = round(se, 4)
 		)
 		rownames(DF.nu) <- "nu"
 	}
@@ -72,16 +64,20 @@ summary.cmp <- function(object, ...)
 
 print.cmp <- function(x, ...)
 {
-	cat("Fit for CMP model\n")
+	cat("Fit for CMP coefficients\n")
 	s <- summary.cmp(x)
+	tt <- equitest(x)
 	print(s$DF)
 
 	if (!is.null(s$DF.lambda) || !is.null(s$DF.nu)) {
 		cat("--\n")
-		cat("Estimates for non-regression parameters\n")
+		cat("Transformed intercept-only parameters\n")
 		print(rbind(s$DF.lambda, s$DF.nu))
 	}
-
+	cat("--\n")
+	cat("Chi-squared test for equidispersion\n")
+	cat(sprintf("X^2 = %0.4f, df = 1, ", tt$teststat))
+	cat(sprintf("p-value = %0.4e\n", tt$pvalue))
 	cat("--\n")
 	cat(sprintf("Elapsed Sec: %0.2f   ", s$elapsed.sec))
 	cat(sprintf("Sample size: %d\n", s$n))
@@ -126,6 +122,10 @@ sdev.cmp <- function(object, ...)
 
 equitest.cmp <- function(object, ...)
 {
+	if ("equitest" %in% names(object)) {
+		return(object$equitest)
+	}
+
 	y <- object$y
 	X <- object$X
 	S <- object$S

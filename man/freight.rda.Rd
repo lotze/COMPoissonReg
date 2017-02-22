@@ -9,9 +9,11 @@
 data(freight)
 }
 \format{
-broken = number of ampules found broken upon arrival
-
-transfers = number of times carton was transferred from one aircraft to another
+\itemize{
+\item broken = number of ampules found broken upon arrival.
+\item transfers = number of times carton was transferred from one aircraft to
+another.
+}
 }
 
 \references{
