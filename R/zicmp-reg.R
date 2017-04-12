@@ -274,7 +274,7 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 
 	for (r in 1:reps) {
 		if (r %% report.period == 0) {
-			logger("Starting boostrap rep %d\n", r)
+			logger("Starting bootstrap rep %d\n", r)
 		}
 
 		# Generate bootstrap samples of the full dataset using MLE
@@ -288,9 +288,13 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 			theta.boot[r,] <- unlist(fit.boot$theta.hat)
 		},
 		error = function(e) {
-			print(e)
-			theta.boot[r,] <- NA
+			# Do nothing now; emit a warning later
 		})
+	}
+
+	cnt <- sum(rowSums(is.na(theta.boot)) > 0)
+	if (cnt > 0) {
+		warning(sprintf("%d out of %d bootstrap iterations failed", cnt, reps))
 	}
 
 	colnames(theta.boot) <- c(

@@ -6,7 +6,7 @@
 
 \title{ZICMP Distribution}
 \description{Computes the density, cumulative probability, quantiles, and
-random draws for the Zero-Inflated COM-Poisson distribution.}
+random draws for the zero-inflated COM-Poisson distribution.}
 
 \usage{
 dzicmp(x, lambda, nu, p, z = NULL, max = 100, log = FALSE) 
@@ -36,7 +36,7 @@ rzicmp(n, lambda, nu, p, max = 100)
 }
 
 \references{
-Kimberly F. Sellers and Andrew~M. Raim (2016). A Flexible Zero-Inflated Model
+Kimberly F. Sellers and Andrew M. Raim (2016). A Flexible Zero-Inflated Model
 to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
 68-80.
 }

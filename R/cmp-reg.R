@@ -263,7 +263,7 @@ parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1
 
 	# Generate 1000 samples, using betahat and nuhat from full dataset
 	Ystar <- matrix(0, nrow = nrow(X), ncol = reps)
-	boot.out <- matrix(0, nrow=reps, ncol=length(betahat)+length(object$gamma))
+	boot.out <- matrix(NA, nrow=reps, ncol=length(betahat)+length(object$gamma))
 
 	# Take each of the 1000 sample results along with the x matrix, and run CMP
 	# regression on it to generate new betas and nu
@@ -272,9 +272,18 @@ parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1
 			logger("Starting bootstrap rep %d\n", i)
 		}
 		Ystar[,i] <- rcmp(nrow(X), lambdahat, nuhat, max = max)
-		res <- fit.cmp.reg(y = Ystar[,i], X = X, S = S,
-			beta.init = poissonest, gamma.init = object$gamma, max = object$max)
-		boot.out[i,] <- unlist(res$theta.hat)
+		tryCatch({
+			res <- fit.cmp.reg(y = Ystar[,i], X = X, S = S,
+			   beta.init = poissonest, gamma.init = object$gamma, max = object$max)
+			boot.out[i,] <- unlist(res$theta.hat)
+		}, error = function(e) {
+			# Do nothing now; emit a warning later
+		})
+	}
+
+	cnt <- sum(rowSums(is.na(boot.out)) > 0)
+	if (cnt > 0) {
+		warning(sprintf("%d out of %d bootstrap iterations failed", cnt, reps))
 	}
 
 	colnames(boot.out) <- c(colnames(X), colnames(S), recursive=TRUE)

@@ -127,7 +127,7 @@ and other information can be extracted.
 Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
 Count Data. Annals of Applied Statistics, 4(2), 943-961.
 
-Kimberly F. Sellers and Andrew~M. Raim (2016). A Flexible Zero-Inflated Model
+Kimberly F. Sellers and Andrew M. Raim (2016). A Flexible Zero-Inflated Model
 to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
 68-80.
 }

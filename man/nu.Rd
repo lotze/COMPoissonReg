@@ -1,8 +1,8 @@
 \name{nu}
 \alias{nu}
 
-\title{Estimate for nu}
-\description{a generic function for the nu estimate from the results of various model fitting functions. The function invokes particular methods which depend on the class of the first argument.} 
+\title{Estimate for dispersion parameter}
+\description{a generic function for the dispersion parameter estimate from the results of various model fitting functions. The function invokes particular methods which depend on the class of the first argument.} 
 
 \usage{ nu(object, ...) }
 

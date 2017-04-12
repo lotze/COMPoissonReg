@@ -21,6 +21,6 @@ See the documentation of the particular methods for details.
        \code{\link{equitest.zicmp}}
 }
 \value{
-Returns the test statistic and p-value determined from the \eqn{chi_1^2} distribution.
+Returns the test statistic and p-value determined from the \eqn{\chi_1^2} distribution.
 }
 \author{Thomas Lotze}
