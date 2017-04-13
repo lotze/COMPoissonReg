@@ -12,7 +12,7 @@ summary.cmp <- function(object, ...)
 	DF <- data.frame(
 		Estimate = round(est, 4),
 		SE = round(se, 4),
-		z.value = round(z.val, 6),
+		z.value = round(z.val, 4),
 		p.value = sprintf("%0.4g", p.val)
 	)
 	rownames(DF) <- c(sprintf("X:%s", colnames(object$X)),
