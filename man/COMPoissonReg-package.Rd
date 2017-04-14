@@ -6,7 +6,7 @@
 
 \docType{package}
 
-\title{estimate parameters for COM-Poisson regression}
+\title{Estimate parameters for COM-Poisson regression}
 
 \description{ This package offers the ability to compute the parameter estimates for a COM-Poisson or zero-inflated (ZI) COM-Poisson regression and associated standard errors.  This package also provides a hypothesis test for determining statistically significant data dispersion, and other model diagnostics.}
 
