@@ -1,1 +1,6 @@
 LICENSE
+internal-tests
+^.*\.Rproj$
+^\.Rproj\.user$
+COMPoissonReg.pdf
+Makefile

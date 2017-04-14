@@ -15,7 +15,8 @@ See the documentation of the particular methods for details.
 } 
 
 \seealso{
-       \code{\link{sdev.cmp}}
+       \code{\link{sdev.cmp}},
+       \code{\link{sdev.zicmp}}
 }
 \value{
 The form of the value returned depends on the class of its argument. See the documentation of the particular methods for details of what is produced by that method.} 

@@ -1,22 +1,66 @@
-computez <- function(xmat,beta,nu,max){
-# This code computes the (in)finite sum (from i=0 through to i=max) for the terms lambda^j/((j!)^nu), better known as the Z function.
+# Sum (from j=0 to j=max) of lambda^j/((j!)^nu)
+computez <- function(lambda, nu, max)
+{
+	n <- length(lambda)
+	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
+	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
+	log.res <- J*L - M*lgamma(J+1)
+	rowSums(exp(log.res))
+}
 
-# Compute lambda
-   lambda <- exp(xmat %*% beta)
+# Sum (from j=0 to j=max) of j*lambda^j/((j!)^nu)
+computez.prodj <- function(lambda, nu, max)
+{
+	n <- length(lambda)
+	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
+	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
+	log.res <- log(J) + J*L - M*lgamma(J+1)
+	rowSums(exp(log.res))
+}
 
-# Compute the terms used to sum for the (in)finite summation
-   forans <- matrix(0,ncol=max+1,nrow=length(lambda))
-   for (j in 1:max){
-     temp <- matrix(0,ncol=j,nrow=length(lambda))
-     for (i in 1:j){temp[,i] <- lambda/(i^nu)}
-     for (k in 1:length(lambda)){forans[k,j+1] <- prod(temp[k,])}  
-     }
-   forans[,1] <- rep(1,length(lambda))
+# Sum (from j=0 to j=max) of j^2*lambda^j/((j!)^nu)
+computez.prodj2 <- function(lambda, nu, max)
+{
+	n <- length(lambda)
+	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
+	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
+	log.res <- 2*log(J) + J*L - M*lgamma(J+1)
+	rowSums(exp(log.res))
+}
 
+# Sum (from j=0 to j=max) of jlog(j!)*lambda^j/((j!)^nu)
+computez.prodjlogj <- function(lambda, nu, max)
+{
+	n <- length(lambda)
+	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
+	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
+	log.res <- log(J) + log(lgamma(J+1)) + J*L - M*lgamma(J+1)
+	rowSums(exp(log.res))
+}
 
-# Determine the (in)finite sum
-   ans <- rowSums(forans)
+# Sum (from j=0 to j=max) of log(j!)*lambda^j/((j!)^nu)
+computez.prodlogj <- function(lambda, nu, max)
+{
+	n <- length(lambda)
+	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
+	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
+	log.res <- log(lgamma(J+1)) + J*L - M*lgamma(J+1)
+	rowSums(exp(log.res))
+}
 
-return(ans)
+# Sum (from j=0 to j=max) of (log(j!))^2 * lambda^j/((j!)^nu)
+computez.prodlogj2 <- function(lambda, nu, max)
+{
+	n <- length(lambda)
+	L <- matrix(log(lambda), nrow=n, ncol=max+1, byrow = FALSE)
+	M <- matrix(nu, nrow=n, ncol=max+1, byrow = FALSE)
+	J <- matrix(0:max, nrow=n, ncol=max+1, byrow = TRUE)
+	log.res <- 2*log(lgamma(J+1)) + J*L - M*lgamma(J+1)
+	rowSums(exp(log.res))
 }
 
