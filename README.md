@@ -1,17 +1,10 @@
 COMPoissonReg
 =============
-The COMPoissonReg R package fits COM-Poisson regression (Sellers & Shmueli, 2010) and zero-inflated (ZI) COM-Poisson regression models (Sellers & Raim, 2016). The general ZI COM-Poisson regression model is
-$$
-Y_i \sim p_i I(y_i = 0) + (1 - p_i) \frac{\lambda_i^y}{(y!)^{\nu_i} Z(\lambda_i, \nu_i)}, \quad y_i = 0, 1, \ldots, \\
-\log \lambda_i = x_i^T \beta, \quad
-\log \nu_i = s_i^T \gamma, \quad
-\log\left[ \frac{p_i}{1-p_i} \right] = w_i^T \zeta,
-$$
-where $Y_i$ are count variables, $(x_i, s_i, w_i)$ are predictors, and $(\beta, \gamma, \zeta)$ are regression coefficients. The syntax to fit a model looks like this.
+The COMPoissonReg R package fits COM-Poisson regression (Sellers & Shmueli, 2010) and zero-inflated (ZI) COM-Poisson regression models (Sellers & Raim, 2016). The syntax to fit a model looks like
 ```R
-cmp.out <- glm.cmp(y ~ x1 + x2, formula.nu = ~ x1, formula.p = ~ x2)
+cmp.out <- glm.cmp(formula.lambda = y ~ x1 + x2, formula.nu = ~ x1, formula.p = ~ x2)
 ```
-See the package documentation for details.
+where `formula.lambda` is a regression model for the COM-Poisson rate parameter, `formula.nu` is a model for the dispersion parameter, and `formula.p` is a model for the zero-inflation parameter. See the package documentation for details.
 
 ## References
 * Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
