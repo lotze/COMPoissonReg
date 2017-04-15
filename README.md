@@ -7,7 +7,7 @@ cmp.out <- glm.cmp(formula.lambda = y ~ x1 + x2, formula.nu = ~ x1, formula.p = 
 where `formula.lambda` is a regression model for the COM-Poisson rate parameter, `formula.nu` is a model for the dispersion parameter, and `formula.p` is a model for the zero-inflation parameter. See the package documentation for details.
 
 ## References
-* Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
+* Kimberly F. Sellers and Galit Shmueli (2010). A Flexible Regression Model for
 Count Data. Annals of Applied Statistics, 4(2), 943-961. [[http]](http://projecteuclid.org/euclid.aoas/1280842147)
 * Kimberly F. Sellers and Andrew M. Raim (2016). A Flexible Zero-Inflated Model
 to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
