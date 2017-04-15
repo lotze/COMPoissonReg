@@ -155,7 +155,7 @@ leverage.cmp <- function(object, ...)
 	#    and X matrix (in Appendix)
 	E.y <- computez.prodj(exp(x %*% betahat),nuhat,max)/computez(exp(x %*% betahat),nuhat,max)
 	E.logfacty <- computez.prodlogj(exp(x %*% betahat),nuhat,max)/computez(exp(x %*% betahat),nuhat,max)
-	extravec <- (-log(factorial(y)) + E.logfacty)/(y - E.y)
+	extravec <- (-lgamma(y+1) + E.logfacty)/(y - E.y)
 	curlyX.mat <- cbind(x,extravec)
 	
 	# 2) to compute H using eq (12)  on p. 11
@@ -200,7 +200,7 @@ deviance.cmp <- function(object, ...)
 
 	#### Compute exact deviances
 	lambdahat <- exp(x %*% betahat)
-	OptimalLogL.mu <- (y*log(lambdahat)) - (nuhat * log(factorial(y))) - log(computez(lambdahat,nuhat,max))
+	OptimalLogL.mu <- (y*log(lambdahat)) - (nuhat * lgamma(y+1)) - log(computez(lambdahat,nuhat,max))
 	OptimalLogL.y <- OptimalLogLi
 	d <- -2*(OptimalLogL.mu - OptimalLogL.y)
 	cmpdev <- d/(sqrt(1-leverage))
