@@ -7,6 +7,7 @@ Author: Kimberly Sellers <kfs7@georgetown.edu>
 	Thomas Lotze <thomas.lotze@thomaslotze.com>
 	Andrew Raim <andrew.raim@gmail.com>
 Maintainer: Andrew Raim <andrew.raim@gmail.com>
+URL: https://github.com/lotze/COMPoissonReg
 Description: Fit Conway-Maxwell Poisson (COM-Poisson or CMP) regression models
     to count data. The code provides functions for model estimation, dispersion
     testing, and diagnostics. Zero-inflated CMP regression is also supported.
