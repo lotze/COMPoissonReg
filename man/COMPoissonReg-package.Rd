@@ -52,71 +52,58 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   ## load freight data
   data(freight)
 
-  # Compute Standard Poisson estimates
-  glm_model <- glm(broken ~ transfers, data=freight,
-    family=poisson, na.action=na.exclude) # beta estimates
-  print("The standard Poisson estimates for the beta vector are")
-  print(coef(glm_model))
+  # Fit standard Poisson model
+  glm.out <- glm(broken ~ transfers, data=freight,
+    family=poisson, na.action=na.exclude)
+  print(glm.out)
 
-  # Compute COM-Poisson estimates (under constant dispersion model)
-  cmp_model = glm.cmp(broken ~ transfers, data=freight)
-  print(cmp_model)
-  print("The COM-Poisson estimates for the beta vector are")
-  print(coef(cmp_model))
-  print("The COM-Poisson estimate for the dispersion parameter nu is")
-  print(nu(cmp_model)[1])
+  # Fit COM-Poisson model (with intercept-only regression linked to the
+  # dispersion parameter)
+  cmp.out <- glm.cmp(broken ~ transfers, data=freight)
+  print(cmp.out)
+  coef(cmp.out)
+  nu(cmp.out)[1]
 
-  # Compute associated standard errors for constant COM-Poisson estimates
-  print("The associated standard errors for the betas in the constant dispersion case are")
-  print(sdev(cmp_model))
+  # Compute associated standard errors
+  sdev(cmp.out)
 
   # Likelihood ratio test for dispersion parameter
-  # Test for dispersion equal or not equal to 1 (ie performing Poisson vs
-  # COM-Poisson regression)
-  freight.test <- equitest(cmp_model)
-  print(sprintf("The likelihood ratio chi-squared test statistic is \%0.5f
-    and associated p-value (testing Poisson vs CMP regression) is \%0.5f",
-    freight.test$teststat, freight.test$pvalue))
+  # Test for H_0: dispersion equal to 1 vs. H_1: not equal to 1
+  # (i.e. Poisson vs. COM-Poisson regression models)
+  lrt <- equitest(cmp.out)
 
   # Compute constant COM-Poisson leverage
-  freight.lev <- leverage(cmp_model)
-  print("The leverage of the points is")
-  print(freight.lev)
+  lev <- leverage(cmp.out)
 
+  \donttest{
   # Compute constant COM-Poisson deviances
-  # commented-out for speed
-  # freight.CMPDev <- deviance(cmp_model)
-  # print("The approximate constant dispersion standardized CMP Deviance is")
-  # print(freight.CMPDev)
+  dev <- deviance(cmp.out)
+  }
 
   # Compute fitted values
-  freight.fitted = predict(cmp_model, newdata=freight)
-  print("The CMP fitted values are")
-  print(freight.fitted)
+  y.hat <- predict(cmp.out, newdata=freight)
 
   # Compute residual values
-  freight.constantCMPresids <- residuals(cmp_model)
-  print("The CMP residuals are")
-  print(freight.constantCMPresids)
+  res <- residuals(cmp.out)
+  print(summary(res))
 
   # Compute MSE
-  freight.constantCMP.MSE <- mean(freight.constantCMPresids^2)
-  print("The MSE for the constant CMP regression is")
-  print(freight.constantCMP.MSE)
+  mean(res^2)
 
   # Compute predictions on new data
-  new_data = data.frame(transfers=(0:10))
-  freight.predicted = predict(cmp_model, newdata=new_data)
-  plot(0:10, freight.predicted, type="l",
+  new_data <- data.frame(transfers=(0:10))
+  y.hat <- predict(cmp.out, newdata=new_data)
+  plot(0:10, y.hat, type="l",
     xlab="number of transfers", ylab="predicted number broken")
 
+  \donttest{
   # Compute parametric bootstrap results and use them to generate
   # 0.95 confidence intervals for parameters.
-  # Commented-out for speed.
-  # freight.boot <- parametric_bootstrap(cmp_model, reps=1000)
-  # print(apply(freight.boot, 2, quantile, c(0.025,0.975)))
+  cmp.boot <- parametric_bootstrap(cmp.out, reps=1000)
+  print(apply(cmp.boot, 2, quantile, c(0.025,0.975)))
+  }
 
-
+  \donttest{
   ## load couple data
   data(couple)
 
@@ -153,7 +140,7 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   
   # Compute parametric bootstrap results and use them to generate
   # 0.95 confidence intervals for parameters.
-  # Commented-out for speed.
-  # zicmp.boot <- parametric_bootstrap(zicmp.out, reps=1000)
-  # print(apply(zicmp.boot, 2, quantile, c(0.025,0.975)))
+  zicmp.boot <- parametric_bootstrap(zicmp.out, reps=1000)
+  print(apply(zicmp.boot, 2, quantile, c(0.025,0.975)))
+  }
 }
