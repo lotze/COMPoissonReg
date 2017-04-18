@@ -4,3 +4,4 @@ internal-tests
 ^\.Rproj\.user$
 COMPoissonReg.pdf
 Makefile
+README.md
