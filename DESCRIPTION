@@ -9,9 +9,10 @@ Author: Kimberly Sellers <kfs7@georgetown.edu>
 Maintainer: Andrew Raim <andrew.raim@gmail.com>
 URL: https://github.com/lotze/COMPoissonReg
 Description: Fit Conway-Maxwell Poisson (COM-Poisson or CMP) regression models
-    to count data. The package provides functions for model estimation,
-    dispersion testing, and diagnostics. Zero-inflated CMP regression is also
-    supported.
+    to count data (Sellers & Shmueli, 2010) <doi:10.1214/09-AOAS306>. The
+    package provides functions for model estimation, dispersion testing, and
+    diagnostics. Zero-inflated CMP regression (Raim & Sellers, 2016)
+    <doi:10.1016/j.csda.2016.01.007> is also supported.
 License: GPL-2 | GPL-3
 LazyLoad: yes
 Depends: stats
