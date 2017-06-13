@@ -46,6 +46,7 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 
 	FIM <- fim.zicmp.reg(X, S, W, theta.hat$beta, theta.hat$gamma,
 		theta.hat$zeta, max = max)
+	colnames(FIM) <- rownames(FIM) <- c(colnames(X), colnames(S), colnames(W))
 	V <- solve(FIM)
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
@@ -105,6 +106,7 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init,
 	FIM.full <- fim.zicmp.reg(X, S, W = W, theta.hat$beta, theta.hat$gamma,
 		zeta = -Inf, max = max)
 	FIM <- FIM.full[1:(d1+d2), 1:(d1+d2)]
+	colnames(FIM) <- rownames(FIM) <- c(colnames(X), colnames(S))
 	V <- solve(FIM)
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
