@@ -120,6 +120,11 @@ sdev.cmp <- function(object, ...)
 	sqrt(diag(object$V))
 }
 
+vcov.cmp <- function(object, ...)
+{
+	object$V
+}
+
 equitest.cmp <- function(object, ...)
 {
 	if ("equitest" %in% names(object)) {

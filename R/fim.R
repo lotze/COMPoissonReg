@@ -48,66 +48,6 @@ fim.zicmp <- function(lambda, nu, p, max = 100)
 	return(FIM)
 }
 
-# fim.zicmp.reg <- function(x, beta, w, zeta, nu, max = 100)
-# {
-# 	n <- nrow(x)
-# 	qq <- ncol(x) + 1 + ncol(w)
-# 	lambda <- as.numeric(exp(x %*% beta))
-# 	p <- as.numeric(plogis(w %*% zeta))
-# 
-# 	z <- computez(lambda, nu, max=max)
-# 	dzdlambda <- computez.prodj(lambda, nu, max=max) / lambda
-# 	dzdnu <- -computez.prodlogj(lambda, nu, max=max)
-# 	d2zdlambda2 <- (1/lambda^2)*(computez.prodj2(lambda, nu, max=max) -
-# 		computez.prodj(lambda, nu, max=max))
-# 	d2zdnu2 <- computez.prodlogj2(lambda, nu, max=max)
-# 	d2zdlambdadnu <- -(1/lambda)*computez.prodjlogj(lambda, nu, max=max)
-# 
-# 	dlogzdlambda <- dzdlambda/z
-# 	d2logzdlambda2 <- d2zdlambda2/z - dzdlambda^2/z^2
-# 	dlogzdnu <- dzdnu / z
-# 	d2logzdnu2 <- d2zdnu2/z - dzdnu^2 / z^2
-# 	d2logzdlambdadnu <- d2zdlambdadnu / z - dzdnu * dzdlambda / z^2
-# 	meany <- (1-p)*lambda*dlogzdlambda
-# 
-# 	FIM <- matrix(NA, qq, qq)
-# 	colnames(FIM) <- c(sprintf("beta%d", 1:length(beta)), "nu", sprintf("zeta%d", 1:length(zeta)))
-# 	rownames(FIM) <- colnames(FIM)
-# 
-# 	idx.beta <- 1:length(beta)
-# 	idx.nu <- 1 + length(beta)
-# 	idx.zeta <- 1:length(zeta) + 1 + length(beta)
-# 
-# 	# FIM[beta, beta]
-# 	D <- (1-p)*d2logzdlambda2 - p*(1-p)*dlogzdlambda^2 / (p*(z-1)+1) + meany / lambda^2
-# 	FIM[idx.beta, idx.beta] <- t(x) %*% ((D * lambda^2) * x)
-# 
-# 	# FIM[nu, nu]
-# 	D <- (1-p)*d2logzdnu2 - p*(1-p)*dlogzdnu^2 / (p*(z-1)+1)
-# 	FIM[idx.nu, idx.nu] <- sum(D)
-# 
-# 	# FIM[zeta, zeta]
-# 	D <- (1/z) * (z-1)^2 / (p*(z-1) + 1) + (1 - 1/z) / (1-p)
-# 	FIM[idx.zeta, idx.zeta] <- t(w) %*% ((D * p^2*(1-p)^2) * w)
-# 
-# 	# FIM[beta, nu]
-# 	D <- (1-p)*d2logzdlambdadnu - p*(1-p)*dlogzdlambda*dlogzdnu / (p*(z-1) + 1)
-# 	FIM[idx.beta, idx.nu] <- matrix(1, 1, n) %*% ((D * lambda) * x)
-# 	FIM[idx.nu, idx.beta] <- FIM[idx.beta, idx.nu]
-# 
-# 	# FIM[zeta, nu]
-# 	D <- -1/(p*(z-1) + 1) * dlogzdnu
-# 	FIM[idx.zeta, idx.nu] <- matrix(1, 1, n) %*% (D * p*(1-p) * w)
-# 	FIM[idx.nu, idx.zeta] <- FIM[idx.zeta, idx.nu]
-# 
-# 	# FIM[beta, zeta]
-# 	D <- -1/(p*(z-1) + 1) * dlogzdlambda
-# 	FIM[idx.zeta, idx.beta] <- t(w) %*% (D * lambda * p*(1-p) * x)
-# 	FIM[idx.beta, idx.zeta] <- t(FIM[idx.zeta, idx.beta])
-# 	
-# 	return(FIM)
-# }
-
 fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta, max = 100)
 {
 	n <- nrow(X)

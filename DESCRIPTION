@@ -1,8 +1,8 @@
 Package: COMPoissonReg
 Type: Package
 Title: Conway-Maxwell Poisson (COM-Poisson) Regression
-Version: 0.4.1
-Date: 2017-05-03
+Version: 0.4.2
+Date: 2017-06-13
 Author: Kimberly Sellers <kfs7@georgetown.edu>
 	Thomas Lotze <thomas.lotze@thomaslotze.com>
 	Andrew Raim <andrew.raim@gmail.com>

@@ -136,6 +136,11 @@ sdev.zicmp <- function(object, ...)
 	sqrt(diag(object$V))
 }
 
+vcov.zicmp <- function(object, ...)
+{
+	object$V
+}
+
 equitest.zicmp <- function(object, ...)
 {
 	if ("equitest" %in% names(object)) {
