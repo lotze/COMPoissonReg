@@ -67,6 +67,9 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
   # Compute associated standard errors
   sdev(cmp.out)
 
+  # Get the full covariance matrix for the estimates
+  vcov(cmp.out)
+
   # Likelihood ratio test for dispersion parameter
   # Test for H_0: dispersion equal to 1 vs. H_1: not equal to 1
   # (i.e. Poisson vs. COM-Poisson regression models)
@@ -120,6 +123,9 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
 
   # Compute standard errors for estimates of coefficients
   sdev(zicmp.out)
+
+  # Get the full covariance matrix for the estimates
+  vcov(zicmp.out)
 
   # Likelihood ratio test for equidispersion (H0: nu = 1 vs H1: not)
   equitest(zicmp.out)
