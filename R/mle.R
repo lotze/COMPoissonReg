@@ -43,10 +43,16 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 		gamma = res$par[1:d2 + d1],
 		zeta = res$par[1:d3 + d1 + d2]
 	)
+	names(theta.hat$beta) <- sprintf("X:%s", colnames(X))
+	names(theta.hat$gamma) <- sprintf("S:%s", colnames(S))
+	names(theta.hat$zeta) <- sprintf("W:%s", colnames(W))
 
 	FIM <- fim.zicmp.reg(X, S, W, theta.hat$beta, theta.hat$gamma,
 		theta.hat$zeta, max = max)
-	colnames(FIM) <- rownames(FIM) <- c(colnames(X), colnames(S), colnames(W))
+	colnames(FIM) <- rownames(FIM) <- c(
+		sprintf("X:%s", colnames(X)),
+		sprintf("S:%s", colnames(S)),
+		sprintf("W:%s", colnames(W)))
 	V <- solve(FIM)
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
@@ -101,12 +107,16 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init,
 		beta = res$par[1:d1],
 		gamma = res$par[1:d2 + d1]
 	)
+	names(theta.hat$beta) <- sprintf("X:%s", colnames(X))
+	names(theta.hat$gamma) <- sprintf("S:%s", colnames(S))
 
 	W <- matrix(1, n, 1)
 	FIM.full <- fim.zicmp.reg(X, S, W = W, theta.hat$beta, theta.hat$gamma,
 		zeta = -Inf, max = max)
 	FIM <- FIM.full[1:(d1+d2), 1:(d1+d2)]
-	colnames(FIM) <- rownames(FIM) <- c(colnames(X), colnames(S))
+	colnames(FIM) <- rownames(FIM) <- c(
+		sprintf("X:%s", colnames(X)),
+		sprintf("S:%s", colnames(S)))
 	V <- solve(FIM)
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
