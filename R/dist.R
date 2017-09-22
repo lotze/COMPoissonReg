@@ -53,6 +53,7 @@ pcmp <- function(x, lambda, nu, max = 100)
 qcmp <- function(q, lambda, nu, max = 100, log.p = FALSE)
 {
 	n <- length(q)
+	if (length(log.p) == 1) { log.p <- rep(log.p, n) }
 	log.q <- ifelse(log.p, q, log(q))
 	if (length(lambda) == 1) { lambda <- rep(lambda, n) }
 	if (length(nu) == 1) { nu <- rep(nu, n) }
