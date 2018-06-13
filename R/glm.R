@@ -51,6 +51,7 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 		res$V <- fit.out$V
 		res$loglik <- fit.out$loglik
 		res$opt.res <- fit.out$opt.res
+		res$opt.method <- getOption("COMPoissonReg.optim.method")
 		res$elapsed.sec <- fit.out$elapsed.sec
 
 		attr(res, "class") <- c("zicmp", attr(res, "class"))
@@ -65,6 +66,7 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 		res$V <- fit.out$V
 		res$loglik <- fit.out$loglik
 		res$opt.res <- fit.out$opt.res
+		res$opt.method <- getOption("COMPoissonReg.optim.method")
 		res$elapsed.sec <- fit.out$elapsed.sec
 
 		attr(res, "class") <- c("cmp", attr(res, "class"))

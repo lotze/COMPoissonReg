@@ -52,19 +52,20 @@ summary.cmp <- function(object, ...)
 	}
 
 	list(DF = DF, DF.lambda = DF.lambda, DF.nu = DF.nu,
-		 n = n,
-		 loglik = logLik(object),
-		 aic = AIC(object),
-		 bic = BIC(object),
-		 opt.message = object$message,
-		 opt.convergence = object$convergence,
-		 elapsed.sec = object$elapsed.sec
+		n = n,
+		loglik = logLik(object),
+		aic = AIC(object),
+		bic = BIC(object),
+		opt.method = object$opt.method,
+		opt.message = object$opt.res$message,
+		opt.convergence = object$opt.res$convergence,
+		elapsed.sec = object$elapsed.sec
 	)
 }
 
 print.cmp <- function(x, ...)
 {
-	cat("Fit for CMP coefficients\n")
+	cat("CMP coefficients\n")
 	s <- summary.cmp(x)
 	tt <- equitest(x)
 	print(s$DF)
@@ -85,7 +86,8 @@ print.cmp <- function(x, ...)
 	cat(sprintf("AIC: %0.4f   ", s$aic))
 	cat(sprintf("BIC: %0.4f   ", s$bic))
 	cat("\n")
-	cat(sprintf("Converged status: %d   ", s$opt.convergence))
+	cat(sprintf("Optimization Method: %s   ", s$opt.method))
+	cat(sprintf("Converged status: %d\n", s$opt.convergence))
 	cat(sprintf("Message: %s\n", s$opt.message))
 }
 

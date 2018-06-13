@@ -73,6 +73,7 @@ summary.zicmp <- function(object, ...)
 		loglik = logLik(object),
 		aic = AIC(object),
 		bic = BIC(object),
+		opt.method = object$opt.method,
 		opt.res = object$opt.res,
 		elapsed.sec = object$elapsed.sec
 	)
@@ -80,7 +81,7 @@ summary.zicmp <- function(object, ...)
 
 print.zicmp <- function(x, ...)
 {
-	cat("Fit for ZICMP coefficients\n")
+	cat("ZICMP coefficients\n")
 	s <- summary(x)
 	tt <- equitest(x)
 	print(s$DF)
@@ -101,8 +102,9 @@ print.zicmp <- function(x, ...)
 	cat(sprintf("AIC: %0.4f   ", s$aic))
 	cat(sprintf("BIC: %0.4f   ", s$bic))
 	cat("\n")
-	cat(sprintf("Converged status: %d   ", s$opt.res$convergence))
-	cat(sprintf("Message: %s\n", s$opt.res$message))
+	cat(sprintf("Optimization Method: %s   ", s$opt.method))
+	cat(sprintf("Converged status: %d   ", s$opt.convergence))
+	cat(sprintf("Message: %s\n", s$opt.message))
 }
 
 logLik.zicmp <- function(object, ...)

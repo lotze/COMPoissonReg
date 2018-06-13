@@ -19,13 +19,16 @@ rcmp <- function(n, lambda, nu, max = 100)
 	
 	u <- runif(n)
 	x <- numeric(n)
-	z <- computez(lambda, nu, max)
-	
+	logz <- computez(lambda, nu, max, log = TRUE, autoscale = TRUE)
+
 	for (i in 1:n) {
-		px <- dcmp(x[i], lambda[i], nu[i], z = z[i], max = max)
+		px <- exp(x[i]*log(lambda[i]) - nu[i]*lgamma(x[i]+1) - logz[i])
+			# dcmp(x[i], lambda[i], nu[i], z = z[i], max = max)
 		while (px < u[i]) {
 			x[i] <- x[i] + 1
-			px <- px + dcmp(x[i], lambda[i], nu[i], z = z[i], max = max)
+			px <- px + exp(x[i]*log(lambda[i]) - nu[i]*lgamma(x[i]+1) - logz[i])
+				# dcmp(x[i], lambda[i], nu[i], z = z[i], max = max)
+			print(px)
 		}
 	}
 

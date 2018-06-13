@@ -1,5 +1,4 @@
-fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
-	max, optim.control = list(maxit = 150))
+fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init, max)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -12,6 +11,9 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 	if (is.null(beta.init)) { beta.init <- rep(0, d1) }
 	if (is.null(gamma.init)) { gamma.init <- rep(0, d2) }
 	if (is.null(zeta.init)) { zeta.init <- rep(0, d3) }
+	stopifnot(d1 == length(beta.init))
+	stopifnot(d2 == length(gamma.init))
+	stopifnot(d3 == length(zeta.init))
 
 	tx <- function(par) {
 		list(
@@ -26,15 +28,22 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 		lambda <- exp(X %*% theta$beta)
 		nu <- exp(S %*% theta$gamma)
 		p <- plogis(W %*% theta$zeta)
-		z <- computez(lambda, nu, max)
+		logz <- computez(lambda, nu, max, log = TRUE, autoscale = TRUE)
+		t(u) %*% log(p*exp(logz) + (1-p)) + t(1 - u) %*% (log(1-p) +
+			y*log(lambda) - nu*lgamma(y+1)) - sum(logz)
 
-		t(u) %*% log(p*z + (1-p)) + t(1 - u) %*% (log(1-p) +
-			y*log(lambda) - nu*lgamma(y+1)) - sum(log(z))
+		# browser()
+		# logz_old <- computez(lambda, nu, max, log = TRUE)
+		# t(u) %*% log(p*exp(logz_old) + (1-p)) + t(1 - u) %*% (log(1-p) +
+		# 	y*log(lambda) - nu*lgamma(y+1)) - sum(logz_old)
 	}
+
+	optim.method <- getOption("COMPoissonReg.optim.method")
+	optim.control <- getOption("COMPoissonReg.optim.control")
 
 	optim.control$fnscale = -1
 	par.init <- c(beta.init, gamma.init, zeta.init)
-	res <- optim(par.init, loglik, method = 'L-BFGS-B',
+	res <- optim(par.init, loglik, method = optim.method,
 		control = optim.control, hessian = TRUE)
 	H <- res$hessian
 
@@ -69,8 +78,7 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init,
 	return(res)
 }
 
-fit.cmp.reg <- function(y, X, S, beta.init, gamma.init,
-	max, optim.control = list(maxit = 150))
+fit.cmp.reg <- function(y, X, S, beta.init, gamma.init, max)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -81,6 +89,8 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init,
 
 	if (is.null(beta.init)) { beta.init <- rep(0, d1) }
 	if (is.null(gamma.init)) { gamma.init <- rep(0, d2) }
+	stopifnot(d1 == length(beta.init))
+	stopifnot(d2 == length(gamma.init))
 
 	tx <- function(par) {
 		list(
@@ -93,15 +103,32 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init,
 		theta <- tx(par)
 		lambda <- exp(X %*% theta$beta)
 		nu <- exp(S %*% theta$gamma)
-		z <- computez(lambda, nu, max)
-		sum(y*log(lambda) - nu*lgamma(y+1) - log(z))
+		
+		if (TRUE) {
+			logz <- computez(lambda, nu, max, log = TRUE, autoscale = FALSE)
+			ans <- sum(y*log(lambda) - nu*lgamma(y+1) - logz)
+		} else {
+			# logscale <- max*log(lambda)
+			# logscale <- rep(40,n)
+			logz <- computez(lambda, nu, max, log = TRUE, autoscale = TRUE)
+			ans <- sum(y*log(lambda) - nu*lgamma(y+1) - logz)
+			# if (is.na(ans) || is.infinite(ans)) { browser() }
+		}
+print(ans)
+		return(ans)
+
+		# browser()		
+		# logz_old <- computez(lambda, nu, max, log = TRUE)
+		# sum(y*log(lambda) - nu*lgamma(y+1) - logz_old$ans)
 	}
 
+	optim.method <- getOption("COMPoissonReg.optim.method")
+	optim.control <- getOption("COMPoissonReg.optim.control")
 	optim.control$fnscale = -1
 	par.init <- c(beta.init, gamma.init)
-	res <- optim(par.init, loglik, method = 'L-BFGS-B',
-		control = optim.control, hessian = TRUE)
-	H <- res$hessian
+
+	res <- optim(par.init, loglik, method = optim.method,
+		control = optim.control)
 
 	theta.hat <- list(
 		beta = res$par[1:d1],
@@ -117,7 +144,14 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init,
 	colnames(FIM) <- rownames(FIM) <- c(
 		sprintf("X:%s", colnames(X)),
 		sprintf("S:%s", colnames(S)))
-	V <- solve(FIM)
+
+	V <- tryCatch({
+		solve(FIM)
+	}, error = function(e) {
+		warning("FIM could not be inverted. Trying Hessian to estimate variance")
+		H <- optimHess(res$par, loglik, control = optim.control)
+		solve(-H)
+	})
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)
@@ -128,13 +162,12 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init,
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
 
-	res <- list(theta.hat = theta.hat, V = V, H = H, FIM = FIM, opt.res = res,
+	res <- list(theta.hat = theta.hat, V = V, FIM = FIM, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
 	return(res)
 }
 
-fit.zip.reg <- function(y, X, W, beta.init, zeta.init,
-	max, optim.control = list(maxit = 150))
+fit.zip.reg <- function(y, X, W, beta.init, zeta.init, max)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -145,6 +178,8 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init,
 
 	if (is.null(beta.init)) { beta.init <- rep(0, d1) }
 	if (is.null(zeta.init)) { zeta.init <- rep(0, d3) }
+	stopifnot(d1 == length(beta.init))
+	stopifnot(d3 == length(zeta.init))
 
 	tx <- function(par) {
 		list(
@@ -161,11 +196,13 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init,
 			(1-u)*(y*log(lambda) - lambda - lgamma(y+1)))
 	}
 
+	optim.method <- getOption("COMPoissonReg.optim.method")
+	optim.control <- getOption("COMPoissonReg.optim.control")
+
 	optim.control$fnscale = -1
 	par.init <- c(beta.init, zeta.init)
-	res <- optim(par.init, loglik, method = 'L-BFGS-B',
-		control = optim.control, hessian = TRUE)
-	H <- res$hessian
+	res <- optim(par.init, loglik, method = optim.method,
+		control = optim.control)
 
 	theta.hat <- list(
 		beta = res$par[1:d1],
@@ -174,7 +211,14 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init,
 
 	FIM <- fim.zicmp.reg(X, S = matrix(1, n, 1), W, theta.hat$beta,
 		gamma = 0, theta.hat$zeta, max = max)
-	V <- solve(FIM)
+
+	V <- tryCatch({
+		solve(FIM)
+	}, error = function(e) {
+		warning("FIM could not be inverted. Trying Hessian to estimate variance")
+		H <- optimHess(res$par, loglik, control = optim.control)
+		solve(-H)
+	})
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- rep(0, n)
@@ -185,7 +229,7 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init,
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
 
-	res <- list(theta.hat = theta.hat, V = V, H = H, FIM = FIM, opt.res = res,
+	res <- list(theta.hat = theta.hat, V = V, FIM = FIM, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
 	return(res)
 }
