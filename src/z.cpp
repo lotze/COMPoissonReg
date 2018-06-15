@@ -16,13 +16,18 @@ Rcpp::NumericVector computez_adapt(const Rcpp::NumericVector& lambda,
 		double delta = R_PosInf;
 		double psi = -0.5772157;	// Euler–Mascheroni constant
 		double y = 0;
-		bool is_increase = true;
-		while ((delta > tol || is_increase) && y <= ymax && !isinf(z(i))) {
+		double deriv = R_PosInf;
+		while (deriv > 0 && y <= ymax && !isinf(z(i))) {
 			delta = exp( y*log(lambda(i)) - nu(i)*lgamma(y+1) );
 			z(i) += delta;
 			psi += 1 / (y+1);
-			double deriv = log(lambda(i)) - nu(i)*psi;
-			is_increase &= (deriv > 0);
+			deriv = log(lambda(i)) - nu(i)*psi;
+			y++;
+		}
+
+		while (delta > tol && y <= ymax && !isinf(z(i))) {
+			delta = exp( y*log(lambda(i)) - nu(i)*lgamma(y+1) );
+			z(i) += delta;
 			y++;
 		}
 	}
