@@ -1,3 +1,5 @@
+useDynLib(COMPoissonReg, .registration = TRUE)
+
 export(equitest)
 export(sdev)
 export(nu)
@@ -44,5 +46,7 @@ S3method(residuals, zicmp)
 S3method(sdev, zicmp)
 S3method(summary, zicmp)
 S3method(vcov, zicmp)
+
+export(computez_adapt)
 
 import(stats)

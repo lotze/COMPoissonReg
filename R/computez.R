@@ -28,6 +28,17 @@ computez <- function(lambda, nu, max, log = FALSE, autoscale = FALSE)
 	return(ans)
 }
 
+# Approximation from Gillispie & Green (2014)
+computez.approx <- function(lambda, nu, log = FALSE)
+{
+	logz <- nu*lambda^(1/nu) - (nu-1)/(2*nu)*log(lambda) - (nu-1)/2*log(2*pi) - 1/2*log(nu)
+	if (log) {
+		return(logz)
+	} else {
+		return(exp(logz))
+	}
+}
+
 # Sum (from j=0 to j=max) of j*lambda^j/((j!)^nu)
 computez.prodj <- function(lambda, nu, max)
 {
