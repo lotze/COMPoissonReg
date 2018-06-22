@@ -223,7 +223,6 @@ residuals.cmp <- function(object, type = c("raw", "quantile"), ...)
 	if (type == "raw") {
 		res <- object$y - y.hat
 	} else if (type == "quantile") {
-		set.seed(1234)
 		res <- rqres.cmp(object$y, lambda = lambda.hat, nu = nu.hat)
 	} else {
 		stop("Unsupported residual type")

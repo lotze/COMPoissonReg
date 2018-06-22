@@ -234,10 +234,7 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
 
 expected.y <- function(lambda, nu, p)
 {
-	z <- z_hybrid(lambda, nu)
-	dzdlambda <- computez.prodj(lambda, nu) / lambda
-	dlogzdlambda <- dzdlambda / z
-	(1-p) * lambda * dlogzdlambda	
+	(1-p) * cmp_expected_value(lambda, nu)
 }
 
 expected.y.reg <- function(X, S, W, beta, gamma, zeta)

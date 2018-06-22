@@ -133,14 +133,30 @@ Rcpp::NumericVector z_hybrid(const Rcpp::NumericVector& lambda,
 	}
 }
 
-/*
 // [[Rcpp::export]]
-Rcpp::NumericVector expected_y_cpp(const Rcpp::NumericVector& lambda,
-	const Rcpp::NumericVector& nu)
+Rcpp::NumericVector cmp_expected_value(const Rcpp::NumericVector& lambda,
+	const Rcpp::NumericVector& nu, double tol = 1e-6)
 {
-	return computez_prodj_cpp(lambda, nu) / z_hybrid(lambda, nu);
+	unsigned int n = lambda.size();
+	if (n != nu.size()) {
+		Rcpp::stop("lambda and nu must be the same length");
+	}
+	
+	Rcpp::NumericVector ex(n);
+	ex.fill(0);
+
+	for (unsigned int i = 0; i < n; i++) {
+		Rcpp::NumericVector allprobs = cmp_allprobs(lambda(i), nu(i), tol);
+		// Rcpp::IntegerVector values = Rcpp::seq_len(allprobs.size()) - 1;
+		// ex(i) = sum(allprobs * values);
+
+		for (unsigned int j = 0; j < allprobs.size(); j++) {
+			ex(i) += j * allprobs(j);
+		}
+	}
+
+	return ex;
 }
-*/
 
 // Sum (from j=0 to j=max) of j*lambda^j/((j!)^nu)
 /*
