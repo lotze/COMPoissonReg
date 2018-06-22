@@ -3,15 +3,15 @@
 # ln(lambda) = x %*% beta
 # logit(p) = w %*% zeta
 
-fim.zicmp <- function(lambda, nu, p, max = 100)
+fim.zicmp <- function(lambda, nu, p)
 {
-	z <- computez(lambda,nu,max=max)
-	dzdlambda <- computez.prodj(lambda, nu, max=max)/lambda
-	dzdnu <- -computez.prodlogj(lambda, nu, max=max)
-	d2zdlambda2 <- (1/lambda^2)*(computez.prodj2(lambda, nu, max=max) -
-		computez.prodj(lambda, nu, max=max))
-	d2zdnu2 <- computez.prodlogj2(lambda, nu, max=max)
-	d2zdlambdadnu <- -(1/lambda)*computez.prodjlogj(lambda, nu, max=max)
+	z <- z_hybrid(lambda, nu)
+	dzdlambda <- computez.prodj(lambda, nu)/lambda
+	dzdnu <- -computez.prodlogj(lambda, nu)
+	d2zdlambda2 <- (1/lambda^2)*(computez.prodj2(lambda, nu) -
+		computez.prodj(lambda, nu))
+	d2zdnu2 <- computez.prodlogj2(lambda, nu)
+	d2zdlambdadnu <- -(1/lambda)*computez.prodjlogj(lambda, nu)
 
 	dlogzdlambda <- dzdlambda/z
 	d2logzdlambda2 <- d2zdlambda2/z - dzdlambda^2/z^2
@@ -48,7 +48,7 @@ fim.zicmp <- function(lambda, nu, p, max = 100)
 	return(FIM)
 }
 
-fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta, max = 100)
+fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta)
 {
 	n <- nrow(X)
 	qq <- ncol(X) + ncol(S) + ncol(W)
@@ -56,13 +56,13 @@ fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta, max = 100)
 	nu <- as.numeric(exp(S %*% gamma))
 	p <- as.numeric(plogis(W %*% zeta))
 
-	z <- computez(lambda, nu, max=max)
-	dzdlambda <- computez.prodj(lambda, nu, max=max) / lambda
-	dzdnu <- -computez.prodlogj(lambda, nu, max=max)
-	d2zdlambda2 <- (1/lambda^2)*(computez.prodj2(lambda, nu, max=max) -
-		computez.prodj(lambda, nu, max=max))
-	d2zdnu2 <- computez.prodlogj2(lambda, nu, max=max)
-	d2zdlambdadnu <- -(1/lambda)*computez.prodjlogj(lambda, nu, max=max)
+	z <- computez(lambda, nu)
+	dzdlambda <- computez.prodj(lambda, nu) / lambda
+	dzdnu <- -computez.prodlogj(lambda, nu)
+	d2zdlambda2 <- (1/lambda^2)*(computez.prodj2(lambda, nu) -
+		computez.prodj(lambda, nu))
+	d2zdnu2 <- computez.prodlogj2(lambda, nu)
+	d2zdlambdadnu <- -(1/lambda)*computez.prodjlogj(lambda, nu)
 
 	dlogzdlambda <- dzdlambda/z
 	d2logzdlambda2 <- d2zdlambda2/z - dzdlambda^2/z^2
@@ -111,8 +111,8 @@ fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta, max = 100)
 	return(FIM)
 }
 
-var.zicmp.reg <- function(X, S, W, beta, gamma, zeta, max = 100)
+var.zicmp.reg <- function(X, S, W, beta, gamma, zeta)
 {
-	FIM <- fim.zicmp.reg(X, S, W, beta, gamma, zeta, max)
+	FIM <- fim.zicmp.reg(X, S, W, beta, gamma, zeta)
 	solve(FIM)
 }

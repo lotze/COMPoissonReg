@@ -1,4 +1,4 @@
-fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init, max)
+fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -28,14 +28,9 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init, max)
 		lambda <- exp(X %*% theta$beta)
 		nu <- exp(S %*% theta$gamma)
 		p <- plogis(W %*% theta$zeta)
-		logz <- computez(lambda, nu, max, log = TRUE, autoscale = TRUE)
+		logz <- z_hybrid(lambda, nu, take_log = TRUE)
 		t(u) %*% log(p*exp(logz) + (1-p)) + t(1 - u) %*% (log(1-p) +
 			y*log(lambda) - nu*lgamma(y+1)) - sum(logz)
-
-		# browser()
-		# logz_old <- computez(lambda, nu, max, log = TRUE)
-		# t(u) %*% log(p*exp(logz_old) + (1-p)) + t(1 - u) %*% (log(1-p) +
-		# 	y*log(lambda) - nu*lgamma(y+1)) - sum(logz_old)
 	}
 
 	optim.method <- getOption("COMPoissonReg.optim.method")
@@ -56,8 +51,14 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init, max)
 	names(theta.hat$gamma) <- sprintf("S:%s", colnames(S))
 	names(theta.hat$zeta) <- sprintf("W:%s", colnames(W))
 
-	FIM <- fim.zicmp.reg(X, S, W, theta.hat$beta, theta.hat$gamma,
-		theta.hat$zeta, max = max)
+	# TBD: Clean this up
+	if (FALSE) {
+		FIM <- fim.zicmp.reg(X, S, W, theta.hat$beta, theta.hat$gamma,
+			theta.hat$zeta)
+	} else {
+		H <- optimHess(res$par, loglik, control = optim.control)
+		FIM <- -H
+	}
 	colnames(FIM) <- rownames(FIM) <- c(
 		sprintf("X:%s", colnames(X)),
 		sprintf("S:%s", colnames(S)),
@@ -67,7 +68,7 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init, max)
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)
 	p.hat <- plogis(W %*% theta.hat$zeta)
-	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat, max)
+	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat)
 	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
@@ -78,7 +79,7 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init, max)
 	return(res)
 }
 
-fit.cmp.reg <- function(y, X, S, beta.init, gamma.init, max)
+fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -103,23 +104,8 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init, max)
 		theta <- tx(par)
 		lambda <- exp(X %*% theta$beta)
 		nu <- exp(S %*% theta$gamma)
-		
-		if (TRUE) {
-			logz <- computez(lambda, nu, max, log = TRUE, autoscale = FALSE)
-			ans <- sum(y*log(lambda) - nu*lgamma(y+1) - logz)
-		} else {
-			# logscale <- max*log(lambda)
-			# logscale <- rep(40,n)
-			logz <- computez(lambda, nu, max, log = TRUE, autoscale = TRUE)
-			ans <- sum(y*log(lambda) - nu*lgamma(y+1) - logz)
-			# if (is.na(ans) || is.infinite(ans)) { browser() }
-		}
-print(ans)
-		return(ans)
-
-		# browser()		
-		# logz_old <- computez(lambda, nu, max, log = TRUE)
-		# sum(y*log(lambda) - nu*lgamma(y+1) - logz_old$ans)
+		logz <- z_hybrid(lambda, nu, take_log = TRUE)
+		sum(y*log(lambda) - nu*lgamma(y+1) - logz)
 	}
 
 	optim.method <- getOption("COMPoissonReg.optim.method")
@@ -137,10 +123,16 @@ print(ans)
 	names(theta.hat$beta) <- sprintf("X:%s", colnames(X))
 	names(theta.hat$gamma) <- sprintf("S:%s", colnames(S))
 
-	W <- matrix(1, n, 1)
-	FIM.full <- fim.zicmp.reg(X, S, W = W, theta.hat$beta, theta.hat$gamma,
-		zeta = -Inf, max = max)
-	FIM <- FIM.full[1:(d1+d2), 1:(d1+d2)]
+	# TBD: Clean this up
+	if (FALSE) {
+		W <- matrix(1, n, 1)
+		FIM.full <- fim.zicmp.reg(X, S, W = W, theta.hat$beta, theta.hat$gamma,
+			zeta = -Inf)
+		FIM <- FIM.full[1:(d1+d2), 1:(d1+d2)]
+	} else {
+		H <- optimHess(res$par, loglik, control = optim.control)
+		FIM <- -H
+	}
 	colnames(FIM) <- rownames(FIM) <- c(
 		sprintf("X:%s", colnames(X)),
 		sprintf("S:%s", colnames(S)))
@@ -156,7 +148,7 @@ print(ans)
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)
 	p.hat <- 0
-	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat, max)
+	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat)
 	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
@@ -167,7 +159,7 @@ print(ans)
 	return(res)
 }
 
-fit.zip.reg <- function(y, X, W, beta.init, zeta.init, max)
+fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -209,8 +201,14 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init, max)
 		zeta = res$par[1:d3 + d1]
 	)
 
-	FIM <- fim.zicmp.reg(X, S = matrix(1, n, 1), W, theta.hat$beta,
-		gamma = 0, theta.hat$zeta, max = max)
+	# TBD: Clean this up
+	if (FALSE) {
+		FIM <- fim.zicmp.reg(X, S = matrix(1, n, 1), W, theta.hat$beta,
+			gamma = 0, theta.hat$zeta)
+	} else {
+		H <- optimHess(res$par, loglik, control = optim.control)
+		FIM <- -H
+	}
 
 	V <- tryCatch({
 		solve(FIM)
@@ -223,7 +221,7 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init, max)
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- rep(0, n)
 	p.hat <- plogis(W %*% theta.hat$zeta)
-	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat, max)
+	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat)
 	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
@@ -234,18 +232,18 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init, max)
 	return(res)
 }
 
-expected.y <- function(lambda, nu, p, max)
+expected.y <- function(lambda, nu, p)
 {
-	z <- computez(lambda, nu, max=max)
-	dzdlambda <- computez.prodj(lambda, nu, max=max)/lambda
+	z <- z_hybrid(lambda, nu)
+	dzdlambda <- computez.prodj(lambda, nu) / lambda
 	dlogzdlambda <- dzdlambda / z
 	(1-p) * lambda * dlogzdlambda	
 }
 
-expected.y.reg <- function(X, S, W, beta, gamma, zeta, max)
+expected.y.reg <- function(X, S, W, beta, gamma, zeta)
 {
 	lambda <- exp(X %*% beta)
 	nu <- exp(S %*% gamma)
 	p <- plogis(W %*% zeta)
-	expected.y(lambda, nu, p, max)
+	expected.y(lambda, nu, p)
 }

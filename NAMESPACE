@@ -47,6 +47,14 @@ S3method(sdev, zicmp)
 S3method(summary, zicmp)
 S3method(vcov, zicmp)
 
-export(computez_adapt)
+export(cmp_allprobs)
+export(z_exact)
+export(z_approx)
+export(dcmp_cpp)
+export(rcmp_cpp)
+export(pcmp_cpp)
+export(qcmp_cpp)
+export(z_hybrid)
+
 
 import(stats)

@@ -1,5 +1,5 @@
 glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
-	beta.init = NULL, gamma.init = NULL, zeta.init = NULL, max = 100, ...)
+	beta.init = NULL, gamma.init = NULL, zeta.init = NULL, ...)
 {
 	# Parse formula.lambda. This one should have the response.
 	mf <- model.frame(formula.lambda, ...)
@@ -26,7 +26,6 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	res$y <- y
 	res$X <- X
 	res$S <- S
-	res$max <- max
 	res$beta.init <- beta.init
 	res$gamma.init <- gamma.init
 
@@ -40,7 +39,7 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 		if (is.null(zeta.init)) { zeta.init <- rep(0, d3) }
 
 		fit.out <- fit.zicmp.reg(res$y, res$X, res$S, res$W, beta.init = beta.init,
-			gamma.init = gamma.init, zeta.init = zeta.init, max = res$max)
+			gamma.init = gamma.init, zeta.init = zeta.init)
 
 		res$zeta.init <- zeta.init
 		res$beta.glm <- coef(initial.glm)
@@ -57,7 +56,7 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 		attr(res, "class") <- c("zicmp", attr(res, "class"))
 	} else {
 		fit.out <- fit.cmp.reg(res$y, res$X, res$S, beta.init = beta.init,
-			gamma.init = gamma.init, max = res$max)
+			gamma.init = gamma.init)
 
 		res$beta.glm <- coef(initial.glm)
 		res$beta <- fit.out$theta.hat$beta

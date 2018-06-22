@@ -156,11 +156,10 @@ equitest.zicmp <- function(object, ...)
 	beta.hat <- object$beta
 	gamma.hat <- object$gamma
 	zeta.hat <- object$zeta
-	max <- object$max
 	n <- length(y)
 
 	fit0.out <- fit.zip.reg(y, X, W, beta.init = beta.hat,
-		zeta.init = zeta.hat, max = max)
+		zeta.init = zeta.hat)
 	beta0.hat <- fit0.out$theta.hat$beta
 	zeta0.hat <- fit0.out$theta.hat$zeta
 
@@ -175,8 +174,8 @@ equitest.zicmp <- function(object, ...)
 	nu0.hat <- rep(1, n)
 	p0.hat <- plogis(W %*% zeta0.hat)
 
-	ff <- dzicmp(y, lambda.hat, nu.hat, p.hat, max = max)
-	ff0 <- dzicmp(y, lambda0.hat, nu0.hat, p0.hat, max = max)
+	ff <- dzicmp(y, lambda.hat, nu.hat, p.hat)
+	ff0 <- dzicmp(y, lambda0.hat, nu0.hat, p0.hat)
 
 	X2 <- 2*(sum(log(ff)) - sum(log(ff0)))
 	pvalue <- pchisq(X2, df = length(gamma.hat), lower.tail = FALSE)
@@ -209,7 +208,7 @@ deviance.zicmp <- function(object, ...)
 			lambda <- exp(X[i,] %*% par[1:d1])
 			nu <- exp(S[i,] %*% par[1:d2 + d1])
 			p <- plogis(W[i,] %*% par[1:d3 + d1 + d2])
-			dzicmp(y[i], lambda, nu, p, max = object$max, log = TRUE)
+			dzicmp(y[i], lambda, nu, p, log = TRUE)
 		}
 
 		# Maximize loglik for ith obs
@@ -237,7 +236,7 @@ residuals.zicmp <- function(object, type = c("raw", "quantile"), ...)
 	if (type == "raw") {
 		res <- object$y - y.hat
 	} else if (type == "quantile") {
-		res <- rqres.zicmp(object$y, lambda.hat, nu.hat, p.hat, object$max)
+		res <- rqres.zicmp(object$y, lambda.hat, nu.hat, p.hat)
 	} else {
 		stop("Unsupported residual type")
 	}
@@ -265,7 +264,7 @@ predict.zicmp <- function(object, newdata = NULL, ...)
 	lambda.hat <- exp(X %*% object$beta)
 	nu.hat <- exp(S %*% object$gamma)
 	p.hat <- plogis(W %*% object$zeta)
-	y.hat <- expected.y(lambda.hat, nu.hat, p.hat, object$max)
+	y.hat <- expected.y(lambda.hat, nu.hat, p.hat)
 	return(y.hat)
 }
 
@@ -285,13 +284,13 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 		}
 
 		# Generate bootstrap samples of the full dataset using MLE
-		y.boot <- rzicmp(n, lambda.hat, nu.hat, p.hat, max = object$max)
+		y.boot <- rzicmp(n, lambda.hat, nu.hat, p.hat)
 
 		# Take each of the bootstrap samples, along with the x matrix, and fit model
 		# to generate bootstrap estimates
 		tryCatch({
 			fit.boot <- fit.zicmp.reg(y.boot, object$X, object$S, object$W,
-				object$beta.init, object$gamma.init, object$zeta.init, object$max)
+				object$beta.init, object$gamma.init, object$zeta.init)
 			theta.boot[r,] <- unlist(fit.boot$theta.hat)
 		},
 		error = function(e) {

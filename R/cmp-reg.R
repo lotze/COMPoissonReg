@@ -139,9 +139,8 @@ equitest.cmp <- function(object, ...)
 	lambda0 <- exp(X %*% object$beta.glm)
 	lambda <- exp(X %*% object$beta)
 	nu <- exp(S %*% object$gamma)
-	max <- object$max
 
-	z <- computez(lambda, nu, max)
+	z <- z_hybrid(lambda, nu)
 	teststat <- -2 * sum(y*log(lambda0) - lgamma(y+1) - lambda0 -
 		y*log(lambda) + nu*lgamma(y+1) + log(z))
 	pvalue <- pchisq(teststat, df=1, lower.tail=FALSE)
@@ -154,14 +153,13 @@ leverage.cmp <- function(object, ...)
 	x <- object$X
 	betahat <- object$beta
 	nuhat <- exp(object$S %*% object$gamma)
-	max <- object$max
 
 	# 1) to code the W matrix  (diagonal matrix with Var(Y_i) )
-	W <- diag(weights(x,betahat,nuhat,max))
+	W <- diag(weights(x,betahat,nuhat))
 
 	#    and X matrix (in Appendix)
-	E.y <- computez.prodj(exp(x %*% betahat),nuhat,max)/computez(exp(x %*% betahat),nuhat,max)
-	E.logfacty <- computez.prodlogj(exp(x %*% betahat),nuhat,max)/computez(exp(x %*% betahat),nuhat,max)
+	E.y <- computez.prodj(exp(x %*% betahat), nuhat) / z_hybrid(exp(x %*% betahat), nuhat)
+	E.logfacty <- computez.prodlogj(exp(x %*% betahat), nuhat) / z_hybrid(exp(x %*% betahat),nuhat)
 	extravec <- (-lgamma(y+1) + E.logfacty)/(y - E.y)
 	curlyX.mat <- cbind(x,extravec)
 	
@@ -180,7 +178,6 @@ deviance.cmp <- function(object, ...)
 	x <- object$X
 	betahat <- object$beta
 	nuhat <- exp(object$S %*% object$gamma)
-	max <- object$max
 	leverage <- leverage.cmp(object)
 
 	#### Compute optimal log likelihood value for given nu-hat value
@@ -195,7 +192,7 @@ deviance.cmp <- function(object, ...)
 			beta <- par[1:length(betainit)]
 			lambda <- exp(x[i,] %*% beta)
 			ll <- y[i]*log(lambda) - nuhat[i]*lgamma(y[i]+1) -
-				log(computez(lambda, nuhat[i], max))
+				z_hybrid(lambda, nuhat[i], take_log = TRUE)
 			return(ll)
 		}
 		
@@ -207,7 +204,7 @@ deviance.cmp <- function(object, ...)
 
 	#### Compute exact deviances
 	lambdahat <- exp(x %*% betahat)
-	OptimalLogL.mu <- (y*log(lambdahat)) - (nuhat * lgamma(y+1)) - log(computez(lambdahat,nuhat,max))
+	OptimalLogL.mu <- (y*log(lambdahat)) - (nuhat * lgamma(y+1)) - z_hybrid(lambdahat,nuhat,take_log = TRUE)
 	OptimalLogL.y <- OptimalLogLi
 	d <- -2*(OptimalLogL.mu - OptimalLogL.y)
 	cmpdev <- d/(sqrt(1-leverage))
@@ -227,7 +224,7 @@ residuals.cmp <- function(object, type = c("raw", "quantile"), ...)
 		res <- object$y - y.hat
 	} else if (type == "quantile") {
 		set.seed(1234)
-		res <- rqres.cmp(object$y, lambda = lambda.hat, nu = nu.hat, max = object$max)
+		res <- rqres.cmp(object$y, lambda = lambda.hat, nu = nu.hat)
 	} else {
 		stop("Unsupported residual type")
 	}
@@ -266,7 +263,6 @@ parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1
 	betahat <- object$beta
 	lambdahat <- exp(X %*% betahat)
 	nuhat <- exp(object$S %*% object$gamma)
-	max <- object$max
 
 	# Generate 1000 samples, using betahat and nuhat from full dataset
 	Ystar <- matrix(0, nrow = nrow(X), ncol = reps)
@@ -278,10 +274,10 @@ parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1
 		if (i %% report.period == 0) {
 			logger("Starting bootstrap rep %d\n", i)
 		}
-		Ystar[,i] <- rcmp(nrow(X), lambdahat, nuhat, max = max)
+		Ystar[,i] <- rcmp(nrow(X), lambdahat, nuhat)
 		tryCatch({
 			res <- fit.cmp.reg(y = Ystar[,i], X = X, S = S,
-			   beta.init = poissonest, gamma.init = object$gamma, max = object$max)
+			   beta.init = poissonest, gamma.init = object$gamma)
 			boot.out[i,] <- unlist(res$theta.hat)
 		}, error = function(e) {
 			# Do nothing now; emit a warning later
@@ -307,12 +303,12 @@ constantCMPfitsandresids <- function(lambdahat, nuhat, y=0)
 	list(fit = fit, resid = resid)
 }
 
-weights <- function(x,beta,nu,max)
+weights <- function(x,beta,nu)
 {
 	# Compute the parts that comprise the weight functions
-	w1 <- computez.prodj2(exp(x %*% beta),nu,max)
-	w2 <- computez.prodj(exp(x %*% beta),nu,max)
-	w3 <- computez(exp(x %*% beta),nu,max)
+	w1 <- computez.prodj2(exp(x %*% beta),nu)
+	w2 <- computez.prodj(exp(x %*% beta),nu)
+	w3 <- computez(exp(x %*% beta),nu)
 
 	Ey2 <- w1/w3
 	E2y <- (w2/w3)^2
