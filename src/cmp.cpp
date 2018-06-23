@@ -1,25 +1,11 @@
 #include <Rcpp.h>
 #include <list>
-
-// A version of the "which" function, since it does not appear to be
-// provided in Rcpp Sugar yet.
-Rcpp::IntegerVector which(const Rcpp::LogicalVector& x)
-{
-	std::list<int> idx;
-	for (int i = 0; i < x.size(); i++) {
-		if (x(i)) {
-			idx.push_back(i);
-		}
-	}
-
-	return Rcpp::IntegerVector(idx.begin(), idx.end());
-}
+#include "COMPoissonReg.h"
 
 // Enumerate the terms lambda^y / (y!)^nu for y >= 0, until they become small,
 // or until y = ymax is reached.
-// [[Rcpp::export]]
-Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol = 1e-6,
-	bool take_log = false, double ymax = 1e100, bool normalize = true)
+Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
+	bool take_log, double ymax, bool normalize)
 {
 	double z = 0;
 	std::list<double> logp_unnorm;
@@ -247,21 +233,9 @@ Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& q,
 	}
 
 	Rcpp::NumericVector x(n);
-
 	for (unsigned int i = 0; i < n; i++) {
 		Rcpp::NumericVector allprobs = cmp_allprobs(lambda(i), nu(i), tol);
-		Rcpp::NumericVector cumprobs = Rcpp::cumsum(allprobs);
-		Rcpp::IntegerVector idx = which(q(i) <= cumprobs);
-
-		// Rcpp::print(cumprobs);
-		// Rprintf("Looking for quantile %f", q(i));
-		// Rcpp::print(idx);
-
-		if (idx.size() > 0) {
-			x(i) = idx(0);
-		} else {
-			x(i) = cumprobs.size();
-		}
+		x(i) = qdiscrete(q(i), allprobs);
 	}
 
 	return x;
