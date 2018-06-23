@@ -57,6 +57,11 @@ export(pcmp_cpp)
 export(qcmp_cpp)
 export(qzicmp_cpp)
 export(qdiscrete)
+export(z_prodj)
+export(z_prodj2)
+export(z_prodjlogj)
+export(z_prodlogj)
+export(z_prodlogj2)
 
 
 import(stats)

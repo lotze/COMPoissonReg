@@ -6,12 +6,12 @@
 fim.zicmp <- function(lambda, nu, p)
 {
 	z <- z_hybrid(lambda, nu)
-	dzdlambda <- computez.prodj(lambda, nu)/lambda
-	dzdnu <- -computez.prodlogj(lambda, nu)
-	d2zdlambda2 <- (1/lambda^2)*(computez.prodj2(lambda, nu) -
-		computez.prodj(lambda, nu))
-	d2zdnu2 <- computez.prodlogj2(lambda, nu)
-	d2zdlambdadnu <- -(1/lambda)*computez.prodjlogj(lambda, nu)
+	dzdlambda <- z_prodj(lambda, nu)/lambda
+	dzdnu <- -z_prodlogj(lambda, nu)
+	d2zdlambda2 <- (1/lambda^2)*(z_prodj2(lambda, nu) -
+		z_prodj(lambda, nu))
+	d2zdnu2 <- z_prodlogj2(lambda, nu)
+	d2zdlambdadnu <- -(1/lambda)*z_prodjlogj(lambda, nu)
 
 	dlogzdlambda <- dzdlambda/z
 	d2logzdlambda2 <- d2zdlambda2/z - dzdlambda^2/z^2
@@ -56,13 +56,13 @@ fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta)
 	nu <- as.numeric(exp(S %*% gamma))
 	p <- as.numeric(plogis(W %*% zeta))
 
-	z <- computez(lambda, nu)
-	dzdlambda <- computez.prodj(lambda, nu) / lambda
-	dzdnu <- -computez.prodlogj(lambda, nu)
-	d2zdlambda2 <- (1/lambda^2)*(computez.prodj2(lambda, nu) -
-		computez.prodj(lambda, nu))
-	d2zdnu2 <- computez.prodlogj2(lambda, nu)
-	d2zdlambdadnu <- -(1/lambda)*computez.prodjlogj(lambda, nu)
+	z <- z_hybrid(lambda, nu)
+	dzdlambda <- z_prodj(lambda, nu) / lambda
+	dzdnu <- -z_prodlogj(lambda, nu)
+	d2zdlambda2 <- (1/lambda^2)*(z_prodj2(lambda, nu) -
+		z_prodj(lambda, nu))
+	d2zdnu2 <- z_prodlogj2(lambda, nu)
+	d2zdlambdadnu <- -(1/lambda)*z_prodjlogj(lambda, nu)
 
 	dlogzdlambda <- dzdlambda/z
 	d2logzdlambda2 <- d2zdlambda2/z - dzdlambda^2/z^2

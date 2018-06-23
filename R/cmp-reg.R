@@ -155,14 +155,15 @@ leverage.cmp <- function(object, ...)
 	nuhat <- exp(object$S %*% object$gamma)
 
 	# 1) to code the W matrix  (diagonal matrix with Var(Y_i) )
-	W <- diag(weights(x,betahat,nuhat))
+	W <- diag(weights(x, betahat, nuhat))
 
 	#    and X matrix (in Appendix)
-	E.y <- computez.prodj(exp(x %*% betahat), nuhat) / z_hybrid(exp(x %*% betahat), nuhat)
-	E.logfacty <- computez.prodlogj(exp(x %*% betahat), nuhat) / z_hybrid(exp(x %*% betahat),nuhat)
+	lambda.hat <- exp(x %*% betahat)
+	E.y <- z_prodj(lambda.hat, nuhat) / z_hybrid(lambda.hat, nuhat)
+	E.logfacty <- z_prodlogj(lambda.hat, nuhat) / z_hybrid(lambda.hat, nuhat)
 	extravec <- (-lgamma(y+1) + E.logfacty)/(y - E.y)
-	curlyX.mat <- cbind(x,extravec)
-	
+	curlyX.mat <- cbind(x, extravec)
+
 	# 2) to compute H using eq (12)  on p. 11
 	H1 <- t(curlyX.mat) %*% sqrt(W)
 	H2 <- solve(t(curlyX.mat) %*% W %*% curlyX.mat)
@@ -302,12 +303,13 @@ constantCMPfitsandresids <- function(lambdahat, nuhat, y=0)
 	list(fit = fit, resid = resid)
 }
 
-weights <- function(x,beta,nu)
+weights <- function(x, beta, nu)
 {
 	# Compute the parts that comprise the weight functions
-	w1 <- computez.prodj2(exp(x %*% beta),nu)
-	w2 <- computez.prodj(exp(x %*% beta),nu)
-	w3 <- computez(exp(x %*% beta),nu)
+	lambda <- exp(x %*% beta)
+	w1 <- z_prodj2(lambda, nu)
+	w2 <- z_prodj(lambda, nu)
+	w3 <- z_hybrid(lambda, nu)
 
 	Ey2 <- w1/w3
 	E2y <- (w2/w3)^2
