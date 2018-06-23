@@ -311,4 +311,3 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 
 	return(theta.boot)
 }
-

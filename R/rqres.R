@@ -31,4 +31,3 @@ rqres <- function(y, F, eps = 1e-6)
 	qres <- qnorm(u)
 	return(qres)
 }
-
