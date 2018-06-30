@@ -8,21 +8,18 @@
 \description{Functions for the COM-Poisson distribution.}
 
 \usage{
-dcmp(x, lambda, nu, z = NULL, log = FALSE, max = 100)
-pcmp(x, lambda, nu, max = 100)
-qcmp(q, lambda, nu, max = 100, log.p = FALSE)
-rcmp(n, lambda, nu, max = 100)
+dcmp(x, lambda, nu, log = FALSE)
+pcmp(x, lambda, nu)
+qcmp(q, lambda, nu, log.p = FALSE)
+rcmp(n, lambda, nu)
 }
 
 \arguments{
   \item{x}{vector of quantiles.}
   \item{q}{vector of probabilities.}
   \item{n}{number of observations.}
-  \item{z}{normalizing constant. Can be passed in to save computation;
-           otherwise computed internally.}
   \item{lambda}{rate parameter.}
   \item{nu}{dispersion parameter.}
-  \item{max}{maximum number to use for truncating infinite sums.}
   \item{log, log.p}{logical; if TRUE, probabilities p are given as log(p).}
 }
 

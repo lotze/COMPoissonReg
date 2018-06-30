@@ -40,7 +40,6 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 	par.init <- c(beta.init, gamma.init, zeta.init)
 	res <- optim(par.init, loglik, method = optim.method,
 		control = optim.control, hessian = TRUE)
-	H <- res$hessian
 
 	theta.hat <- list(
 		beta = res$par[1:d1],
@@ -51,19 +50,11 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 	names(theta.hat$gamma) <- sprintf("S:%s", colnames(S))
 	names(theta.hat$zeta) <- sprintf("W:%s", colnames(W))
 
-	# TBD: Clean this up
-	if (FALSE) {
-		FIM <- fim.zicmp.reg(X, S, W, theta.hat$beta, theta.hat$gamma,
-			theta.hat$zeta)
-	} else {
-		H <- optimHess(res$par, loglik, control = optim.control)
-		FIM <- -H
-	}
-	colnames(FIM) <- rownames(FIM) <- c(
+	H <- res$hessian
+	colnames(H) <- rownames(H) <- c(
 		sprintf("X:%s", colnames(X)),
 		sprintf("S:%s", colnames(S)),
 		sprintf("W:%s", colnames(W)))
-	V <- solve(FIM)
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)
@@ -74,7 +65,7 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
 
-	res <- list(theta.hat = theta.hat, V = V, H = H, FIM = FIM, opt.res = res,
+	res <- list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
 	return(res)
 }
@@ -114,7 +105,7 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 	par.init <- c(beta.init, gamma.init)
 
 	res <- optim(par.init, loglik, method = optim.method,
-		control = optim.control)
+		control = optim.control, hessian = TRUE)
 
 	theta.hat <- list(
 		beta = res$par[1:d1],
@@ -123,27 +114,10 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 	names(theta.hat$beta) <- sprintf("X:%s", colnames(X))
 	names(theta.hat$gamma) <- sprintf("S:%s", colnames(S))
 
-	# TBD: Clean this up
-	if (FALSE) {
-		W <- matrix(1, n, 1)
-		FIM.full <- fim.zicmp.reg(X, S, W = W, theta.hat$beta, theta.hat$gamma,
-			zeta = -Inf)
-		FIM <- FIM.full[1:(d1+d2), 1:(d1+d2)]
-	} else {
-		H <- optimHess(res$par, loglik, control = optim.control)
-		FIM <- -H
-	}
-	colnames(FIM) <- rownames(FIM) <- c(
+	H <- res$hessian
+	colnames(H) <- rownames(H) <- c(
 		sprintf("X:%s", colnames(X)),
 		sprintf("S:%s", colnames(S)))
-
-	V <- tryCatch({
-		solve(FIM)
-	}, error = function(e) {
-		warning("FIM could not be inverted. Trying Hessian to estimate variance")
-		H <- optimHess(res$par, loglik, control = optim.control)
-		solve(-H)
-	})
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)
@@ -154,7 +128,7 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
 
-	res <- list(theta.hat = theta.hat, V = V, FIM = FIM, opt.res = res,
+	res <- list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
 	return(res)
 }

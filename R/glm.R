@@ -46,8 +46,7 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 		res$beta <- fit.out$theta.hat$beta
 		res$gamma <- fit.out$theta.hat$gamma
 		res$zeta <- fit.out$theta.hat$zeta
-		res$FIM <- fit.out$FIM
-		res$V <- fit.out$V
+		res$H <- fit.out$H
 		res$loglik <- fit.out$loglik
 		res$opt.res <- fit.out$opt.res
 		res$opt.method <- getOption("COMPoissonReg.optim.method")
@@ -61,8 +60,7 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 		res$beta.glm <- coef(initial.glm)
 		res$beta <- fit.out$theta.hat$beta
 		res$gamma <- fit.out$theta.hat$gamma
-		res$FIM <- fit.out$FIM
-		res$V <- fit.out$V
+		res$H <- fit.out$H
 		res$loglik <- fit.out$loglik
 		res$opt.res <- fit.out$opt.res
 		res$opt.method <- getOption("COMPoissonReg.optim.method")

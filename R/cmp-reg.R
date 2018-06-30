@@ -4,6 +4,7 @@ summary.cmp <- function(object, ...)
 	d1 <- ncol(object$X)
 	d2 <- ncol(object$S)
 
+	V <- vcov(object)
 	est <- coef(object)
 	se <- sdev(object)
 	z.val <- est / se
@@ -30,7 +31,7 @@ summary.cmp <- function(object, ...)
 	if (is.intercept.only(object$X)) {
 		est <- exp(object$beta)
 		J <- c(exp(object$beta), rep(0, d2))
-		se <- sqrt(t(J) %*% object$V %*% J)
+		se <- sqrt(t(J) %*% V %*% J)
 
 		DF.lambda <- data.frame(
 			Estimate = round(est, 4),
@@ -42,7 +43,7 @@ summary.cmp <- function(object, ...)
 	if (is.intercept.only(object$S)) {
 		est <- exp(object$gamma)
 		J <- c(rep(0, d1), exp(object$gamma))
-		se <- sqrt(t(J) %*% object$V %*% J)
+		se <- sqrt(t(J) %*% V %*% J)
 
 		DF.nu <- data.frame(
 			Estimate = round(est, 4),
@@ -65,30 +66,31 @@ summary.cmp <- function(object, ...)
 
 print.cmp <- function(x, ...)
 {
-	cat("CMP coefficients\n")
+	printf("CMP coefficients\n")
 	s <- summary.cmp(x)
 	tt <- equitest(x)
 	print(s$DF)
 
 	if (!is.null(s$DF.lambda) || !is.null(s$DF.nu)) {
-		cat("--\n")
-		cat("Transformed intercept-only parameters\n")
+		printf("--\n")
+		printf("Transformed intercept-only parameters\n")
 		print(rbind(s$DF.lambda, s$DF.nu))
 	}
-	cat("--\n")
-	cat("Chi-squared test for equidispersion\n")
-	cat(sprintf("X^2 = %0.4f, df = 1, ", tt$teststat))
-	cat(sprintf("p-value = %0.4e\n", tt$pvalue))
-	cat("--\n")
-	cat(sprintf("Elapsed Sec: %0.2f   ", s$elapsed.sec))
-	cat(sprintf("Sample size: %d\n", s$n))
-	cat(sprintf("LogLik: %0.4f   ", s$loglik))
-	cat(sprintf("AIC: %0.4f   ", s$aic))
-	cat(sprintf("BIC: %0.4f   ", s$bic))
-	cat("\n")
-	cat(sprintf("Optimization Method: %s   ", s$opt.method))
-	cat(sprintf("Converged status: %d\n", s$opt.convergence))
-	cat(sprintf("Message: %s\n", s$opt.message))
+	printf("--\n")
+	printf("Chi-squared test for equidispersion\n")
+	printf("X^2 = %0.4f, df = 1, ", tt$teststat)
+	printf("p-value = %0.4e\n", tt$pvalue)
+	printf("--\n")
+	printf("Elapsed Sec: %0.2f   ", s$elapsed.sec)
+	printf("Sample size: %d   ", s$n)
+	printf("SEs via Hessian\n")
+	printf("LogLik: %0.4f   ", s$loglik)
+	printf("AIC: %0.4f   ", s$aic)
+	printf("BIC: %0.4f   ", s$bic)
+	printf("\n")
+	printf("Optimization Method: %s   ", s$opt.method)
+	printf("Converged status: %d\n", s$opt.convergence)
+	printf("Message: %s\n", s$opt.message)
 }
 
 logLik.cmp <- function(object, ...)
@@ -117,14 +119,33 @@ nu.cmp <- function(object, ...)
 	exp(object$S %*% object$gamma)
 }
 
-sdev.cmp <- function(object, ...)
+sdev.cmp <- function(object, use.fim = FALSE, ...)
 {
-	sqrt(diag(object$V))
+	sqrt(diag(vcov(object, use.fim)))
 }
 
-vcov.cmp <- function(object, ...)
+vcov.cmp <- function(object, use.fim = FALSE, ...)
 {
-	object$V
+	if (use.fim) {
+		# Compute the covariance via Fisher Information Matrix
+		n <- nrow(object$X)
+		X <- object$X
+		S <- object$S
+		W <- matrix(1, n, 1)
+		d1 <- ncol(X)
+		d2 <- ncol(S)
+
+		FIM.aug <- fim.zicmp.reg(X, S, W = W, object$beta, object$gamma,
+			zeta = -Inf)
+		FIM <- FIM.aug[1:(d1+d2), 1:(d1+d2)]
+		V <- solve(FIM)
+		rownames(V) <- colnames(V) <- names(coef(object))
+	} else {
+		# Compute the covariance via Hessian from optimizer
+		V <- -solve(object$H)
+	}
+
+	return(V)
 }
 
 equitest.cmp <- function(object, ...)

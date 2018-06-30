@@ -5,6 +5,7 @@ summary.zicmp <- function(object, ...)
 	d2 <- ncol(object$S)
 	d3 <- ncol(object$W)
 
+	V <- vcov(object)
 	est <- coef(object)
 	se <- sdev(object)
 	z.val <- est / se
@@ -36,7 +37,7 @@ summary.zicmp <- function(object, ...)
 	if (is.intercept.only(object$X)) {
 		est <- exp(object$beta)
 		J <- c(exp(object$beta), rep(0, d2), rep(0, d3))
-		se <- sqrt(t(J) %*% object$V %*% J)
+		se <- sqrt(t(J) %*% V %*% J)
 
 		DF.lambda <- data.frame(
 			Estimate = round(est, 4),
@@ -48,7 +49,7 @@ summary.zicmp <- function(object, ...)
 	if (is.intercept.only(object$S)) {
 		est <- exp(object$gamma)
 		J <- c(rep(0, d1), exp(object$gamma), rep(0, d3))
-		se <- sqrt(t(J) %*% object$V %*% J)
+		se <- sqrt(t(J) %*% V %*% J)
 
 		DF.nu <- data.frame(
 			Estimate = round(est, 4),
@@ -59,7 +60,7 @@ summary.zicmp <- function(object, ...)
 	if (is.intercept.only(object$W)) {
 		est <- plogis(object$zeta)
 		J <- c(rep(0, d1), rep(0, d2), dlogis(object$zeta))
-		se <- sqrt(t(J) %*% object$V %*% J)
+		se <- sqrt(t(J) %*% V %*% J)
 
 		DF.p <- data.frame(
 			Estimate = round(est, 4),
@@ -81,30 +82,31 @@ summary.zicmp <- function(object, ...)
 
 print.zicmp <- function(x, ...)
 {
-	cat("ZICMP coefficients\n")
+	printf("ZICMP coefficients\n")
 	s <- summary(x)
 	tt <- equitest(x)
 	print(s$DF)
 
 	if (!is.null(s$DF.lambda) || !is.null(s$DF.nu) || !is.null(s$DF.p)) {
-		cat("--\n")
-		cat("Transformed intercept-only parameters\n")
+		printf("--\n")
+		printf("Transformed intercept-only parameters\n")
 		print(rbind(s$DF.lambda, s$DF.nu, s$DF.p))
 	}
-	cat("--\n")
-	cat("Chi-squared test for equidispersion\n")
-	cat(sprintf("X^2 = %0.4f, df = 1, ", tt$teststat))
-	cat(sprintf("p-value = %0.4e\n", tt$pvalue))
-	cat("--\n")
-	cat(sprintf("Elapsed Sec: %0.2f   ", s$elapsed.sec))
-	cat(sprintf("Sample size: %d\n", s$n))
-	cat(sprintf("LogLik: %0.4f   ", s$loglik))
-	cat(sprintf("AIC: %0.4f   ", s$aic))
-	cat(sprintf("BIC: %0.4f   ", s$bic))
-	cat("\n")
-	cat(sprintf("Optimization Method: %s   ", s$opt.method))
-	cat(sprintf("Converged status: %d   ", s$opt.convergence))
-	cat(sprintf("Message: %s\n", s$opt.message))
+	printf("--\n")
+	printf("Chi-squared test for equidispersion\n")
+	printf("X^2 = %0.4f, df = 1, ", tt$teststat)
+	printf("p-value = %0.4e\n", tt$pvalue)
+	printf("--\n")
+	printf("Elapsed Sec: %0.2f   ", s$elapsed.sec)
+	printf("Sample size: %d   ", s$n)
+	printf("SEs via Hessian\n")
+	printf("LogLik: %0.4f   ", s$loglik)
+	printf("AIC: %0.4f   ", s$aic)
+	printf("BIC: %0.4f   ", s$bic)
+	printf("\n")
+	printf("Optimization Method: %s   ", s$opt.method)
+	printf("Converged status: %d   ", s$opt.convergence)
+	printf("Message: %s\n", s$opt.message)
 }
 
 logLik.zicmp <- function(object, ...)
@@ -133,14 +135,29 @@ nu.zicmp <- function(object, ...)
 	exp(object$S %*% object$gamma)
 }
 
-sdev.zicmp <- function(object, ...)
+sdev.zicmp <- function(object, use.fim = FALSE, ...)
 {
-	sqrt(diag(object$V))
+	sqrt(diag(vcov(object, use.fim)))
 }
 
-vcov.zicmp <- function(object, ...)
+vcov.zicmp <- function(object, use.fim = FALSE, ...)
 {
-	object$V
+	if (use.fim) {
+		# Compute the covariance via Fisher Information Matrix
+		n <- nrow(object$X)
+		X <- object$X
+		S <- object$S
+		W <- object$W
+		FIM <- fim.zicmp.reg(X, S, W, object$beta, object$gamma,
+			object$zeta)
+		V <- solve(FIM)
+		rownames(V) <- colnames(V) <- names(coef(object))
+	} else {
+		# Compute the covariance via Hessian from optimizer
+		V <- -solve(object$H)
+	}
+
+	return(V)
 }
 
 equitest.zicmp <- function(object, ...)

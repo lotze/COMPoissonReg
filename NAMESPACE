@@ -63,5 +63,5 @@ export(z_prodjlogj)
 export(z_prodlogj)
 export(z_prodlogj2)
 
-
 import(stats)
+import(Rcpp)

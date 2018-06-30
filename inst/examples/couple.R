@@ -7,6 +7,8 @@ cmp.out <- glm.cmp(formula.lambda = UPB ~ EDUCATION + ANXIETY,
 	formula.p = ~ EDUCATION + ANXIETY,
 	data = couple)
 print(cmp.out)
+vcov(cmp.out, use.fim = FALSE)
+vcov(cmp.out, use.fim = TRUE)
 
 equitest(cmp.out)
 

@@ -3,6 +3,10 @@
 	options(COMPoissonReg.optim.control = list(maxit = 150))
 }
 
+printf <- function(msg, ...) {
+	cat(sprintf(msg, ...))
+}
+
 logger <- function(msg, ...)
 {
 	sys.time <- as.character(Sys.time())

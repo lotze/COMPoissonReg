@@ -9,22 +9,19 @@
 random draws for the zero-inflated COM-Poisson distribution.}
 
 \usage{
-dzicmp(x, lambda, nu, p, z = NULL, max = 100, log = FALSE) 
-pzicmp(x, lambda, nu, p, max = 100) 
-qzicmp(q, lambda, nu, p, max = 100, log.p = FALSE) 
-rzicmp(n, lambda, nu, p, max = 100)
+dzicmp(x, lambda, nu, p, log = FALSE) 
+pzicmp(x, lambda, nu, p) 
+qzicmp(q, lambda, nu, p, log.p = FALSE) 
+rzicmp(n, lambda, nu, p)
 }
 
 \arguments{
   \item{x}{vector of quantiles.}
   \item{q}{vector of probabilities.}
   \item{n}{number of observations.}
-  \item{z}{normalizing constant. Can be passed in to save computation;
-           otherwise computed internally.}
   \item{lambda}{rate parameter.}
   \item{nu}{dispersion parameter.}
   \item{p}{zero-inflation probability parameter.}
-  \item{max}{maximum number to use for truncating infinite sums.}
   \item{log, log.p}{logical; if TRUE, probabilities p are given as log(p).}
 }
 
