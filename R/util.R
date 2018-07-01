@@ -39,7 +39,7 @@ hess.fwd <- function(f, x, h = 1e-5, ...) {
 		for (l in 1:k) {
 			num <- f(x + h * eye[,j] + h * eye[,l], ...) -
 				fx_eps[l] - fx_eps[j] + fx
-			H[j,l] <- num / h
+			H[j,l] <- num / h^2
 		}
 	}
 	(H + t(H)) / 2
