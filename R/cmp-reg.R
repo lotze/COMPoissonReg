@@ -161,9 +161,9 @@ equitest.cmp <- function(object, ...)
 	lambda <- exp(X %*% object$beta)
 	nu <- exp(S %*% object$gamma)
 
-	z <- z_hybrid(lambda, nu)
+	logz <- z_hybrid(lambda, nu, take_log = TRUE)
 	teststat <- -2 * sum(y*log(lambda0) - lgamma(y+1) - lambda0 -
-		y*log(lambda) + nu*lgamma(y+1) + log(z))
+		y*log(lambda) + nu*lgamma(y+1) + logz)
 	pvalue <- pchisq(teststat, df=1, lower.tail=FALSE)
 	list(teststat = teststat, pvalue = pvalue)
 }

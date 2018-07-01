@@ -31,10 +31,6 @@ Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
 		y++;
 	}
 
-	if (isinf(z)) {
-		Rcpp::stop("Probability was numerically infinity");
-	}
-
 	Rcpp::NumericVector logp(logp_unnorm.begin(), logp_unnorm.end());
 	if (normalize) {
 		logp = logp - log(z);
@@ -130,26 +126,4 @@ Rcpp::NumericVector rcmp_cpp(unsigned int n, const Rcpp::NumericVector& lambda,
 
 	Rcpp::NumericVector u = Rcpp::runif(n, 0.0, 1.0);
 	return qcmp_cpp(u, lambda, nu, tol);
-}
-
-// [[Rcpp::export]]
-Rcpp::NumericVector cmp_expected_value_enumerate(const Rcpp::NumericVector& lambda,
-	const Rcpp::NumericVector& nu, double tol = 1e-6)
-{
-	unsigned int n = lambda.size();
-	if (n != nu.size()) {
-		Rcpp::stop("lambda and nu must be the same length");
-	}
-	
-	Rcpp::NumericVector ex(n);
-	ex.fill(0);
-
-	for (unsigned int i = 0; i < n; i++) {
-		Rcpp::NumericVector allprobs = cmp_allprobs(lambda(i), nu(i), tol);
-		for (unsigned int j = 0; j < allprobs.size(); j++) {
-			ex(i) += j * allprobs(j);
-		}
-	}
-
-	return ex;
 }

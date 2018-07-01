@@ -39,3 +39,8 @@ qzicmp <- function(q, lambda, nu, p, log.p = FALSE)
 	if (length(p) == 1) { p <- rep(p, n) }
 	qzicmp_cpp(q, lambda, nu, p)
 }
+
+zicmp_expected_value <- function(lambda, nu, p)
+{
+	(1-p) * cmp_expected_value(lambda, nu)
+}

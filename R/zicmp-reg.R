@@ -148,8 +148,7 @@ vcov.zicmp <- function(object, use.fim = FALSE, ...)
 		X <- object$X
 		S <- object$S
 		W <- object$W
-		FIM <- fim.zicmp.reg(X, S, W, object$beta, object$gamma,
-			object$zeta)
+		FIM <- fim.zicmp.reg(X, S, W, object$beta, object$gamma, object$zeta)
 		V <- solve(FIM)
 		rownames(V) <- colnames(V) <- names(coef(object))
 	} else {
@@ -180,21 +179,17 @@ equitest.zicmp <- function(object, ...)
 	beta0.hat <- fit0.out$theta.hat$beta
 	zeta0.hat <- fit0.out$theta.hat$zeta
 
-	ff <- numeric(n)
-	ff0 <- numeric(n)
-
 	lambda.hat <- exp(X %*% beta.hat)
 	nu.hat <- exp(S %*% gamma.hat)
 	p.hat <- plogis(W %*% zeta.hat)
 
 	lambda0.hat <- exp(X %*% beta0.hat)
-	nu0.hat <- rep(1, n)
 	p0.hat <- plogis(W %*% zeta0.hat)
 
-	ff <- dzicmp(y, lambda.hat, nu.hat, p.hat)
-	ff0 <- dzicmp(y, lambda0.hat, nu0.hat, p0.hat)
+	logff <- dzicmp(y, lambda.hat, nu.hat, p.hat, log = TRUE)
+	logff0 <- dzip(y, lambda0.hat, p0.hat, log = TRUE)
 
-	X2 <- 2*(sum(log(ff)) - sum(log(ff0)))
+	X2 <- 2*(sum(logff) - sum(logff0))
 	pvalue <- pchisq(X2, df = length(gamma.hat), lower.tail = FALSE)
 	list(teststat = X2, pvalue = pvalue)
 }
@@ -281,7 +276,7 @@ predict.zicmp <- function(object, newdata = NULL, ...)
 	lambda.hat <- exp(X %*% object$beta)
 	nu.hat <- exp(S %*% object$gamma)
 	p.hat <- plogis(W %*% object$zeta)
-	y.hat <- expected.y(lambda.hat, nu.hat, p.hat)
+	y.hat <- zicmp_expected_value(lambda.hat, nu.hat, p.hat)
 	return(y.hat)
 }
 

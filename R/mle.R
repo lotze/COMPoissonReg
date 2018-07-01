@@ -193,16 +193,3 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
 	return(res)
 }
-
-cmp_expected_value <- function(lambda, nu)
-{
-	n <- max(length(lambda), length(nu))
-	if (length(lambda) == 1) { lambda <- rep(lambda, n) }
-	if (length(nu) == 1) { nu <- rep(nu, n) }
-	lambda * grad(func = z_hybrid, x = lambda, nu = nu, take_log = TRUE, side = c(+1,+1))
-}
-
-zicmp_expected_value <- function(lambda, nu, p)
-{
-	(1-p) * cmp_expected_value(lambda, nu)
-}
