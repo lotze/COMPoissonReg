@@ -62,6 +62,6 @@ export(z_prodj2)
 export(z_prodjlogj)
 export(z_prodlogj)
 export(z_prodlogj2)
+export(cmp_expected_value)
 
-import(stats)
-import(Rcpp)
+import(stats, Rcpp, numDeriv)

@@ -2,47 +2,6 @@
 #include <list>
 #include "COMPoissonReg.h"
 
-// Enumerate the terms lambda^y / (y!)^nu for y >= 0, until they become small,
-// or until y = ymax is reached.
-Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
-	bool take_log, double ymax, bool normalize)
-{
-	double z = 0;
-	std::list<double> logp_unnorm;
-
-	double delta;
-	double psi = -0.5772157;	// Euler–Mascheroni constant
-	double y = 0;
-	double deriv = R_PosInf;
-	while (deriv > 0 && y <= ymax && !isinf(z)) {
-		delta = y*log(lambda) - nu*lgamma(y+1);
-		logp_unnorm.push_back(delta);
-		z += exp(delta);
-		psi += 1 / (y+1);
-		deriv = log(lambda) - nu*psi;
-		y++;
-	}
-
-	double log_tol = log(tol);
-	while (delta > log_tol && y <= ymax && !isinf(z)) {
-		delta = y*log(lambda) - nu*lgamma(y+1);
-		logp_unnorm.push_back(delta);
-		z += exp(delta);
-		y++;
-	}
-
-	Rcpp::NumericVector logp(logp_unnorm.begin(), logp_unnorm.end());
-	if (normalize) {
-		logp = logp - log(z);
-	}
-
-	if (take_log) {
-		return logp;
-	} else {
-		return exp(logp);
-	}
-}
-
 // Brute force computation of the z-function. This computation is done at the
 // original scale (as opposed to the log-scale), so it becomes unstable when
 // the magnitudes of the terms become very large.

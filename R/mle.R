@@ -59,7 +59,7 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)
 	p.hat <- plogis(W %*% theta.hat$zeta)
-	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat)
+	mu.hat <- zicmp_expected_value(lambda.hat, nu.hat, p.hat)
 	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
@@ -122,7 +122,7 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 	lambda.hat <- exp(X %*% theta.hat$beta)
 	nu.hat <- exp(S %*% theta.hat$gamma)
 	p.hat <- 0
-	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat)
+	mu.hat <- zicmp_expected_value(lambda.hat, nu.hat, p.hat)
 	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
@@ -168,53 +168,41 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
 	optim.control$fnscale = -1
 	par.init <- c(beta.init, zeta.init)
 	res <- optim(par.init, loglik, method = optim.method,
-		control = optim.control)
+		control = optim.control, hessian = TRUE)
 
 	theta.hat <- list(
 		beta = res$par[1:d1],
 		zeta = res$par[1:d3 + d1]
 	)
 
-	# TBD: Clean this up
-	if (FALSE) {
-		FIM <- fim.zicmp.reg(X, S = matrix(1, n, 1), W, theta.hat$beta,
-			gamma = 0, theta.hat$zeta)
-	} else {
-		H <- optimHess(res$par, loglik, control = optim.control)
-		FIM <- -H
-	}
-
-	V <- tryCatch({
-		solve(FIM)
-	}, error = function(e) {
-		warning("FIM could not be inverted. Trying Hessian to estimate variance")
-		H <- optimHess(res$par, loglik, control = optim.control)
-		solve(-H)
-	})
+	H <- res$hessian
+	colnames(H) <- rownames(H) <- c(
+		sprintf("X:%s", colnames(X)),
+		sprintf("W:%s", colnames(W)))
 
 	lambda.hat <- exp(X %*% theta.hat$beta)
-	nu.hat <- rep(0, n)
+	nu.hat <- rep(1, n)
 	p.hat <- plogis(W %*% theta.hat$zeta)
-	mu.hat <- expected.y(lambda.hat, nu.hat, p.hat)
+	mu.hat <- zicmp_expected_value(lambda.hat, nu.hat, p.hat)
 	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
 
-	res <- list(theta.hat = theta.hat, V = V, FIM = FIM, opt.res = res,
+	res <- list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
 	return(res)
 }
 
-expected.y <- function(lambda, nu, p)
+cmp_expected_value <- function(lambda, nu)
 {
-	(1-p) * cmp_expected_value(lambda, nu)
+	n <- max(length(lambda), length(nu))
+	if (length(lambda) == 1) { lambda <- rep(lambda, n) }
+	if (length(nu) == 1) { nu <- rep(nu, n) }
+	lambda * grad(func = z_hybrid, x = lambda, nu = nu, take_log = TRUE, side = c(+1,+1))
 }
 
-expected.y.reg <- function(X, S, W, beta, gamma, zeta)
+zicmp_expected_value <- function(lambda, nu, p)
 {
-	lambda <- exp(X %*% beta)
-	nu <- exp(S %*% gamma)
-	p <- plogis(W %*% zeta)
-	expected.y(lambda, nu, p)
+	(1-p) * cmp_expected_value(lambda, nu)
 }

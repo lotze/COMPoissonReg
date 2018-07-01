@@ -2,6 +2,51 @@
 #include <list>
 #include "COMPoissonReg.h"
 
+// Enumerate the terms lambda^y / (y!)^nu for y >= 0, until they become small,
+// or until y = ymax is reached.
+Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
+	bool take_log, double ymax, bool normalize)
+{
+	double z = 0;
+	std::list<double> logp_unnorm;
+
+	double delta;
+	double psi = -0.5772157;	// Euler–Mascheroni constant
+	double y = 0;
+	double deriv = R_PosInf;
+	while (deriv > 0 && y <= ymax && !isinf(z)) {
+		delta = y*log(lambda) - nu*lgamma(y+1);
+		logp_unnorm.push_back(delta);
+		z += exp(delta);
+		psi += 1 / (y+1);
+		deriv = log(lambda) - nu*psi;
+		y++;
+	}
+
+	double log_tol = log(tol);
+	while (delta > log_tol && y <= ymax && !isinf(z)) {
+		delta = y*log(lambda) - nu*lgamma(y+1);
+		logp_unnorm.push_back(delta);
+		z += exp(delta);
+		y++;
+	}
+
+	if (isinf(z)) {
+		Rcpp::stop("Probability was numerically infinity");
+	}
+
+	Rcpp::NumericVector logp(logp_unnorm.begin(), logp_unnorm.end());
+	if (normalize) {
+		logp = logp - log(z);
+	}
+
+	if (take_log) {
+		return logp;
+	} else {
+		return exp(logp);
+	}
+}
+
 // [[Rcpp::export]]
 Rcpp::NumericVector dcmp_cpp(const Rcpp::NumericVector& x,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
@@ -17,10 +62,6 @@ Rcpp::NumericVector dcmp_cpp(const Rcpp::NumericVector& x,
 
 	for (unsigned int i = 0; i < n; i++) {
 		Rcpp::NumericVector allprobs = cmp_allprobs(lambda(i), nu(i), tol);
-
-		// Rcpp::print(allprobs);
-		// Rprintf("Looking for element with index %d", x(i) + 1);
-
 		if (x(i) <= allprobs.size() - 1) {
 			fx(i) = allprobs(x(i));
 		}
@@ -92,7 +133,7 @@ Rcpp::NumericVector rcmp_cpp(unsigned int n, const Rcpp::NumericVector& lambda,
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector cmp_expected_value(const Rcpp::NumericVector& lambda,
+Rcpp::NumericVector cmp_expected_value_enumerate(const Rcpp::NumericVector& lambda,
 	const Rcpp::NumericVector& nu, double tol = 1e-6)
 {
 	unsigned int n = lambda.size();
