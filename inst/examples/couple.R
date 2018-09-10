@@ -10,6 +10,9 @@ print(cmp.out)
 vcov(cmp.out, use.fim = FALSE)
 vcov(cmp.out, use.fim = TRUE)
 
+sdev(cmp.out, use.fim = FALSE)
+sdev(cmp.out, use.fim = TRUE)
+
 equitest(cmp.out)
 
 res <- resid(cmp.out, type = "quantile")

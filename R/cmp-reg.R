@@ -121,7 +121,7 @@ nu.cmp <- function(object, ...)
 
 sdev.cmp <- function(object, use.fim = FALSE, ...)
 {
-	sqrt(diag(vcov(object, use.fim)))
+	sqrt(diag(vcov(object, use.fim, old)))
 }
 
 vcov.cmp <- function(object, use.fim = FALSE, ...)
@@ -135,8 +135,8 @@ vcov.cmp <- function(object, use.fim = FALSE, ...)
 		d1 <- ncol(X)
 		d2 <- ncol(S)
 
-		FIM.aug <- fim.zicmp.reg(X, S, W = W, object$beta, object$gamma,
-			zeta = -Inf)
+		FIM.aug <- fim.zicmp.reg(X = X, S = S, W = W, beta = object$beta,
+			gamma = object$gamma, zeta = -Inf)
 		FIM <- FIM.aug[1:(d1+d2), 1:(d1+d2)]
 		V <- solve(FIM)
 		rownames(V) <- colnames(V) <- names(coef(object))

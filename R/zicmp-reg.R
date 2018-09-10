@@ -135,12 +135,12 @@ nu.zicmp <- function(object, ...)
 	exp(object$S %*% object$gamma)
 }
 
-sdev.zicmp <- function(object, use.fim = FALSE, ...)
+sdev.zicmp <- function(object, use.fim = FALSE, old = FALSE, ...)
 {
-	sqrt(diag(vcov(object, use.fim)))
+	sqrt(diag(vcov(object, use.fim, old)))
 }
 
-vcov.zicmp <- function(object, use.fim = FALSE, ...)
+vcov.zicmp <- function(object, use.fim = FALSE, old = FALSE, ...)
 {
 	if (use.fim) {
 		# Compute the covariance via Fisher Information Matrix
@@ -148,7 +148,9 @@ vcov.zicmp <- function(object, use.fim = FALSE, ...)
 		X <- object$X
 		S <- object$S
 		W <- object$W
-		FIM <- fim.zicmp.reg(X, S, W, object$beta, object$gamma, object$zeta)
+
+		FIM <- fim.zicmp.reg(X = X, S = S, W = W, beta = object$beta,
+			gamma = object$gamma, zeta = object$zeta)
 		V <- solve(FIM)
 		rownames(V) <- colnames(V) <- names(coef(object))
 	} else {

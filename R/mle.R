@@ -15,6 +15,9 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 	stopifnot(d2 == length(gamma.init))
 	stopifnot(d3 == length(zeta.init))
 
+	optim.method <- getOption("COMPoissonReg.optim.method")
+	optim.control <- getOption("COMPoissonReg.optim.control")
+
 	tx <- function(par) {
 		list(
 			beta = par[1:d1],
@@ -32,9 +35,6 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 		t(u) %*% log(p*exp(logz) + (1-p)) + t(1 - u) %*% (log(1-p) +
 			y*log(lambda) - nu*lgamma(y+1)) - sum(logz)
 	}
-
-	optim.method <- getOption("COMPoissonReg.optim.method")
-	optim.control <- getOption("COMPoissonReg.optim.control")
 
 	optim.control$fnscale = -1
 	par.init <- c(beta.init, gamma.init, zeta.init)
@@ -55,12 +55,6 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 		sprintf("X:%s", colnames(X)),
 		sprintf("S:%s", colnames(S)),
 		sprintf("W:%s", colnames(W)))
-
-	lambda.hat <- exp(X %*% theta.hat$beta)
-	nu.hat <- exp(S %*% theta.hat$gamma)
-	p.hat <- plogis(W %*% theta.hat$zeta)
-	mu.hat <- zicmp_expected_value(lambda.hat, nu.hat, p.hat)
-	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
@@ -84,6 +78,9 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d2 == length(gamma.init))
 
+	optim.method <- getOption("COMPoissonReg.optim.method")
+	optim.control <- getOption("COMPoissonReg.optim.control")
+
 	tx <- function(par) {
 		list(
 			beta = par[1:d1],
@@ -99,8 +96,6 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 		sum(y*log(lambda) - nu*lgamma(y+1) - logz)
 	}
 
-	optim.method <- getOption("COMPoissonReg.optim.method")
-	optim.control <- getOption("COMPoissonReg.optim.control")
 	optim.control$fnscale = -1
 	par.init <- c(beta.init, gamma.init)
 
@@ -118,12 +113,6 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 	colnames(H) <- rownames(H) <- c(
 		sprintf("X:%s", colnames(X)),
 		sprintf("S:%s", colnames(S)))
-
-	lambda.hat <- exp(X %*% theta.hat$beta)
-	nu.hat <- exp(S %*% theta.hat$gamma)
-	p.hat <- 0
-	mu.hat <- zicmp_expected_value(lambda.hat, nu.hat, p.hat)
-	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
@@ -147,6 +136,9 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d3 == length(zeta.init))
 
+	optim.method <- getOption("COMPoissonReg.optim.method")
+	optim.control <- getOption("COMPoissonReg.optim.control")
+
 	tx <- function(par) {
 		list(
 			beta = par[1:d1],
@@ -162,9 +154,6 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
 			(1-u)*(y*log(lambda) - lambda - lgamma(y+1)))
 	}
 
-	optim.method <- getOption("COMPoissonReg.optim.method")
-	optim.control <- getOption("COMPoissonReg.optim.control")
-
 	optim.control$fnscale = -1
 	par.init <- c(beta.init, zeta.init)
 	res <- optim(par.init, loglik, method = optim.method,
@@ -179,12 +168,6 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
 	colnames(H) <- rownames(H) <- c(
 		sprintf("X:%s", colnames(X)),
 		sprintf("W:%s", colnames(W)))
-
-	lambda.hat <- exp(X %*% theta.hat$beta)
-	nu.hat <- rep(1, n)
-	p.hat <- plogis(W %*% theta.hat$zeta)
-	mu.hat <- zicmp_expected_value(lambda.hat, nu.hat, p.hat)
-	mse <- mean( (y - mu.hat)^2 )
 
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")

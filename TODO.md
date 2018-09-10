@@ -11,3 +11,7 @@ Improving computation of z-function
 * For couple example, FIM and Hessian seem to give very different vcovs ...
 * Retest everything
 * Why is equitest's teststat = 0 for the couple example? Is that right?
+
+
+What's better for the FIM function: inaccuracy due to Hessian approximation,
+or inaccuracy due to the z-function? We should pick one and remove the other.

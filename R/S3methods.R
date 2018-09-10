@@ -13,7 +13,7 @@ nu <- function(object, ...)
 	UseMethod("nu")
 }
 
-sdev <- function (object, ...)
+sdev <- function (object, use.fim = FALSE, ...)
 {
 	UseMethod("sdev")
 }

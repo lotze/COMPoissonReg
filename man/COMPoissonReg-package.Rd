@@ -11,7 +11,7 @@
 \description{ This package offers the ability to compute the parameter estimates for a COM-Poisson or zero-inflated (ZI) COM-Poisson regression and associated standard errors.  This package also provides a hypothesis test for determining statistically significant data dispersion, and other model diagnostics.}
 
 \details{
-This package offers the ability to compute the COM-Poisson parameter estimates and associated standard errors for a regular regression model or a zero-inflated regression model (via the glm.cmp function).
+This package offers the ability to compute COM-Poisson parameter estimates and associated standard errors for a regular regression model or a zero-inflated regression model (via the \code{glm.cmp} function).
 
 Further, the user can perform a hypothesis test to determine the statistically significant need for using COM-Poisson regression to model the data.  The test addresses the matter of statistically significant dispersion.
 
@@ -32,20 +32,36 @@ From here, there are lots of ways to proceed, so order is irrelevant:
 
 The package also supports fitting of the zero-inflated COM-Poisson model (ZICMP).
 Most of the tools available for COM-Poisson are also available for ZICMP.
+
+As of version 0.5.0 of this package, a hybrid method is used to compute the normalizing constant
+\eqn{z(\lambda, \nu)} for the COM-Poisson density. A closed-form approximation (Shmueli et al, 2005;
+Gillispie & Green, 2015) to the exact sum is used if the
+given \eqn{\lambda} is sufficiently large and \eqn{\nu} is sufficiently small. Otherwise, an
+exact summation is used, except that the number of terms is truncated to meet a given accuracy.
+Previous versions of the package used simple truncation (defaulting to 100 terms), but this was found
+to be inaccurate in some settings.
 }
 
 \author{
-Kimberly Sellers, Thomas Lotze (Maintainer, <thomas.lotze@thomaslotze.com>),
-Andrew M. Raim
+Kimberly Sellers, Thomas Lotze, Andrew M. Raim
 }
 
 \references{
+Steven B. Gillispie & Christopher G. Green (2015) Approximating the
+Conway–Maxwell–Poisson distribution normalization constant, Statistics,
+49:5, 1062-1073.
+
 Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
 Count Data. Annals of Applied Statistics, 4(2), 943-961.
 
 Kimberly F. Sellers and Andrew M. Raim (2016). A Flexible Zero-Inflated Model
 to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
 68-80.
+
+Galit Shmueli, Thomas P. Minka, Joseph B. Kadane, Sharad Borle, and Peter
+Boatwright (2005). A useful distribution for fitting discrete data: revival
+of the Conway-Maxwell-Poisson distribution. Journal of Royal Statistical
+Society C, 54, 127–142.
 }
 
 \examples{

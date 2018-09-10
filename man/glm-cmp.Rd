@@ -67,7 +67,7 @@ log p_i = w_i^T zeta.
 
 \usage{
 	glm.cmp(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
-        beta.init = NULL, gamma.init = NULL, zeta.init = NULL, max = 100, ...)
+        beta.init = NULL, gamma.init = NULL, zeta.init = NULL, ...)
 
 	\method{AIC}{cmp}(object, ..., k = 2)
 	\method{BIC}{cmp}(object, ...)
@@ -81,10 +81,9 @@ log p_i = w_i^T zeta.
 	\method{predict}{cmp}(object, newdata = NULL, ...)
 	\method{print}{cmp}(x, ...)
 	\method{residuals}{cmp}(object, type = c("raw", "quantile"), ...)
-	\method{sdev}{cmp}(object, ...)
+	\method{sdev}{cmp}(object, use.fim = FALSE, ...)
 	\method{summary}{cmp}(object, ...)
-	\method{vcov}{cmp}(object, ...)
-
+	\method{vcov}{cmp}(object, use.fim = FALSE, ...)
 
 	\method{AIC}{zicmp}(object, ..., k = 2)
 	\method{BIC}{zicmp}(object, ...)
@@ -98,9 +97,9 @@ log p_i = w_i^T zeta.
 	\method{predict}{zicmp}(object, newdata = NULL, ...)
 	\method{print}{zicmp}(x, ...)
 	\method{residuals}{zicmp}(object, type = c("raw", "quantile"), ...)
-	\method{sdev}{zicmp}(object, ...)
+	\method{sdev}{zicmp}(object, use.fim = FALSE, ...)
 	\method{summary}{zicmp}(object, ...)
-	\method{vcov}{zicmp}(object, ...)
+	\method{vcov}{zicmp}(object, use.fim = FALSE, ...)
 }
 
 \arguments{
@@ -119,6 +118,8 @@ log p_i = w_i^T zeta.
   \item{type}{Type of residual to be computed.}
   \item{reps}{Number of bootstrap repetitions.}
   \item{report.period}{Report progress every \code{report.period} iterations.}
+  \item{use.fim}{If \code{TRUE} use the closed-form Fisher information matrix,
+  otherwise use Hessian from optimizer}
 }
 
 \value{
