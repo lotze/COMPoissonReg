@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 #include <list>
-#include "COMPoissonReg.h"
+#include "cmp.h"
+#include "util.h"
 
 // Enumerate the terms lambda^y / (y!)^nu for y >= 0, until they become small,
 // or until y = ymax is reached.
@@ -43,10 +44,9 @@ Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
 	}
 }
 
-// [[Rcpp::export]]
 Rcpp::NumericVector dcmp_cpp(const Rcpp::NumericVector& x,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
-	double tol = 1e-6, bool take_log = false)
+	double tol, bool take_log)
 {
 	unsigned int n = x.size();
 	if (n != lambda.size() || n != nu.size()) {
@@ -70,10 +70,9 @@ Rcpp::NumericVector dcmp_cpp(const Rcpp::NumericVector& x,
 	}
 }
 
-// [[Rcpp::export]]
 Rcpp::NumericVector pcmp_cpp(const Rcpp::NumericVector& x,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
-	double tol = 1e-6)
+	double tol)
 {
 	unsigned int n = x.size();
 	if (n != lambda.size() || n != nu.size()) {
@@ -95,10 +94,9 @@ Rcpp::NumericVector pcmp_cpp(const Rcpp::NumericVector& x,
 }
 
 // Assume that quantiles q are not given on the log scale
-// [[Rcpp::export]]
 Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& q,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
-	double tol = 1e-6)
+	double tol)
 {
 	unsigned int n = q.size();
 	if (n != lambda.size() || n != nu.size()) {
@@ -116,9 +114,8 @@ Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& q,
 
 // Produce n(i) iid draws for each lambda(i) and nu(i).
 // If n is a scalar, take n(i) to be n
-// [[Rcpp::export]]
 Rcpp::NumericVector rcmp_cpp(unsigned int n, const Rcpp::NumericVector& lambda,
-	const Rcpp::NumericVector& nu, double tol = 1e-6)
+	const Rcpp::NumericVector& nu, double tol)
 {
 	if (n != lambda.size() || n != nu.size()) {
 		Rcpp::stop("lambda and nu must have length n");

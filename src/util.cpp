@@ -1,6 +1,6 @@
 #include <Rcpp.h>
 #include <list>
-#include "COMPoissonReg.h"
+#include "util.h"
 
 // A version of the "which" function, since it does not appear to be
 // provided in Rcpp Sugar yet.

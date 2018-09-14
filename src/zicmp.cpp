@@ -1,5 +1,6 @@
 #include <Rcpp.h>
-#include "COMPoissonReg.h"
+#include "cmp.h"
+#include "util.h"
 
 // Assume that quantiles q are not given on the log scale
 // [[Rcpp::export]]
