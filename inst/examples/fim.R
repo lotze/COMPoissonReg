@@ -26,4 +26,3 @@ FIM1 <- fim.zicmp.reg(X, S, W, beta, gamma, zeta)
 FIM2 <- fim.zicmp.reg.old(X, S, W, beta, gamma, zeta, max = 10000)
 round(FIM1, 6)
 round(FIM2, 6)
-

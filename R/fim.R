@@ -1,3 +1,6 @@
+# Compute the CMP information matrix using the exact expression, except
+# use numerical derivatives of z functions. This avoids numerical issues
+# with infinite sums.
 fim.cmp <- function(lambda, nu)
 {
 	f <- function(theta) {
@@ -9,6 +12,30 @@ fim.cmp <- function(lambda, nu)
 	return(H)
 }
 
+# Compute the CMP information matrix using Monte Carlo. This avoids
+# issues with numerical second derivatives.
+fim.cmp.mc <- function(lambda, nu, reps)
+{
+	stopifnot(length(lambda) == 1)
+	stopifnot(length(nu) == 1)
+	grad.eps <- getOption("COMPoissonReg.grad.eps", default = 1e-5)
+
+	f <- function(theta, data) {
+		sum(dcmp(data, lambda = theta[1], nu = theta[2], log = TRUE))
+	}
+
+	FIM <- matrix(0, 2, 2)
+	x <- rcmp(reps, lambda, nu)
+	for (r in 1:reps) {
+		S <- grad.fwd(f, x = c(lambda, nu), h = grad.eps, data = x[r])
+		FIM <- FIM + S %*% t(S)
+	}
+
+	return(FIM / reps)
+}
+
+# Compute the ZICMP information matrix using the exact expression, except
+# use numerical derivatives of z functions.
 fim.zicmp <- function(lambda, nu, p)
 {
 	stopifnot(length(lambda) == 1)
@@ -65,7 +92,33 @@ fim.zicmp <- function(lambda, nu, p)
 	return(FIM)
 }
 
-fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta)
+# Compute the ZICMP information matrix using Monte Carlo.
+fim.zicmp.mc <- function(lambda, nu, p, reps)
+{
+	stopifnot(length(lambda) == 1)
+	stopifnot(length(nu) == 1)
+	stopifnot(length(p) == 1)
+	grad.eps <- getOption("COMPoissonReg.grad.eps", default = 1e-5)
+
+	f <- function(theta, data) {
+		sum(dzicmp(data, lambda = theta[1], nu = theta[2], p = theta[3], log = TRUE))
+	}
+
+	FIM <- matrix(0, 3, 3)
+	x <- rzicmp(reps, lambda, nu, p)
+	for (r in 1:reps) {
+		S <- grad.fwd(f, x = c(lambda, nu, p), h = grad.eps, data = x[r])
+		FIM <- FIM + S %*% t(S)
+	}
+
+	return(FIM / reps)
+}
+
+# Compute the ZICMP information matrix when parameterized by regressions.
+# If reps is NULL, attempt to use the exact expression (with numerical
+# derivatives). Otherwise, use Monte Carlo approximation based on that
+# many reps.
+fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta, reps = NULL)
 {
 	n <- nrow(X)
 	qq <- ncol(X) + ncol(S) + ncol(W)
@@ -84,7 +137,11 @@ fim.zicmp.reg <- function(X, S, W, beta, gamma, zeta)
 	# transform to the FIM of (beta, gamma, zeta)
 	FIM.one.list <- list()
 	for (i in 1:n) {
-		FIM.one.list[[i]] <- fim.zicmp(lambda[i], nu[i], p[i])
+		if (is.null(reps)) {
+			FIM.one.list[[i]] <- fim.zicmp(lambda[i], nu[i], p[i])
+		} else {
+			FIM.one.list[[i]] <- fim.zicmp.mc(lambda[i], nu[i], p[i], reps)
+		}
 	}
 
 	idx.beta <- 1:length(beta)

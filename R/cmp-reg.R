@@ -119,12 +119,12 @@ nu.cmp <- function(object, ...)
 	exp(object$S %*% object$gamma)
 }
 
-sdev.cmp <- function(object, use.fim = FALSE, ...)
+sdev.cmp <- function(object, use.fim = FALSE, mc.reps = NULL, ...)
 {
-	sqrt(diag(vcov(object, use.fim, old)))
+	sqrt(diag(vcov(object, use.fim, mc.reps)))
 }
 
-vcov.cmp <- function(object, use.fim = FALSE, ...)
+vcov.cmp <- function(object, use.fim = FALSE, mc.reps = NULL, ...)
 {
 	if (use.fim) {
 		# Compute the covariance via Fisher Information Matrix
@@ -136,7 +136,7 @@ vcov.cmp <- function(object, use.fim = FALSE, ...)
 		d2 <- ncol(S)
 
 		FIM.aug <- fim.zicmp.reg(X = X, S = S, W = W, beta = object$beta,
-			gamma = object$gamma, zeta = -Inf)
+			gamma = object$gamma, zeta = -Inf, reps = mc.reps)
 		FIM <- FIM.aug[1:(d1+d2), 1:(d1+d2)]
 		V <- solve(FIM)
 		rownames(V) <- colnames(V) <- names(coef(object))

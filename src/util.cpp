@@ -31,3 +31,50 @@ double qdiscrete(double q, const Rcpp::NumericVector& p)
 		return k;
 	}
 }
+
+double qdiscrete2(double logq, const Rcpp::NumericVector& logp)
+{
+	unsigned int k = logp.size();
+	// TBD: This needs work
+	Rcpp::NumericVector lcp = logcumprobs(logp);
+
+	Rcpp::IntegerVector idx = which(logq < lcp);
+	if (idx.size() > 0) {
+		return idx(0);
+	} else {
+		return k;
+	}
+}
+
+// Compute log(p[0] + ... + p[k-1]) given log(p[0]), ..., log(p[k-1]).
+// Treat p[0] as the "normalizing" probability. Uses the method from
+// https://en.wikipedia.org/wiki/List_of_logarithmic_identities#Summation/subtraction
+// foor stable calculation on the log scale.
+double logsumprobs(const Rcpp::NumericVector& logprob, unsigned int baseidx)
+{
+        unsigned int k = logprob.size();
+		Rcpp::NumericVector logprob_rest(k-1);
+
+		for (unsigned int i = 0, j = 0; i < k; i++) {
+			if (i != baseidx) {
+				logprob_rest(j) = logprob(i);
+				j++;
+			}
+		}
+
+        return logprob(baseidx) + log1p(Rcpp::sum(Rcpp::exp(logprob_rest - logprob(baseidx))));
+}
+
+
+Rcpp::NumericVector logcumprobs(const Rcpp::NumericVector& logprob)
+{
+        unsigned int k = logprob.size();
+		Rcpp::NumericVector logcp(k);
+
+		logcp(0) = logprob(0);
+		for (unsigned int i = 1; i < k; i++) {
+			logcp(i) = logcp(i-1) + log1p(exp(logprob(i) - logcp(i-1)));
+		}
+
+        return logcp;
+}

@@ -12,6 +12,10 @@ Improving computation of z-function
 * Retest everything
 * Why is equitest's teststat = 0 for the couple example? Is that right?
 
+Add documentation for global options
 
-What's better for the FIM function: inaccuracy due to Hessian approximation,
-or inaccuracy due to the z-function? We should pick one and remove the other.
+Add documentation for mc.reps in vcov and sdev, if we'll keep it
+
+Problem with rcmp
+lambda <- 10
+nu <- 0.2

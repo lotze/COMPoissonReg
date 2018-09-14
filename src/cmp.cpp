@@ -8,33 +8,33 @@
 Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
 	bool take_log, double ymax, bool normalize)
 {
-	double z = 0;
 	std::list<double> logp_unnorm;
 
 	double delta;
 	double psi = -0.5772157;	// Euler–Mascheroni constant
 	double y = 0;
 	double deriv = R_PosInf;
-	while (deriv > 0 && y <= ymax && !isinf(z)) {
+	while (deriv > 0 && y <= ymax) {
 		delta = y*log(lambda) - nu*lgamma(y+1);
 		logp_unnorm.push_back(delta);
-		z += exp(delta);
 		psi += 1 / (y+1);
 		deriv = log(lambda) - nu*psi;
 		y++;
 	}
 
 	double log_tol = log(tol);
-	while (delta > log_tol && y <= ymax && !isinf(z)) {
+	while (delta > log_tol && y <= ymax) {
 		delta = y*log(lambda) - nu*lgamma(y+1);
 		logp_unnorm.push_back(delta);
-		z += exp(delta);
 		y++;
 	}
 
 	Rcpp::NumericVector logp(logp_unnorm.begin(), logp_unnorm.end());
+
+	// A somewhat stable way to normalize log-probabilities
 	if (normalize) {
-		logp = logp - log(z);
+		unsigned int idx_max = Rcpp::which_max(logp);
+		logp = logp - logsumprobs(logp, idx_max);
 	}
 
 	if (take_log) {
@@ -105,8 +105,9 @@ Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& q,
 
 	Rcpp::NumericVector x(n);
 	for (unsigned int i = 0; i < n; i++) {
-		Rcpp::NumericVector allprobs = cmp_allprobs(lambda(i), nu(i), tol);
-		x(i) = qdiscrete(q(i), allprobs);
+		// Find the q(i) quantile on the log-scale
+		Rcpp::NumericVector all_logprobs = cmp_allprobs(lambda(i), nu(i), tol, true);
+		x(i) = qdiscrete2(log(q(i)), all_logprobs);
 	}
 
 	return x;
