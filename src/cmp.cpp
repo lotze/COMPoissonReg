@@ -49,18 +49,25 @@ Rcpp::NumericVector dcmp_cpp(const Rcpp::NumericVector& x,
 	double tol, bool take_log)
 {
 	unsigned int n = x.size();
-	if (n != lambda.size() || n != nu.size()) {
-		Rcpp::stop("lambda and nu must have length n");
-	}
-
 	Rcpp::NumericVector fx(n);
 	fx.fill(0);
 
-	for (unsigned int i = 0; i < n; i++) {
-		Rcpp::NumericVector allprobs = cmp_allprobs(lambda(i), nu(i), tol);
-		if (x(i) <= allprobs.size() - 1) {
-			fx(i) = allprobs(x(i));
+	if (lambda.size() == 1 && nu.size() == 1) {
+		Rcpp::NumericVector allprobs = cmp_allprobs(lambda(0), nu(0), tol);
+		for (unsigned int i = 0; i < n; i++) {
+			if (x(i) <= allprobs.size() - 1) {
+				fx(i) = allprobs(x(i));
+			}
+		}		
+	} else if (lambda.size() == n || nu.size() == n) {
+		for (unsigned int i = 0; i < n; i++) {
+			Rcpp::NumericVector allprobs = cmp_allprobs(lambda(i), nu(i), tol);
+			if (x(i) <= allprobs.size() - 1) {
+				fx(i) = allprobs(x(i));
+			}
 		}
+	} else {
+		Rcpp::stop("lambda and nu must both have length n or 1");
 	}
 
 	if (take_log) {
@@ -75,40 +82,56 @@ Rcpp::NumericVector pcmp_cpp(const Rcpp::NumericVector& x,
 	double tol)
 {
 	unsigned int n = x.size();
-	if (n != lambda.size() || n != nu.size()) {
-		Rcpp::stop("lambda and nu must have length n");
-	}
-
 	Rcpp::NumericVector Fx(n);
-	Fx.fill(1);
-
-	for (unsigned int i = 0; i < n; i++) {
-		Rcpp::NumericVector allprobs = cmp_allprobs(lambda(i), nu(i), tol);
-		Rcpp::NumericVector cumprobs = Rcpp::cumsum(allprobs);
-		if (x(i) <= allprobs.size() - 1) {
-			Fx(i) = cumprobs(x(i));
+	Fx.fill(0);
+	
+	if (lambda.size() == 1 && nu.size() == 1) {
+		Rcpp::NumericVector all_logprobs = cmp_allprobs(lambda(0), nu(0), tol, true);
+		Rcpp::NumericVector lcp = logcumprobs(all_logprobs);
+		for (unsigned int i = 0; i < n; i++) {
+			if (x(i) <= all_logprobs.size() - 1) {
+				Fx(i) = lcp(x(i));
+			}
 		}
+	} else if (lambda.size() == n && nu.size() == n) {
+		for (unsigned int i = 0; i < n; i++) {
+			Rcpp::NumericVector all_logprobs = cmp_allprobs(lambda(i), nu(i), tol, true);
+			Rcpp::NumericVector lcp = logcumprobs(all_logprobs);
+			if (x(i) <= all_logprobs.size() - 1) {
+				Fx(i) = lcp(x(i));
+			}
+		}
+	} else {
+		Rcpp::stop("lambda and nu must both have length n or 1");
 	}
 
-	return Fx;
+	return exp(Fx);
 }
 
-// Assume that quantiles q are not given on the log scale
-Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& q,
+// Assume that quantiles q are given on the log scale
+// Work on the log-scale for stability
+Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& logq,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
 	double tol)
 {
-	unsigned int n = q.size();
-	if (n != lambda.size() || n != nu.size()) {
-		Rcpp::stop("lambda and nu must have length n");
-	}
-
+	unsigned int n = logq.size();
 	Rcpp::NumericVector x(n);
-	for (unsigned int i = 0; i < n; i++) {
-		// Find the q(i) quantile on the log-scale
-		Rcpp::NumericVector all_logprobs = cmp_allprobs(lambda(i), nu(i), tol, true);
-		x(i) = qdiscrete(log(q(i)), all_logprobs, true);
+	
+	if (lambda.size() == 1 && nu.size() == 1) {
+		Rcpp::NumericVector all_logprobs = cmp_allprobs(lambda(0), nu(0), tol, true);	
+		for (unsigned int i = 0; i < n; i++) {
+			x(i) = qdiscrete(logq(i), all_logprobs, true);
+		}
+	} else if (lambda.size() == n && nu.size() == n) {
+		for (unsigned int i = 0; i < n; i++) {
+			Rcpp::NumericVector all_logprobs = cmp_allprobs(lambda(i), nu(i), tol, true);
+			x(i) = qdiscrete(logq(i), all_logprobs, true);
+		}
+	} else {
+		Rcpp::stop("lambda and nu must both have length n or 1");
 	}
+	
+
 
 	return x;
 }
@@ -118,10 +141,6 @@ Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& q,
 Rcpp::NumericVector rcmp_cpp(unsigned int n, const Rcpp::NumericVector& lambda,
 	const Rcpp::NumericVector& nu, double tol)
 {
-	if (n != lambda.size() || n != nu.size()) {
-		Rcpp::stop("lambda and nu must have length n");
-	}
-
 	Rcpp::NumericVector u = Rcpp::runif(n, 0.0, 1.0);
-	return qcmp_cpp(u, lambda, nu, tol);
+	return qcmp_cpp(log(u), lambda, nu, tol);
 }

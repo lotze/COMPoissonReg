@@ -18,7 +18,7 @@ Rcpp::NumericVector pcmp_cpp(const Rcpp::NumericVector& x,
 	double tol = 1e-6);
 
 // [[Rcpp::export]]
-Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& q,
+Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& logq,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
 	double tol = 1e-6);
 

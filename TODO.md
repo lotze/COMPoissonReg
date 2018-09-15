@@ -19,3 +19,6 @@ Add documentation for mc.reps in vcov and sdev, if we'll keep it
 Problem with rcmp
 lambda <- 10
 nu <- 0.2
+
+Add ymax as an option (not global) to regression functions
+

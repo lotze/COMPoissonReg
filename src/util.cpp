@@ -59,7 +59,6 @@ double logsumprobs(const Rcpp::NumericVector& logprob, unsigned int baseidx)
         return logprob(baseidx) + log1p(Rcpp::sum(Rcpp::exp(logprob_rest - logprob(baseidx))));
 }
 
-
 Rcpp::NumericVector logcumprobs(const Rcpp::NumericVector& logprob)
 {
         unsigned int k = logprob.size();
