@@ -18,27 +18,21 @@ Rcpp::IntegerVector which(const Rcpp::LogicalVector& x)
 
 // Quantile function for a discrete distribution with values (0, 1, ..., k-1)
 // and probabilities p = (p(0), ..., p(k-1)). If p does not sum to 1, we assume
-// that p(k) = 1 - p(0) - ... - p(k-1).
-double qdiscrete(double q, const Rcpp::NumericVector& p)
+// that p(k) = 1 - p(0) - ... - p(k-1). If log_scale = TRUE, interpret q and p
+// as log-probabilities
+double qdiscrete(double q, const Rcpp::NumericVector& p, bool log_scale)
 {
 	unsigned int k = p.size();
-	Rcpp::NumericVector cumprobs = Rcpp::cumsum(p);
+	Rcpp::IntegerVector idx;
 
-	Rcpp::IntegerVector idx = which(q < cumprobs);
-	if (idx.size() > 0) {
-		return idx(0);
+	if (log_scale) {
+		Rcpp::NumericVector lcp = logcumprobs(p);
+		idx = which(q < lcp);
 	} else {
-		return k;
+		Rcpp::NumericVector cumprobs = Rcpp::cumsum(p);
+		idx = which(q < cumprobs);
 	}
-}
 
-double qdiscrete2(double logq, const Rcpp::NumericVector& logp)
-{
-	unsigned int k = logp.size();
-	// TBD: This needs work
-	Rcpp::NumericVector lcp = logcumprobs(logp);
-
-	Rcpp::IntegerVector idx = which(logq < lcp);
 	if (idx.size() > 0) {
 		return idx(0);
 	} else {

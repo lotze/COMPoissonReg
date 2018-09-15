@@ -107,7 +107,7 @@ Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& q,
 	for (unsigned int i = 0; i < n; i++) {
 		// Find the q(i) quantile on the log-scale
 		Rcpp::NumericVector all_logprobs = cmp_allprobs(lambda(i), nu(i), tol, true);
-		x(i) = qdiscrete2(log(q(i)), all_logprobs);
+		x(i) = qdiscrete(log(q(i)), all_logprobs, true);
 	}
 
 	return x;

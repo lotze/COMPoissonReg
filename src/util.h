@@ -6,10 +6,7 @@
 Rcpp::IntegerVector which(const Rcpp::LogicalVector& x);
 
 // [[Rcpp::export]]
-double qdiscrete(double q, const Rcpp::NumericVector& p);
-
-// [[Rcpp::export]]
-double qdiscrete2(double logq, const Rcpp::NumericVector& logp);
+double qdiscrete(double q, const Rcpp::NumericVector& p, bool log_scale = false);
 
 // [[Rcpp::export]]
 double logsumprobs(const Rcpp::NumericVector& logprob, unsigned int baseidx);
