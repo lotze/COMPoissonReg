@@ -81,9 +81,9 @@ log p_i = w_i^T zeta.
 	\method{predict}{cmp}(object, newdata = NULL, ...)
 	\method{print}{cmp}(x, ...)
 	\method{residuals}{cmp}(object, type = c("raw", "quantile"), ...)
-	\method{sdev}{cmp}(object, use.fim = FALSE, ...)
+	\method{sdev}{cmp}(object, ...)
 	\method{summary}{cmp}(object, ...)
-	\method{vcov}{cmp}(object, use.fim = FALSE, ...)
+	\method{vcov}{cmp}(object, ...)
 
 	\method{AIC}{zicmp}(object, ..., k = 2)
 	\method{BIC}{zicmp}(object, ...)
@@ -109,7 +109,6 @@ log p_i = w_i^T zeta.
   \item{beta.init}{initial values for regression coefficients of \code{lambda}.}
   \item{gamma.init}{initial values for regression coefficients of \code{nu}.}
   \item{zeta.init}{initial values for regression coefficients of \code{p}.}
-  \item{max}{maximum number to use for truncating infinite sums.}
   \item{...}{other model parameters, such as data}
   \item{object}{object of type 'cmp' or 'zicmp'.}
   \item{x}{object of type 'cmp' or 'zicmp'.}

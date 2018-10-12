@@ -13,7 +13,7 @@ nu <- function(object, ...)
 	UseMethod("nu")
 }
 
-sdev <- function (object, use.fim = FALSE, ...)
+sdev <- function (object, ...)
 {
 	UseMethod("sdev")
 }
@@ -22,3 +22,4 @@ parametric_bootstrap <- function(object, reps = 1000, report.period = reps + 1, 
 {
 	UseMethod("parametric_bootstrap")
 }
+

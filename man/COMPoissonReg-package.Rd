@@ -48,7 +48,7 @@ Kimberly Sellers, Thomas Lotze, Andrew M. Raim
 
 \references{
 Steven B. Gillispie & Christopher G. Green (2015) Approximating the
-Conway–Maxwell–Poisson distribution normalization constant, Statistics,
+Conway-Maxwell-Poisson distribution normalization constant, Statistics,
 49:5, 1062-1073.
 
 Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
@@ -61,7 +61,7 @@ to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
 Galit Shmueli, Thomas P. Minka, Joseph B. Kadane, Sharad Borle, and Peter
 Boatwright (2005). A useful distribution for fitting discrete data: revival
 of the Conway-Maxwell-Poisson distribution. Journal of Royal Statistical
-Society C, 54, 127–142.
+Society C, 54, 127-142.
 }
 
 \examples{

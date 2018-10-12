@@ -41,9 +41,9 @@ double qdiscrete(double q, const Rcpp::NumericVector& p, bool log_scale)
 }
 
 // Compute log(p[0] + ... + p[k-1]) given log(p[0]), ..., log(p[k-1]).
-// Treat p[0] as the "normalizing" probability. Uses the method from
+// Treat p[baseidx] as the "normalizing" probability. Uses the method from
 // https://en.wikipedia.org/wiki/List_of_logarithmic_identities#Summation/subtraction
-// foor stable calculation on the log scale.
+// for stable calculation on the log scale.
 double logsumprobs(const Rcpp::NumericVector& logprob, unsigned int baseidx)
 {
         unsigned int k = logprob.size();
@@ -59,6 +59,9 @@ double logsumprobs(const Rcpp::NumericVector& logprob, unsigned int baseidx)
         return logprob(baseidx) + log1p(Rcpp::sum(Rcpp::exp(logprob_rest - logprob(baseidx))));
 }
 
+// Compute cumulative probabilities on the log scale. Uses the method from
+// https://en.wikipedia.org/wiki/List_of_logarithmic_identities#Summation/subtraction
+// for stable calculation on the log scale.
 Rcpp::NumericVector logcumprobs(const Rcpp::NumericVector& logprob)
 {
         unsigned int k = logprob.size();
