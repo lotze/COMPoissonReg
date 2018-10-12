@@ -1,6 +1,5 @@
 ---
 title: "COMPoissonReg Demo"
-author: "Andrew Raim"
 date: "`r format(Sys.time(), '%B %-e, %Y')`"
 output: pdf_document
 ---
