@@ -97,9 +97,9 @@ log p_i = w_i^T zeta.
 	\method{predict}{zicmp}(object, newdata = NULL, ...)
 	\method{print}{zicmp}(x, ...)
 	\method{residuals}{zicmp}(object, type = c("raw", "quantile"), ...)
-	\method{sdev}{zicmp}(object, use.fim = FALSE, ...)
+	\method{sdev}{zicmp}(object, ...)
 	\method{summary}{zicmp}(object, ...)
-	\method{vcov}{zicmp}(object, use.fim = FALSE, ...)
+	\method{vcov}{zicmp}(object, ...)
 }
 
 \arguments{
@@ -118,8 +118,6 @@ log p_i = w_i^T zeta.
   \item{type}{Type of residual to be computed.}
   \item{reps}{Number of bootstrap repetitions.}
   \item{report.period}{Report progress every \code{report.period} iterations.}
-  \item{use.fim}{If \code{TRUE} use the closed-form Fisher information matrix,
-  otherwise use Hessian from optimizer}
 }
 
 \value{

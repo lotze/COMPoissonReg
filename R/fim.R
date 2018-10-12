@@ -1,3 +1,9 @@
+# These functions are currently not exported to users. Numerical computation
+# of the FIM seems to be potentially unstable, whether computing by
+# derivatives of the normalizing function, or explicitly programming the
+# infinite sum expressions and truncating them. Instead, we currently
+# provide variances via the Hessian from the optimizer.
+
 # Compute the CMP information matrix using the exact expression, except
 # use numerical derivatives of z functions. This avoids numerical issues
 # with infinite sums.

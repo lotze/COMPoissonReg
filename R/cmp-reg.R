@@ -119,33 +119,15 @@ nu.cmp <- function(object, ...)
 	exp(object$S %*% object$gamma)
 }
 
-sdev.cmp <- function(object, use.fim = FALSE, mc.reps = NULL, ...)
+sdev.cmp <- function(object, ...)
 {
-	sqrt(diag(vcov(object, use.fim, mc.reps)))
+	sqrt(diag(vcov(object)))
 }
 
-vcov.cmp <- function(object, use.fim = FALSE, mc.reps = NULL, ...)
+vcov.cmp <- function(object, ...)
 {
-	if (use.fim) {
-		# Compute the covariance via Fisher Information Matrix
-		n <- nrow(object$X)
-		X <- object$X
-		S <- object$S
-		W <- matrix(1, n, 1)
-		d1 <- ncol(X)
-		d2 <- ncol(S)
-
-		FIM.aug <- fim.zicmp.reg(X = X, S = S, W = W, beta = object$beta,
-			gamma = object$gamma, zeta = -Inf, reps = mc.reps)
-		FIM <- FIM.aug[1:(d1+d2), 1:(d1+d2)]
-		V <- solve(FIM)
-		rownames(V) <- colnames(V) <- names(coef(object))
-	} else {
-		# Compute the covariance via Hessian from optimizer
-		V <- -solve(object$H)
-	}
-
-	return(V)
+	# Compute the covariance via Hessian from optimizer
+	-solve(object$H)
 }
 
 equitest.cmp <- function(object, ...)

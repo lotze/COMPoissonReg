@@ -20,6 +20,10 @@ Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
 		psi += 1 / (y+1);
 		deriv = log(lambda) - nu*psi;
 		y++;
+		
+		if (int(y+1) % 10000 == 0) {
+			R_CheckUserInterrupt();
+		}
 	}
 
 	double log_tol = log(tol);
@@ -27,6 +31,10 @@ Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
 		delta = y*log(lambda) - nu*lgamma(y+1);
 		logp_unnorm.push_back(delta);
 		y++;
+
+		if (int(y+1) % 10000 == 0) {
+			R_CheckUserInterrupt();
+		}
 	}
 
 	Rcpp::NumericVector logp(logp_unnorm.begin(), logp_unnorm.end());

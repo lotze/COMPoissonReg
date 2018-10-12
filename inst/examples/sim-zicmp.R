@@ -18,6 +18,7 @@ y <- rzicmp(n, lambda = lambda.true, nu = nu.true, p = p.true)
 dat <- data.frame(y = y, x = x)
 
 # ----- Fit ZICMP model -----
+options(COMPoissonReg.optim.method = "BFGS")
 zicmp.out <- glm.cmp(y ~ x, formula.nu = ~ 1, formula.p = ~ x, data = dat)
 print(zicmp.out)
 

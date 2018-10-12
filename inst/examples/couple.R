@@ -8,13 +8,8 @@ cmp.out <- glm.cmp(formula.lambda = UPB ~ EDUCATION + ANXIETY,
 	data = couple)
 print(cmp.out)
 
-round(vcov(cmp.out, use.fim = FALSE), 6)
-round(vcov(cmp.out, use.fim = TRUE), 6)
-round(vcov(cmp.out, use.fim = TRUE, mc.reps = 1000), 6)
-
-sdev(cmp.out, use.fim = FALSE)
-sdev(cmp.out, use.fim = TRUE)
-sdev(cmp.out, use.fim = TRUE, mc.reps = 1000)
+vcov(cmp.out)
+sdev(cmp.out)
 
 equitest(cmp.out)
 

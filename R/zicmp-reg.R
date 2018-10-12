@@ -135,30 +135,15 @@ nu.zicmp <- function(object, ...)
 	exp(object$S %*% object$gamma)
 }
 
-sdev.zicmp <- function(object, use.fim = FALSE, mc.reps = NULL, ...)
+sdev.zicmp <- function(object, ...)
 {
-	sqrt(diag(vcov(object, use.fim, mc.reps)))
+	sqrt(diag(vcov(object)))
 }
 
-vcov.zicmp <- function(object, use.fim = FALSE, mc.reps = NULL, ...)
+vcov.zicmp <- function(object, ...)
 {
-	if (use.fim) {
-		# Compute the covariance via Fisher Information Matrix
-		n <- nrow(object$X)
-		X <- object$X
-		S <- object$S
-		W <- object$W
-
-		FIM <- fim.zicmp.reg(X = X, S = S, W = W, beta = object$beta,
-			gamma = object$gamma, zeta = object$zeta, reps = mc.reps)
-		V <- solve(FIM)
-		rownames(V) <- colnames(V) <- names(coef(object))
-	} else {
-		# Compute the covariance via Hessian from optimizer
-		V <- -solve(object$H)
-	}
-
-	return(V)
+	# Compute the covariance via Hessian from optimizer
+	-solve(object$H)
 }
 
 equitest.zicmp <- function(object, ...)
