@@ -18,16 +18,16 @@ Further, the user can perform a hypothesis test to determine the statistically s
 The main order of functions for COM-Poisson regression is as follows:
 \enumerate{
 \item  Compute Poisson estimates (using glm for Poisson regression or pscl for
-ZIP regression)
-\item  Use Poisson estimates as starting values to determine COM-Poisson estimates (using glm.cmp)
-\item  Compute associated standard errors (using sdev function)
+ZIP regression).
+\item  Use Poisson estimates as starting values to determine COM-Poisson estimates (using glm.cmp).
+\item  Compute associated standard errors (using sdev function).
 }
 
 From here, there are lots of ways to proceed, so order is irrelevant:
 \itemize{
-\item Perform a hypothesis test to assess for statistically significant dispersion (using equitest or parametric_bootstrap)
-\item Compute leverage (using leverage) and deviance (using deviance)
-\item Predict the outcome for new examples, using predict
+\item Perform a hypothesis test to assess for statistically significant dispersion (using equitest or parametric_bootstrap).
+\item Compute leverage (using leverage) and deviance (using deviance).
+\item Predict the outcome for new examples, using predict.
 }
 
 The package also supports fitting of the zero-inflated COM-Poisson model (ZICMP).
