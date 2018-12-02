@@ -4,11 +4,11 @@
 \title{Package options}
 \description{Global options used by the COMPoissonReg package.} 
 
-\usage{
-	options(COMPoissonReg.optim.method = 'L-BFGS-B')
-	options(COMPoissonReg.optim.control = list(maxit = 150))
-	options(COMPoissonReg.grad.eps = 1e-5)
-	options(COMPoissonReg.hess.eps = 1e-2)
+\details{
+	\code{options(COMPoissonReg.optim.method = 'L-BFGS-B')}
+	\code{options(COMPoissonReg.optim.control = list(maxit = 150))}
+	\code{options(COMPoissonReg.grad.eps = 1e-5)}
+	\code{options(COMPoissonReg.hess.eps = 1e-2)}
 }
 
 \arguments{
