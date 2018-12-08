@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include "util.h"
 
 // Sum (from j=0 to j=max) of j*lambda^j/((j!)^nu)
 // [[Rcpp::export]]

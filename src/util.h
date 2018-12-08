@@ -3,6 +3,8 @@
 
 #include <Rcpp.h>
 
+double log(unsigned int x);
+
 Rcpp::IntegerVector which(const Rcpp::LogicalVector& x);
 
 // [[Rcpp::export]]
