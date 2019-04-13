@@ -68,8 +68,7 @@ fitted_cmp_internal <- function(X, S, beta, gamma, off.X, off.S)
 {
 	list(
 		lambda.hat = exp(X %*% beta + off.X),
-		nu.hat = exp(S %*% gamma + off.S),
-		p.hat = plogis(W %*% zeta + off.W)
+		nu.hat = exp(S %*% gamma + off.S)
 	)
 }
 
@@ -156,12 +155,12 @@ equitest.cmp <- function(object, ...)
 	
 	out0 <- fitted_cmp_internal(object$X, object$S, object$beta.glm,
 		gamma = numeric(d2), object$off.X, object$off.S)
-	lambda0 <- out0$lambda
+	lambda0.hat <- out0$lambda
 
-	logz <- z_hybrid(lambda, nu, take_log = TRUE)
-	teststat <- -2 * sum(y*log(lambda0) - lgamma(y+1) - lambda0 -
-		y*log(lambda) + nu*lgamma(y+1) + logz)
-	pvalue <- pchisq(teststat, df=1, lower.tail=FALSE)
+	logz <- z_hybrid(lambda.hat, nu.hat, take_log = TRUE)
+	teststat <- -2 * sum(y*log(lambda0.hat) - lgamma(y+1) - lambda0.hat -
+		y*log(lambda.hat) + nu.hat*lgamma(y+1) + logz)
+	pvalue <- pchisq(teststat, df = 1, lower.tail = FALSE)
 	list(teststat = teststat, pvalue = pvalue)
 }
 
@@ -170,7 +169,8 @@ leverage.cmp <- function(object, ...)
 	y <- object$y
 
 	# 1) to code the WW matrix  (diagonal matrix with Var(Y_i) )
-	WW <- diag(weights(object$X, object$beta, object$nu, object$off.X, object$off.S))
+	ww <- weights(object$X, object$S, object$beta, object$gamma, object$off.X, object$off.S)
+	WW <- diag(ww)
 
 	out <- fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
 		object$off.X, object$off.S)
@@ -195,13 +195,14 @@ deviance.cmp <- function(object, ...)
 {
 	# Compute the COM-Poisson deviances exactly
 	y <- object$y
+	n <- length(y)
 	leverage <- leverage.cmp(object)
 
 	#### Compute optimal log likelihood value for given nu-hat value
 	beta.init <- object$beta
 	d1 <- length(beta.init)
-	OptimalLogLi <- rep(0,length(y))
-	iterct <- rep(0,length(y))
+	OptimalLogLi <- rep(0,n)
+	iterct <- rep(0,n)
 
 	for (i in 1:length(y)){
 		# Create -logL = -logf (because considering single observation) so that we
@@ -209,10 +210,9 @@ deviance.cmp <- function(object, ...)
 		logf <- function(par){
 			beta <- par[1:d1]
 			out <- fitted_cmp_internal(object$X[i,], object$S[i,], beta, object$gamma,
-				object$off.X, object$off.S)
-			ll <- y[i]*log(out$lambda) - out$nu*lgamma(y[i]+1) -
+				object$off.X[i], object$off.S[i])
+			y[i]*log(out$lambda) - out$nu*lgamma(y[i]+1) -
 				z_hybrid(out$lambda, out$nu, take_log = TRUE)
-			return(ll)
 		}
 
 		# Determine the MLEs
@@ -318,7 +318,7 @@ constantCMPfitsandresids <- function(lambda.hat, nu.hat, y=0)
 	list(fit = fit, resid = resid)
 }
 
-weights <- function(X, beta, gamma, off.X, off.S)
+weights <- function(X, S, beta, gamma, off.X, off.S)
 {
 	out <- fitted_cmp_internal(X, S, beta, gamma, off.X, off.S)
 	lambda <- out$lambda

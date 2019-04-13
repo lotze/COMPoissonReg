@@ -17,6 +17,7 @@ glm.cmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 	off.S <- model.offset(mf)
 	d2 <- ncol(S)
 
+	n <- length(y)
 	if (is.null(off.X)) { off.X <- rep(0, n) }
 	if (is.null(off.S)) { off.S <- rep(0, n) }
 
