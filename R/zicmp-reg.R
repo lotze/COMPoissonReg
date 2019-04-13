@@ -25,6 +25,7 @@ summary.zicmp <- function(object, ...)
 	)
 
 	# If X, S, or W are intercept only, compute results for non-regression parameters
+	# Exclude offsets from these calculations
 	DF.lambda <- NULL
 	DF.nu <- NULL
 	DF.p <- NULL
@@ -33,7 +34,7 @@ summary.zicmp <- function(object, ...)
 	is.intercept.only <- function(A, eps = 1e-12) {
 		prod(dim(A) == c(n,1)) & norm(A - 1, type = "F") < eps
 	}
-
+	
 	if (is.intercept.only(object$X)) {
 		est <- exp(object$beta)
 		J <- c(exp(object$beta), rep(0, d2), rep(0, d3))
@@ -80,6 +81,15 @@ summary.zicmp <- function(object, ...)
 	)
 }
 
+fitted_zicmp_internal <- function(X, S, W, beta, gamma, zeta, off.X, off.S, off.W)
+{
+	list(
+		lambda.hat = exp(X %*% beta + off.X),
+		nu.hat = exp(S %*% gamma + off.S),
+		p.hat = plogis(W %*% zeta + off.W)
+	)
+}
+
 print.zicmp <- function(x, ...)
 {
 	printf("ZICMP coefficients\n")
@@ -89,7 +99,7 @@ print.zicmp <- function(x, ...)
 
 	if (!is.null(s$DF.lambda) || !is.null(s$DF.nu) || !is.null(s$DF.p)) {
 		printf("--\n")
-		printf("Transformed intercept-only parameters\n")
+		printf("Transformed intercept-only parameters (excluding offsets)\n")
 		print(rbind(s$DF.lambda, s$DF.nu, s$DF.p))
 	}
 	printf("--\n")
@@ -159,25 +169,34 @@ equitest.zicmp <- function(object, ...)
 	beta.hat <- object$beta
 	gamma.hat <- object$gamma
 	zeta.hat <- object$zeta
+	off.X <- object$off.X
+	off.S <- object$off.S
+	off.W <- object$off.W
 	n <- length(y)
+	d1 <- ncol(X)
+	d2 <- ncol(S)
+	d3 <- ncol(W)
 
 	fit0.out <- fit.zip.reg(y, X, W, beta.init = beta.hat,
-		zeta.init = zeta.hat)
+		zeta.init = zeta.hat, off.X = off.X, off.W = off.W)
 	beta0.hat <- fit0.out$theta.hat$beta
+	gamma0.hat <- numeric(d2)
 	zeta0.hat <- fit0.out$theta.hat$zeta
 
-	lambda.hat <- exp(X %*% beta.hat)
-	nu.hat <- exp(S %*% gamma.hat)
-	p.hat <- plogis(W %*% zeta.hat)
+	out1 <- fitted_zicmp_internal(X, S, W, beta.hat, gamma.hat, zeta.hat, off.X, off.S, off.W)
+	lambda.hat <- out1$lambda
+	nu.hat <- out1$nu
+	p.hat <- out1$p
 
-	lambda0.hat <- exp(X %*% beta0.hat)
-	p0.hat <- plogis(W %*% zeta0.hat)
+	out0 <- fitted_zicmp_internal(X, S, W, beta0.hat, gamma0.hat, zeta0.hat, off.X, off.S, off.W)
+	lambda0.hat <- out0$lambda
+	p0.hat <- out0$p
 
 	logff <- dzicmp(y, lambda.hat, nu.hat, p.hat, log = TRUE)
 	logff0 <- dzip(y, lambda0.hat, p0.hat, log = TRUE)
 
 	X2 <- 2*(sum(logff) - sum(logff0))
-	pvalue <- pchisq(X2, df = length(gamma.hat), lower.tail = FALSE)
+	pvalue <- pchisq(X2, df = d3, lower.tail = FALSE)
 	list(teststat = X2, pvalue = pvalue)
 }
 
@@ -196,18 +215,23 @@ deviance.zicmp <- function(object, ...)
 	d1 <- ncol(X)
 	d2 <- ncol(S)
 	d3 <- ncol(W)
+	off.X <- object$off.X
+	off.S <- object$off.S
+	off.W <- object$off.W
 
 	par.hat <- c(object$beta, object$gamma, object$zeta)
 	par.init <- par.hat
 	ll <- numeric(n)
 	ll.star <- numeric(n)
 
-	for(i in 1:n) {
+	for (i in 1:n) {
 		loglik <- function(par){
-			lambda <- exp(X[i,] %*% par[1:d1])
-			nu <- exp(S[i,] %*% par[1:d2 + d1])
-			p <- plogis(W[i,] %*% par[1:d3 + d1 + d2])
-			dzicmp(y[i], lambda, nu, p, log = TRUE)
+			beta <- par[1:d1]
+			gamma <- par[1:d2 + d1]
+			zeta <- par[1:d3 + d1 + d2]
+			out <- fitted_zicmp_internal(X[i,], S[i,], W[i,], beta, gamma, zeta,
+				off.X[i], off.S[i], off.W[i])
+			dzicmp(y[i], out$lambda, out$nu, out$p, log = TRUE)
 		}
 
 		# Maximize loglik for ith obs
@@ -226,9 +250,11 @@ deviance.zicmp <- function(object, ...)
 
 residuals.zicmp <- function(object, type = c("raw", "quantile"), ...)
 {
-	lambda.hat <- exp(object$X %*% object$beta)
-	nu.hat <- exp(object$S %*% object$gamma)
-	p.hat <- plogis(object$W %*% object$zeta)
+	out <- fitted_zicmp_internal(object$X, object$S, object$W, object$beta,
+		object$gamma, object$zeta, object$off.X, object$off.S, object$off.W)
+	lambda.hat <- out$lambda
+	nu.hat <- out$nu
+	p.hat <- out$p
 	y.hat <- predict.zicmp(object)
 
 	type <- match.arg(type)
@@ -260,10 +286,9 @@ predict.zicmp <- function(object, newdata = NULL, ...)
 		W <- object$W
 	}
 
-	lambda.hat <- exp(X %*% object$beta)
-	nu.hat <- exp(S %*% object$gamma)
-	p.hat <- plogis(W %*% object$zeta)
-	y.hat <- zicmp_expected_value(lambda.hat, nu.hat, p.hat)
+	out <- fitted_zicmp_internal(X, S, W, object$beta,
+		object$gamma, object$zeta, object$off.X, object$off.S, object$off.W)
+	y.hat <- zicmp_expected_value(out$lambda, out$nu, out$p)
 	return(y.hat)
 }
 
@@ -273,9 +298,11 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 	qq <- length(object$beta) + length(object$gamma) + length(object$zeta)
 	theta.boot <- matrix(NA, reps, qq)
 
-	lambda.hat <- exp(object$X %*% object$beta)
-	nu.hat <- exp(object$S %*% object$gamma)
-	p.hat <- plogis(object$W %*% object$zeta)
+	out <- fitted_zicmp_internal(object$X, object$S, object$W, object$beta,
+		object$gamma, object$zeta, object$off.X, object$off.S, object$off.W)
+	lambda.hat <- out$lambda
+	nu.hat <- out$nu
+	p.hat <- out$p
 
 	for (r in 1:reps) {
 		if (r %% report.period == 0) {
@@ -289,7 +316,8 @@ parametric_bootstrap.zicmp <- function(object, reps = 1000, report.period = reps
 		# to generate bootstrap estimates
 		tryCatch({
 			fit.boot <- fit.zicmp.reg(y.boot, object$X, object$S, object$W,
-				object$beta.init, object$gamma.init, object$zeta.init)
+				object$beta.init, object$gamma.init, object$zeta.init,
+				off.X = object$off.X, off.S = object$off.S, off.W = object$off.W)
 			theta.boot[r,] <- unlist(fit.boot$theta.hat)
 		},
 		error = function(e) {

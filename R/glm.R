@@ -1,19 +1,24 @@
-glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
+glm.cmp <- function(formula.lambda, formula.nu = NULL, formula.p = NULL,
 	beta.init = NULL, gamma.init = NULL, zeta.init = NULL, ...)
 {
 	# Parse formula.lambda. This one should have the response.
 	mf <- model.frame(formula.lambda, ...)
 	y <- model.response(mf)
 	X <- model.matrix(formula.lambda, mf)
+	off.X <- model.offset(mf)
 	d1 <- ncol(X)
 
 	# Parse formula.nu
 	if (is.null(formula.nu)) {
-		stop("formula.nu must be specified (can not be NULL)")
+		formula.nu = y ~ 1
 	}
 	mf <- model.frame(formula.nu, ...)
 	S <- model.matrix(formula.nu, mf)
+	off.S <- model.offset(mf)
 	d2 <- ncol(S)
+
+	if (is.null(off.X)) { off.X <- rep(0, n) }
+	if (is.null(off.S)) { off.S <- rep(0, n) }
 
 	initial.glm <- glm(formula.lambda, family='poisson', ...)
 	if (is.null(beta.init)) { beta.init <- coef(initial.glm) }
@@ -28,18 +33,24 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	res$S <- S
 	res$beta.init <- beta.init
 	res$gamma.init <- gamma.init
+	res$off.X <- off.X
+	res$off.S <- off.S
 
 	# Handle ZI and non-ZI cases separately.
 	if (!is.null(formula.p)) {
 		mf <- model.frame(formula.p, ...)
 		W <- model.matrix(formula.p, mf)
+		off.W <- model.offset(mf)
+		if (is.null(off.W)) { off.W <- rep(0, n) }
 		d3 <- ncol(W)
 		res$W <- W
+		res$off.W <- off.W
 
 		if (is.null(zeta.init)) { zeta.init <- rep(0, d3) }
 
-		fit.out <- fit.zicmp.reg(res$y, res$X, res$S, res$W, beta.init = beta.init,
-			gamma.init = gamma.init, zeta.init = zeta.init)
+		fit.out <- fit.zicmp.reg(res$y, res$X, res$S, res$W,
+			beta.init = beta.init, gamma.init = gamma.init, zeta.init = zeta.init,
+			off.X = off.X, off.S = off.S, off.W = off.W)
 
 		res$zeta.init <- zeta.init
 		res$beta.glm <- coef(initial.glm)
@@ -55,7 +66,7 @@ glm.cmp <- function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 		attr(res, "class") <- c("zicmp", attr(res, "class"))
 	} else {
 		fit.out <- fit.cmp.reg(res$y, res$X, res$S, beta.init = beta.init,
-			gamma.init = gamma.init)
+			gamma.init = gamma.init, off.X = off.X, off.S = off.S)
 
 		res$beta.glm <- coef(initial.glm)
 		res$beta <- fit.out$theta.hat$beta

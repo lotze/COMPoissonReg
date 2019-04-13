@@ -104,7 +104,7 @@ log p_i = w_i^T zeta.
 
 \arguments{
   \item{formula.lambda}{regression formula linked to \code{log(lambda)}}
-  \item{formula.nu}{regression formula linked to \code{log(nu)}. By default, is taken to be intercept only.}
+  \item{formula.nu}{regression formula linked to \code{log(nu)}. If NULL (the default), is taken to be intercept only.}
   \item{formula.p}{regression formula linked to \code{logit(p)}. If NULL (the default), zero-inflation term is excluded from the model.}
   \item{beta.init}{initial values for regression coefficients of \code{lambda}.}
   \item{gamma.init}{initial values for regression coefficients of \code{nu}.}

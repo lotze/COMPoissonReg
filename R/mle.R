@@ -1,4 +1,4 @@
-fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
+fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init, off.X, off.S, off.W)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -28,9 +28,9 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 
 	loglik <- function(par) {
 		theta <- tx(par)
-		lambda <- exp(X %*% theta$beta)
-		nu <- exp(S %*% theta$gamma)
-		p <- plogis(W %*% theta$zeta)
+		lambda <- exp(X %*% theta$beta + off.X)
+		nu <- exp(S %*% theta$gamma + off.S)
+		p <- plogis(W %*% theta$zeta + off.W)
 		logz <- z_hybrid(lambda, nu, take_log = TRUE)
 		t(u) %*% log(p*exp(logz) + (1-p)) + t(1 - u) %*% (log(1-p) +
 			y*log(lambda) - nu*lgamma(y+1)) - sum(logz)
@@ -64,7 +64,7 @@ fit.zicmp.reg <- function(y, X, S, W, beta.init, gamma.init, zeta.init)
 	return(res)
 }
 
-fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
+fit.cmp.reg <- function(y, X, S, beta.init, gamma.init, off.X, off.S)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -90,8 +90,8 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 
 	loglik <- function(par) {
 		theta <- tx(par)
-		lambda <- exp(X %*% theta$beta)
-		nu <- exp(S %*% theta$gamma)
+		lambda <- exp(X %*% theta$beta + off.X)
+		nu <- exp(S %*% theta$gamma + off.S)
 		logz <- z_hybrid(lambda, nu, take_log = TRUE)
 		sum(y*log(lambda) - nu*lgamma(y+1) - logz)
 	}
@@ -112,7 +112,8 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 	H <- res$hessian
 	colnames(H) <- rownames(H) <- c(
 		sprintf("X:%s", colnames(X)),
-		sprintf("S:%s", colnames(S)))
+		sprintf("S:%s", colnames(S))
+	)
 
 	loglik <- res$value
 	elapsed.sec <- as.numeric(Sys.time() - start, type = "sec")
@@ -122,7 +123,7 @@ fit.cmp.reg <- function(y, X, S, beta.init, gamma.init)
 	return(res)
 }
 
-fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
+fit.zip.reg <- function(y, X, W, beta.init, zeta.init, off.X, off.W)
 {
 	start <- Sys.time()
 	u <- as.integer(y == 0)
@@ -148,8 +149,8 @@ fit.zip.reg <- function(y, X, W, beta.init, zeta.init)
 
 	loglik <- function(par) {
 		theta <- tx(par)
-		lambda <- exp(X %*% theta$beta)
-		p <- plogis(W %*% theta$zeta)
+		lambda <- exp(X %*% theta$beta + off.X)
+		p <- plogis(W %*% theta$zeta + off.W)
 		sum(u*log(p + (1-p)*exp(-lambda)) + (1-u)*log(1-p) +
 			(1-u)*(y*log(lambda) - lambda - lgamma(y+1)))
 	}

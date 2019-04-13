@@ -64,6 +64,15 @@ summary.cmp <- function(object, ...)
 	)
 }
 
+fitted_cmp_internal <- function(X, S, beta, gamma, off.X, off.S)
+{
+	list(
+		lambda.hat = exp(X %*% beta + off.X),
+		nu.hat = exp(S %*% gamma + off.S),
+		p.hat = plogis(W %*% zeta + off.W)
+	)
+}
+
 print.cmp <- function(x, ...)
 {
 	printf("CMP coefficients\n")
@@ -73,7 +82,7 @@ print.cmp <- function(x, ...)
 
 	if (!is.null(s$DF.lambda) || !is.null(s$DF.nu)) {
 		printf("--\n")
-		printf("Transformed intercept-only parameters\n")
+		printf("Transformed intercept-only parameters (excluding offsets)\n")
 		print(rbind(s$DF.lambda, s$DF.nu))
 	}
 	printf("--\n")
@@ -137,11 +146,17 @@ equitest.cmp <- function(object, ...)
 	}
 
 	y <- object$y
-	X <- object$X
-	S <- object$S
-	lambda0 <- exp(X %*% object$beta.glm)
-	lambda <- exp(X %*% object$beta)
-	nu <- exp(S %*% object$gamma)
+	d1 <- ncol(object$X)
+	d2 <- ncol(object$S)
+
+	out <- fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
+		object$off.X, object$off.S)
+	lambda.hat <- out$lambda
+	nu.hat <- out$nu
+	
+	out0 <- fitted_cmp_internal(object$X, object$S, object$beta.glm,
+		gamma = numeric(d2), object$off.X, object$off.S)
+	lambda0 <- out0$lambda
 
 	logz <- z_hybrid(lambda, nu, take_log = TRUE)
 	teststat <- -2 * sum(y*log(lambda0) - lgamma(y+1) - lambda0 -
@@ -153,23 +168,24 @@ equitest.cmp <- function(object, ...)
 leverage.cmp <- function(object, ...)
 {
 	y <- object$y
-	x <- object$X
-	betahat <- object$beta
-	nuhat <- exp(object$S %*% object$gamma)
 
-	# 1) to code the W matrix  (diagonal matrix with Var(Y_i) )
-	W <- diag(weights(x, betahat, nuhat))
+	# 1) to code the WW matrix  (diagonal matrix with Var(Y_i) )
+	WW <- diag(weights(object$X, object$beta, object$nu, object$off.X, object$off.S))
+
+	out <- fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
+		object$off.X, object$off.S)
+	lambda.hat <- out$lambda
+	nu.hat <- out$nu
 
 	#    and X matrix (in Appendix)
-	lambda.hat <- exp(x %*% betahat)
-	E.y <- z_prodj(lambda.hat, nuhat) / z_hybrid(lambda.hat, nuhat)
-	E.logfacty <- z_prodlogj(lambda.hat, nuhat) / z_hybrid(lambda.hat, nuhat)
+	E.y <- z_prodj(lambda.hat, nu.hat) / z_hybrid(lambda.hat, nu.hat)
+	E.logfacty <- z_prodlogj(lambda.hat, nu.hat) / z_hybrid(lambda.hat, nu.hat)
 	extravec <- (-lgamma(y+1) + E.logfacty)/(y - E.y)
-	curlyX.mat <- cbind(x, extravec)
+	curlyX.mat <- cbind(object$X, extravec)
 
 	# 2) to compute H using eq (12)  on p. 11
-	H1 <- t(curlyX.mat) %*% sqrt(W)
-	H2 <- solve(t(curlyX.mat) %*% W %*% curlyX.mat)
+	H1 <- t(curlyX.mat) %*% sqrt(WW)
+	H2 <- solve(t(curlyX.mat) %*% WW %*% curlyX.mat)
 	H <- t(H1) %*% H2 %*% H1
 	diagH <- diag(H)
 	return(diagH)
@@ -179,13 +195,11 @@ deviance.cmp <- function(object, ...)
 {
 	# Compute the COM-Poisson deviances exactly
 	y <- object$y
-	x <- object$X
-	betahat <- object$beta
-	nuhat <- exp(object$S %*% object$gamma)
 	leverage <- leverage.cmp(object)
 
 	#### Compute optimal log likelihood value for given nu-hat value
-	betainit <- betahat
+	beta.init <- object$beta
+	d1 <- length(beta.init)
 	OptimalLogLi <- rep(0,length(y))
 	iterct <- rep(0,length(y))
 
@@ -193,22 +207,24 @@ deviance.cmp <- function(object, ...)
 		# Create -logL = -logf (because considering single observation) so that we
 		# take the minimum of this function (which equals the max of logL)
 		logf <- function(par){
-			beta <- par[1:length(betainit)]
-			lambda <- exp(x[i,] %*% beta)
-			ll <- y[i]*log(lambda) - nuhat[i]*lgamma(y[i]+1) -
-				z_hybrid(lambda, nuhat[i], take_log = TRUE)
+			beta <- par[1:d1]
+			out <- fitted_cmp_internal(object$X[i,], object$S[i,], beta, object$gamma,
+				object$off.X, object$off.S)
+			ll <- y[i]*log(out$lambda) - out$nu*lgamma(y[i]+1) -
+				z_hybrid(out$lambda, out$nu, take_log = TRUE)
 			return(ll)
 		}
-		
+
 		# Determine the MLEs
 		# Using optim rather than nlm because optim handles -Inf more gracefully, if encountered
-		BetaEstResult <- optim(betainit, logf, method = "L-BFGS-B", control = list(fnscale = -1))
+		BetaEstResult <- optim(beta.init, logf, method = "L-BFGS-B", control = list(fnscale = -1))
 		OptimalLogLi[i] <- BetaEstResult$value
 	}
 
 	#### Compute exact deviances
-	lambdahat <- exp(x %*% betahat)
-	OptimalLogL.mu <- (y*log(lambdahat)) - (nuhat * lgamma(y+1)) - z_hybrid(lambdahat,nuhat,take_log = TRUE)
+	out <- fitted_cmp_internal(object$X, object$S, object$beta, object$gamma, object$off.X, object$off.S)
+	OptimalLogL.mu <- (y*log(out$lambda)) - (out$nu * lgamma(y+1)) -
+		z_hybrid(out$lambda, out$nu, take_log = TRUE)
 	OptimalLogL.y <- OptimalLogLi
 	d <- -2*(OptimalLogL.mu - OptimalLogL.y)
 	cmpdev <- d/(sqrt(1-leverage))
@@ -217,17 +233,14 @@ deviance.cmp <- function(object, ...)
 
 residuals.cmp <- function(object, type = c("raw", "quantile"), ...)
 {
-	X <- object$X
-	S <- object$S
-	lambda.hat <- exp(X %*% object$beta)
-	nu.hat <- exp(S %*% object$gamma)
+	out <- fitted_cmp_internal(object$X, object$S, object$beta, object$gamma, object$off.X, object$off.S)
 	y.hat <- predict.cmp(object, newdata = object$X)
 
 	type <- match.arg(type)
 	if (type == "raw") {
 		res <- object$y - y.hat
 	} else if (type == "quantile") {
-		res <- rqres.cmp(object$y, lambda = lambda.hat, nu = nu.hat)
+		res <- rqres.cmp(object$y, lambda = out$lambda, nu = out$nu)
 	} else {
 		stop("Unsupported residual type")
 	}
@@ -250,38 +263,37 @@ predict.cmp <- function(object, newdata = NULL, ...)
 		S <- object$S
 	}
 
-	lambda <- exp(X %*% object$beta)
-	nu <- exp(S %*% object$gamma)
-	out <- constantCMPfitsandresids(lambda, nu)
-	y.hat <- out$fit
+	out <- fitted_cmp_internal(X, S, object$beta, object$gamma, object$off.X, object$off.S)
+	fnr <- constantCMPfitsandresids(out$lambda, out$nu)
+	y.hat <- fnr$fit
 	return(y.hat)
 }
 
 parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1, ...)
 {
-	n <- reps
-	X <- object$X
-	S <- object$S
-	poissonest <- object$beta.glm
-	betahat <- object$beta
-	lambdahat <- exp(X %*% betahat)
-	nuhat <- exp(object$S %*% object$gamma)
+	n <- nrow(object$X)
+	d1 <- ncol(object$X)
+	d2 <- ncol(object$S)
 
-	# Generate 1000 samples, using betahat and nuhat from full dataset
-	Ystar <- matrix(0, nrow = nrow(X), ncol = reps)
-	boot.out <- matrix(NA, nrow=reps, ncol=length(betahat)+length(object$gamma))
+	out <- fitted_cmp_internal(object$X, object$S, object$beta, object$gamma, object$off.X, object$off.S)
+	lambda.hat <- out$lambda
+	nu.hat <- out$nu
 
-	# Take each of the 1000 sample results along with the x matrix, and run CMP
-	# regression on it to generate new betas and nu
-	for (i in 1:reps){
-		if (i %% report.period == 0) {
-			logger("Starting bootstrap rep %d\n", i)
+	# Generate `reps` samples, using beta.hat and nu.hat from full dataset
+	# Run CMP regression on each boostrap sample to generate new beta and nu estimates
+	
+	boot.out <- matrix(NA, nrow = reps, ncol = d1 + d2)
+
+	for (r in 1:reps){
+		if (r %% report.period == 0) {
+			logger("Starting bootstrap rep %d\n", r)
 		}
-		Ystar[,i] <- rcmp(nrow(X), lambdahat, nuhat)
+		y.boot <- rcmp(n, lambda.hat, nu.hat)
 		tryCatch({
-			res <- fit.cmp.reg(y = Ystar[,i], X = X, S = S,
-			   beta.init = poissonest, gamma.init = object$gamma)
-			boot.out[i,] <- unlist(res$theta.hat)
+			res <- fit.cmp.reg(y = y.boot, X = object$X, S = object$S,
+				beta.init = object$beta.glm, gamma.init = object$gamma,
+				off.X = object$off.X, off.S = object$off.S)
+			boot.out[r,] <- unlist(res$theta.hat)
 		}, error = function(e) {
 			# Do nothing now; emit a warning later
 		})
@@ -292,24 +304,27 @@ parametric_bootstrap.cmp <- function(object, reps = 1000, report.period = reps+1
 		warning(sprintf("%d out of %d bootstrap iterations failed", cnt, reps))
 	}
 
-	colnames(boot.out) <- c(colnames(X), colnames(S), recursive=TRUE)
+	colnames(boot.out) <- c(colnames(object$X), colnames(object$S), recursive=TRUE)
 	return(boot.out)
 }
 
-constantCMPfitsandresids <- function(lambdahat, nuhat, y=0)
+constantCMPfitsandresids <- function(lambda.hat, nu.hat, y=0)
 {
-	# Determine estimated lambdahat, fit, and residuals
-	lambdahat <- as.numeric(lambdahat)
-	nuhat <- as.numeric(nuhat)
-	fit <- lambdahat^(1/nuhat) - ((nuhat - 1)/(2*nuhat))
+	# Determine estimated lambda.hat, fit, and residuals
+	lambda.hat <- as.numeric(lambda.hat)
+	nu.hat <- as.numeric(nu.hat)
+	fit <- lambda.hat^(1/nu.hat) - ((nu.hat - 1)/(2*nu.hat))
 	resid <- y - fit
 	list(fit = fit, resid = resid)
 }
 
-weights <- function(x, beta, nu)
+weights <- function(X, beta, gamma, off.X, off.S)
 {
+	out <- fitted_cmp_internal(X, S, beta, gamma, off.X, off.S)
+	lambda <- out$lambda
+	nu <- out$nu
+
 	# Compute the parts that comprise the weight functions
-	lambda <- exp(x %*% beta)
 	w1 <- z_prodj2(lambda, nu)
 	w2 <- z_prodj(lambda, nu)
 	w3 <- z_hybrid(lambda, nu)
@@ -322,11 +337,14 @@ weights <- function(x, beta, nu)
 	return(weight)
 }
 
-CMP.MSE <- function(CMPbetas,CMPnu,x,y)
+CMP.MSE <- function(y, X, S, beta, gamma, off.X, off.S)
 {
-	lambda <- exp(x %*% CMPbetas)
-	CMPresids <- constantCMPfitsandresids(lambda,CMPnu,y)$resid
-	MSE <- mean(CMPresids^2)
+	out <- fitted_cmp_internal(X, S, beta, gamma, off.X, off.S)
+	lambda <- out$lambda
+	nu <- out$nu
+
+	fnr <- constantCMPfitsandresids(lambda, nu, y)
+	res <- fnr$resid
+	MSE <- mean(res^2)
 	return(MSE)
 }
-
