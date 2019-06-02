@@ -1,24 +1,24 @@
-equitest <- function(object, ...)
+equitest = function(object, ...)
 {
 	UseMethod("equitest")
 }
 
-leverage <- function(object, ...)
+leverage = function(object, ...)
 {
 	UseMethod("leverage")
 }
 
-nu <- function(object, ...)
+nu = function(object, ...)
 {
 	UseMethod("nu")
 }
 
-sdev <- function (object, ...)
+sdev = function (object, ...)
 {
 	UseMethod("sdev")
 }
 
-parametric_bootstrap <- function(object, reps = 1000, report.period = reps + 1, ...)
+parametric_bootstrap = function(object, reps = 1000, report.period = reps + 1, ...)
 {
 	UseMethod("parametric_bootstrap")
 }

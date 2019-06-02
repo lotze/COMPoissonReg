@@ -52,17 +52,17 @@ double qdiscrete(double q, const Rcpp::NumericVector& p, bool log_scale)
 // for stable calculation on the log scale.
 double logsumprobs(const Rcpp::NumericVector& logprob, unsigned int baseidx)
 {
-        unsigned int k = logprob.size();
-		Rcpp::NumericVector logprob_rest(k-1);
+	unsigned int k = logprob.size();
+	Rcpp::NumericVector logprob_rest(k-1);
 
-		for (unsigned int i = 0, j = 0; i < k; i++) {
-			if (i != baseidx) {
-				logprob_rest(j) = logprob(i);
-				j++;
-			}
+	for (unsigned int i = 0, j = 0; i < k; i++) {
+		if (i != baseidx) {
+			logprob_rest(j) = logprob(i);
+			j++;
 		}
+	}
 
-        return logprob(baseidx) + log1p(Rcpp::sum(Rcpp::exp(logprob_rest - logprob(baseidx))));
+	return logprob(baseidx) + log1p(Rcpp::sum(Rcpp::exp(logprob_rest - logprob(baseidx))));
 }
 
 // Compute cumulative probabilities on the log scale. Uses the method from
@@ -70,13 +70,13 @@ double logsumprobs(const Rcpp::NumericVector& logprob, unsigned int baseidx)
 // for stable calculation on the log scale.
 Rcpp::NumericVector logcumprobs(const Rcpp::NumericVector& logprob)
 {
-        unsigned int k = logprob.size();
-		Rcpp::NumericVector logcp(k);
+	unsigned int k = logprob.size();
+	Rcpp::NumericVector logcp(k);
 
-		logcp(0) = logprob(0);
-		for (unsigned int i = 1; i < k; i++) {
-			logcp(i) = logcp(i-1) + log1p(exp(logprob(i) - logcp(i-1)));
-		}
+	logcp(0) = logprob(0);
+	for (unsigned int i = 1; i < k; i++) {
+		logcp(i) = logcp(i-1) + log1p(exp(logprob(i) - logcp(i-1)));
+	}
 
-        return logcp;
+	return logcp;
 }

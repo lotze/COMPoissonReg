@@ -11,7 +11,7 @@ Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
 	std::list<double> logp_unnorm;
 
 	double delta;
-	double psi = -0.5772157;	// Euler–Mascheroni constant
+	double psi = -0.577215664901532;	// Euler–Mascheroni constant
 	double y = 0;
 	double deriv = R_PosInf;
 	while (deriv > 0 && y <= ymax) {
@@ -20,7 +20,7 @@ Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol,
 		psi += 1 / (y+1);
 		deriv = log(lambda) - nu*psi;
 		y++;
-		
+
 		if (int(y+1) % 10000 == 0) {
 			R_CheckUserInterrupt();
 		}
@@ -138,8 +138,6 @@ Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& logq,
 	} else {
 		Rcpp::stop("lambda and nu must both have length n or 1");
 	}
-	
-
 
 	return x;
 }
