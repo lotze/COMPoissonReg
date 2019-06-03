@@ -7,7 +7,8 @@ dcmp = function (x, lambda, nu, log = FALSE)
 rcmp = function(n, lambda, nu)
 {
 	prep = prep.zicmp(n, lambda, nu)
-	rcmp_cpp(n, prep$lambda, prep$nu)
+	ymax = getOption("COMPoissonReg.ymax")
+	rcmp_cpp(n, prep$lambda, prep$nu, ymax = ymax)
 }
 
 pcmp = function(x, lambda, nu)
@@ -24,7 +25,8 @@ qcmp = function(q, lambda, nu, log.p = FALSE)
 	} else {
 		log.q = log(q)
 	}
-	qcmp_cpp(log.q, prep$lambda, prep$nu)
+	ymax = getOption("COMPoissonReg.ymax")
+	qcmp_cpp(log.q, prep$lambda, prep$nu, ymax = ymax)
 }
 
 cmp_expected_value = function(lambda, nu)
