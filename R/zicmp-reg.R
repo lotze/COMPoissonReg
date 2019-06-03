@@ -313,8 +313,8 @@ parametric_bootstrap.zicmp = function(object, reps = 1000, report.period = reps+
 		# Generate bootstrap samples of the full dataset using MLE
 		y.boot = rzicmp(n, lambda.hat, nu.hat, p.hat)
 
-		# Take each of the bootstrap samples, along with the x matrix, and fit model
-		# to generate bootstrap estimates
+		# Take each of the bootstrap samples and fit model to generate bootstrap
+		# estimates
 		tryCatch({
 			fit.boot = fit.zicmp.reg(y.boot, object$X, object$S, object$W,
 				object$beta.init, object$gamma.init, object$zeta.init,

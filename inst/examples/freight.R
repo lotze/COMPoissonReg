@@ -4,7 +4,7 @@ data(freight)
 
 options(COMPoissonReg.optim.method = "L-BFGS-B")
 
-cmp.out <- glm.cmp(broken ~ transfers, data = freight)
+cmp.out = glm.cmp(broken ~ transfers, data = freight)
 print(cmp.out)
 coef(cmp.out)
 vcov(cmp.out)
@@ -16,7 +16,7 @@ equitest(cmp.out)
 
 options(COMPoissonReg.optim.method = "BFGS")
 
-zicmp.out <- glm.cmp(formula.lambda = broken ~ 1,
+zicmp.out = glm.cmp(formula.lambda = broken ~ 1,
 	formula.nu = ~ 1,
 	formula.p = ~ 1,
 	data = freight)

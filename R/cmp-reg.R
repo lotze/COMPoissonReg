@@ -154,7 +154,7 @@ equitest.cmp = function(object, ...)
 		object$off.X, object$off.S)
 	lambda.hat = out$lambda
 	nu.hat = out$nu
-	
+
 	out0 = fitted_cmp_internal(object$X, object$S, object$beta.glm,
 		gamma = numeric(d2), object$off.X, object$off.S)
 	lambda0.hat = out0$lambda
@@ -198,38 +198,35 @@ deviance.cmp = function(object, ...)
 	# Compute the COM-Poisson deviances exactly
 	y = object$y
 	n = length(y)
-	leverage = leverage.cmp(object)
 
 	#### Compute optimal log likelihood value for given nu-hat value
 	beta.init = object$beta
 	d1 = length(beta.init)
-	OptimalLogLi = rep(0,n)
-	iterct = rep(0,n)
+	ll.y = numeric(n)
 
-	for (i in 1:length(y)){
-		# Create -logL = -logf (because considering single observation) so that we
-		# take the minimum of this function (which equals the max of logL)
-		logf = function(par){
-			beta = par[1:d1]
+	for (i in 1:n) {
+		# loglik for single observation
+		logf = function(beta) {
 			out = fitted_cmp_internal(object$X[i,], object$S[i,], beta, object$gamma,
 				object$off.X[i], object$off.S[i])
-			y[i]*log(out$lambda) - out$nu*lgamma(y[i]+1) -
+			y[i]*log(out$lambda) - out$nu*lgamma(y[i] + 1) -
 				z_hybrid(out$lambda, out$nu, take_log = TRUE)
 		}
 
 		# Determine the MLEs
 		# Using optim rather than nlm because optim handles -Inf more gracefully, if encountered
-		BetaEstResult = optim(beta.init, logf, method = "L-BFGS-B", control = list(fnscale = -1))
-		OptimalLogLi[i] = BetaEstResult$value
+		res = optim(beta.init, logf, method = "L-BFGS-B", control = list(fnscale = -1))
+		ll.y[i] = res$value
 	}
 
-	#### Compute exact deviances
-	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma, object$off.X, object$off.S)
-	OptimalLogL.mu = (y*log(out$lambda)) - (out$nu * lgamma(y+1)) -
+	# Compute exact deviances
+	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
+		object$off.X, object$off.S)
+	ll.mu = y*log(out$lambda) - out$nu * lgamma(y+1) -
 		z_hybrid(out$lambda, out$nu, take_log = TRUE)
-	OptimalLogL.y = OptimalLogLi
-	d = -2*(OptimalLogL.mu - OptimalLogL.y)
-	cmpdev = d/(sqrt(1-leverage))
+	d = -2*(ll.mu - ll.y)
+	lev = leverage.cmp(object)
+	cmpdev = d / sqrt(1 - lev)
 	return(cmpdev)
 }
 
@@ -310,7 +307,7 @@ parametric_bootstrap.cmp = function(object, reps = 1000, report.period = reps+1,
 	return(boot.out)
 }
 
-constantCMPfitsandresids = function(lambda.hat, nu.hat, y=0)
+constantCMPfitsandresids = function(lambda.hat, nu.hat, y = 0)
 {
 	# Determine estimated lambda.hat, fit, and residuals
 	lambda.hat = as.numeric(lambda.hat)
@@ -323,16 +320,14 @@ constantCMPfitsandresids = function(lambda.hat, nu.hat, y=0)
 weights = function(X, S, beta, gamma, off.X, off.S)
 {
 	out = fitted_cmp_internal(X, S, beta, gamma, off.X, off.S)
-	lambda = out$lambda
-	nu = out$nu
 
 	# Compute the parts that comprise the weight functions
-	w1 = z_prodj2(lambda, nu)
-	w2 = z_prodj(lambda, nu)
-	w3 = z_hybrid(lambda, nu)
+	w1 = z_prodj2(out$lambda, out$nu)
+	w2 = z_prodj(out$lambda, out$nu)
+	w3 = z_hybrid(out$lambda, out$nu)
 
-	Ey2 = w1/w3
-	E2y = (w2/w3)^2
+	Ey2 = w1 / w3
+	E2y = (w2 / w3)^2
 
 	# Determine the weights
 	weight = Ey2 - E2y
@@ -342,10 +337,7 @@ weights = function(X, S, beta, gamma, off.X, off.S)
 CMP.MSE = function(y, X, S, beta, gamma, off.X, off.S)
 {
 	out = fitted_cmp_internal(X, S, beta, gamma, off.X, off.S)
-	lambda = out$lambda
-	nu = out$nu
-
-	fnr = constantCMPfitsandresids(lambda, nu, y)
+	fnr = constantCMPfitsandresids(out$lambda, out$nu, y)
 	res = fnr$resid
 	MSE = mean(res^2)
 	return(MSE)
