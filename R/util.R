@@ -12,11 +12,11 @@ printf = function(msg, ...) {
 
 logger = function(msg, ...)
 {
-	sys.time = as.character(Sys.time())
-	cat(sys.time, "-", sprintf(msg, ...))
+	sys_time = as.character(Sys.time())
+	cat(sys_time, "-", sprintf(msg, ...))
 }
 
-grad.fwd = function(f, x, h = 1e-5, ...) {
+grad_fwd = function(f, x, h = 1e-5, ...) {
 	k = length(x)
 	eye = diag(1, k)
 	res = numeric(k)
@@ -27,7 +27,7 @@ grad.fwd = function(f, x, h = 1e-5, ...) {
 	return(res)
 }
 
-hess.fwd = function(f, x, h = 1e-5, ...) {
+hess_fwd = function(f, x, h = 1e-5, ...) {
 	k = length(x)
 	eye = diag(1, k)
 	H = matrix(NA, k, k)

@@ -7,24 +7,24 @@
 # Compute the CMP information matrix using the exact expression, except
 # use numerical derivatives of z functions. This avoids numerical issues
 # with infinite sums.
-fim.cmp = function(lambda, nu)
+fim_cmp = function(lambda, nu)
 {
 	f = function(theta) {
 		z_hybrid(theta[1], theta[2], take_log = TRUE)
 	}
-	hess.eps = getOption("COMPoissonReg.hess.eps", default = 1e-2)
-	H = hess.fwd(f, c(lambda, nu), h = hess.eps)
+	hess_eps = getOption("COMPoissonReg.hess.eps", default = 1e-2)
+	H = hess_fwd(f, c(lambda, nu), h = hess_eps)
 	H[1,1] = H[1,1] + cmp_expected_value(lambda, nu) / lambda^2
 	return(H)
 }
 
 # Compute the CMP information matrix using Monte Carlo. This avoids
 # issues with numerical second derivatives.
-fim.cmp.mc = function(lambda, nu, reps)
+fim_cmp_mc = function(lambda, nu, reps)
 {
 	stopifnot(length(lambda) == 1)
 	stopifnot(length(nu) == 1)
-	grad.eps = getOption("COMPoissonReg.grad.eps", default = 1e-5)
+	grad_eps = getOption("COMPoissonReg.grad.eps", default = 1e-5)
 
 	f = function(theta, data) {
 		sum(dcmp(data, lambda = theta[1], nu = theta[2], log = TRUE))
@@ -33,7 +33,7 @@ fim.cmp.mc = function(lambda, nu, reps)
 	FIM = matrix(0, 2, 2)
 	x = rcmp(reps, lambda, nu)
 	for (r in 1:reps) {
-		S = grad.fwd(f, x = c(lambda, nu), h = grad.eps, data = x[r])
+		S = grad_fwd(f, x = c(lambda, nu), h = grad_eps, data = x[r])
 		FIM = FIM + S %*% t(S)
 	}
 
@@ -42,7 +42,7 @@ fim.cmp.mc = function(lambda, nu, reps)
 
 # Compute the ZICMP information matrix using the exact expression, except
 # use numerical derivatives of z functions.
-fim.zicmp = function(lambda, nu, p)
+fim_zicmp = function(lambda, nu, p)
 {
 	stopifnot(length(lambda) == 1)
 	stopifnot(length(nu) == 1)
@@ -63,10 +63,10 @@ fim.zicmp = function(lambda, nu, p)
 	# compute the z-function itself somewhat reliably, so it's safer
 	# to use numerical derivatives here. We use forward derivatives
 	# to avoid issues at the boundary when lambda or nu is near 0.
-	grad.eps = getOption("COMPoissonReg.grad.eps", default = 1e-5)
-	hess.eps = getOption("COMPoissonReg.hess.eps", default = 1e-2)
-	Dlogz = grad.fwd(f, c(lambda, nu), h = grad.eps)
-	Hlogz = hess.fwd(f, c(lambda, nu), h = hess.eps)
+	grad_eps = getOption("COMPoissonReg.grad.eps", default = 1e-5)
+	hess_eps = getOption("COMPoissonReg.hess.eps", default = 1e-2)
+	Dlogz = grad_fwd(f, c(lambda, nu), h = grad_eps)
+	Hlogz = hess_fwd(f, c(lambda, nu), h = hess_eps)
 
 	dlogzdlambda = Dlogz[1]
 	dlogzdnu = Dlogz[2]
@@ -99,12 +99,12 @@ fim.zicmp = function(lambda, nu, p)
 }
 
 # Compute the ZICMP information matrix using Monte Carlo.
-fim.zicmp.mc = function(lambda, nu, p, reps)
+fim_zicmp_mc = function(lambda, nu, p, reps)
 {
 	stopifnot(length(lambda) == 1)
 	stopifnot(length(nu) == 1)
 	stopifnot(length(p) == 1)
-	grad.eps = getOption("COMPoissonReg.grad.eps", default = 1e-5)
+	grad_eps = getOption("COMPoissonReg.grad.eps", default = 1e-5)
 
 	f = function(theta, data) {
 		sum(dzicmp(data, lambda = theta[1], nu = theta[2], p = theta[3], log = TRUE))
@@ -113,7 +113,7 @@ fim.zicmp.mc = function(lambda, nu, p, reps)
 	FIM = matrix(0, 3, 3)
 	x = rzicmp(reps, lambda, nu, p)
 	for (r in 1:reps) {
-		S = grad.fwd(f, x = c(lambda, nu, p), h = grad.eps, data = x[r])
+		S = grad_fwd(f, x = c(lambda, nu, p), h = grad_eps, data = x[r])
 		FIM = FIM + S %*% t(S)
 	}
 
@@ -124,13 +124,13 @@ fim.zicmp.mc = function(lambda, nu, p, reps)
 # If reps is NULL, attempt to use the exact expression (with numerical
 # derivatives). Otherwise, use Monte Carlo approximation based on that
 # many reps.
-fim.zicmp.reg = function(X, S, W, beta, gamma, zeta, off.X, off.S, off.W, reps = NULL)
+fim_zicmp_reg = function(X, S, W, beta, gamma, zeta, off_x, off_s, off_w, reps = NULL)
 {
 	n = nrow(X)
 	qq = ncol(X) + ncol(S) + ncol(W)
-	lambda = as.numeric(exp(X %*% beta + off.X))
-	nu = as.numeric(exp(S %*% gamma + off.S))
-	p = as.numeric(plogis(W %*% zeta + offWX))
+	lambda = as.numeric(exp(X %*% beta + off_x))
+	nu = as.numeric(exp(S %*% gamma + off_s))
+	p = as.numeric(plogis(W %*% zeta + off_w))
 
 	FIM = matrix(0, qq, qq)
 	colnames(FIM) = c(
@@ -141,45 +141,45 @@ fim.zicmp.reg = function(X, S, W, beta, gamma, zeta, off.X, off.S, off.W, reps =
 
 	# Compute the FIM with respect to each (lambda, nu, p), then
 	# transform to the FIM of (beta, gamma, zeta)
-	FIM.one.list = list()
+	FIM_one_list = list()
 	for (i in 1:n) {
 		if (is.null(reps)) {
-			FIM.one.list[[i]] = fim.zicmp(lambda[i], nu[i], p[i])
+			FIM_one_list[[i]] = fim_zicmp(lambda[i], nu[i], p[i])
 		} else {
-			FIM.one.list[[i]] = fim.zicmp.mc(lambda[i], nu[i], p[i], reps)
+			FIM_one_list[[i]] = fim_zicmp_mc(lambda[i], nu[i], p[i], reps)
 		}
 	}
 
-	idx.beta = 1:length(beta)
-	idx.gamma = 1:length(gamma) + length(beta)
-	idx.zeta = 1:length(zeta) + length(gamma) + length(beta)
+	idx_beta = 1:length(beta)
+	idx_gamma = 1:length(gamma) + length(beta)
+	idx_zeta = 1:length(zeta) + length(gamma) + length(beta)
 
 	# FIM[beta, beta]
-	D = unlist(Map(function(x) { x[1,1] }, FIM.one.list))
-	FIM[idx.beta, idx.beta] = t(X) %*% ((D * lambda^2) * X)
+	D = unlist(Map(function(x) { x[1,1] }, FIM_one_list))
+	FIM[idx_beta, idx_beta] = t(X) %*% ((D * lambda^2) * X)
 
 	# FIM[gamma, gamma]
-	D = unlist(Map(function(x) { x[2,2] }, FIM.one.list))
-	FIM[idx.gamma, idx.gamma] = t(S) %*% ((D * nu^2) * S)
+	D = unlist(Map(function(x) { x[2,2] }, FIM_one_list))
+	FIM[idx_gamma, idx_gamma] = t(S) %*% ((D * nu^2) * S)
 
 	# FIM[zeta, zeta]
-	D = unlist(Map(function(x) { x[3,3] }, FIM.one.list))
-	FIM[idx.zeta, idx.zeta] = t(W) %*% ((D * p^2*(1-p)^2) * W)
+	D = unlist(Map(function(x) { x[3,3] }, FIM_one_list))
+	FIM[idx_zeta, idx_zeta] = t(W) %*% ((D * p^2*(1-p)^2) * W)
 
 	# FIM[beta, gamma]
-	D = unlist(Map(function(x) { x[1,2] }, FIM.one.list))
-	FIM[idx.beta, idx.gamma] = t(X) %*% (D * lambda * nu * S)
-	FIM[idx.gamma, idx.beta] = t(FIM[idx.beta, idx.gamma])
+	D = unlist(Map(function(x) { x[1,2] }, FIM_one_list))
+	FIM[idx_beta, idx_gamma] = t(X) %*% (D * lambda * nu * S)
+	FIM[idx_gamma, idx_beta] = t(FIM[idx_beta, idx_gamma])
 
 	# FIM[zeta, gamma]
-	D = unlist(Map(function(x) { x[3,2] }, FIM.one.list))
-	FIM[idx.zeta, idx.gamma] = t(W) %*% (D * p*(1-p) * nu * S)
-	FIM[idx.gamma, idx.zeta] = t(FIM[idx.zeta, idx.gamma])
+	D = unlist(Map(function(x) { x[3,2] }, FIM_one_list))
+	FIM[idx_zeta, idx_gamma] = t(W) %*% (D * p*(1-p) * nu * S)
+	FIM[idx_gamma, idx_zeta] = t(FIM[idx_zeta, idx_gamma])
 
 	# FIM[beta, zeta]
-	D = unlist(Map(function(x) { x[1,3] }, FIM.one.list))
-	FIM[idx.zeta, idx.beta] = t(W) %*% (D * lambda * p*(1-p) * X)
-	FIM[idx.beta, idx.zeta] = t(FIM[idx.zeta, idx.beta])
+	D = unlist(Map(function(x) { x[1,3] }, FIM_one_list))
+	FIM[idx_zeta, idx_beta] = t(W) %*% (D * lambda * p*(1-p) * X)
+	FIM[idx_beta, idx_zeta] = t(FIM[idx_zeta, idx_beta])
 
 	return(FIM)
 }
