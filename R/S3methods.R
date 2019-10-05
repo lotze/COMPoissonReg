@@ -11,7 +11,7 @@
 #' particular methods which depend on the class of the first argument.
 #' 
 #' @return
-#' Returns the test statistic and p-value determined from the \eqn{\chi_1^2}
+#' Returns the test statistic and p-value determined from the \eqn{\chi.1^2}
 #' distribution.
 #' 
 #' @author Thomas Lotze
@@ -105,7 +105,7 @@ sdev = function (object, ...)
 #' @param object a model object
 #' @param ... other parameters which might be required by the model
 #' @param reps Number of bootstrap repetitions.
-#' @param report_period Report progress every \code{report_period} iterations.
+#' @param report.period Report progress every \code{report.period} iterations.
 #' 
 #' @details
 #' See the documentation of the particular methods for details.
@@ -115,9 +115,9 @@ sdev = function (object, ...)
 #' the documentation of the particular methods for details of what is produced by that method.
 #' 
 #' @author Thomas Lotze
-#' @name parametric_bootstrap
+#' @name parametric.bootstrap
 #' @export
-parametric_bootstrap = function(object, reps = 1000, report_period = reps + 1, ...)
+parametric.bootstrap = function(object, reps = 1000, report.period = reps + 1, ...)
 {
-	UseMethod("parametric_bootstrap")
+	UseMethod("parametric.bootstrap")
 }

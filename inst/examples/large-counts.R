@@ -44,3 +44,47 @@ y = rcmp(n, lambda.true, nu.true)
 
 options(COMPoissonReg.ymax = 1e6)
 y = rcmp(n, lambda.true, nu.true)
+
+# Make sure the offset term is interpreted correctly
+n = 256
+offx = rep(-1, n)
+offw = rep(-1, n)
+X = matrix(1, n, 1)
+beta.true = log(2)
+Xbeta.true = X %*% beta.true
+lambda.true = exp(Xbeta.true + offx)
+gamma.true = log(1)
+nu.true = exp(gamma.true + offw)
+y = rcmp(n, lambda.true, nu.true)
+dat = data.frame(x = 1, y = y, offx = offx, offw = offw)
+
+glm.out = glm.cmp(
+	formula.lambda = y ~ 1 + offset(offx),
+	formula.nu = ~1 + offset(offw),
+	data = dat,
+	beta.init = beta.true, gamma.init = gamma.true)
+print(glm.out)
+
+# Run a small simulation to check the distribution of beta and gamma estimators
+R = 200
+coef.sim = matrix(NA, R, 2)
+for (r in 1:R) {
+	if (r %% 25 == 0) { cat("Starting rep", r, "\n") }
+	y = rcmp(n, lambda.true, nu.true)
+	dat = data.frame(x = 1, y = y, offx = offx)
+	glm.out = glm.cmp(
+		formula.lambda = y ~ 1 + offset(offx),
+		formula.nu = ~1 + offset(offw),
+		data = dat,
+		beta.init = beta.true, gamma.init = gamma.true)
+	coef.sim[r,] = coef(glm.out)
+}
+V.sim = var(coef.sim)
+
+w = numeric(R)
+for (r in 1:R) {
+	delta = coef.sim[r,] - c(beta.true, gamma.true)
+	w[r] = t(delta) %*% solve(V.sim, delta)
+}
+plot(ecdf(w))
+curve(pchisq(x, df = 2), lwd = 2, col = "blue", add = TRUE)

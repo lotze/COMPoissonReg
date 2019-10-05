@@ -1,7 +1,7 @@
-fitted_zip_internal = function(X, W, beta, zeta, off_x, off_w)
+fitted.zip.internal = function(X, W, beta, zeta, off.x, off.w)
 {
 	list(
-		lambda = as.numeric(exp(X %*% beta + off_x)),
-		p = as.numeric(plogis(W %*% zeta + off_w))
+		lambda = as.numeric(exp(X %*% beta + off.x)),
+		p = as.numeric(plogis(W %*% zeta + off.w))
 	)
 }

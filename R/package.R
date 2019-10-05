@@ -9,7 +9,7 @@
 #' @details
 #' This package offers the ability to compute COM-Poisson parameter
 #' estimates and associated standard errors for a regular regression
-#' model or a zero-inflated regression model (via the \code{glm_cmp}
+#' model or a zero-inflated regression model (via the \code{glm.cmp}
 #' function).
 #' 
 #' Further, the user can perform a hypothesis test to determine the
@@ -22,7 +22,7 @@
 #' \item Compute Poisson estimates (using \code{glm} for Poisson regression
 #'     or \code{pscl} for ZIP regression).
 #' \item Use Poisson estimates as starting values to determine COM-Poisson
-#'     estimates (using \code{glm_cmp}).
+#'     estimates (using \code{glm.cmp}).
 #' \item Compute associated standard errors (using \code{sdev} function).
 #' }
 #' 
@@ -77,7 +77,7 @@
 #' 
 #' # Fit COM-Poisson model (with intercept-only regression linked to the
 #' # dispersion parameter)
-#' cmp_out = glm_cmp(broken ~ transfers, data=freight)
+#' cmp_out = glm.cmp(broken ~ transfers, data=freight)
 #' print(cmp_out)
 #' coef(cmp_out)
 #' nu(cmp_out)[1]
@@ -133,7 +133,7 @@
 #' print(glm_out)
 #' 
 #' # Fit ZICMP model
-#' zicmp_out = glm_cmp(UPB ~ EDUCATION + ANXIETY,
+#' zicmp_out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
 #'   formula_nu = ~ 1,
 #'   formula_p = ~ EDUCATION + ANXIETY,
 #'   data=couple)

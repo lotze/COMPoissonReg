@@ -12,11 +12,11 @@ printf = function(msg, ...) {
 
 logger = function(msg, ...)
 {
-	sys_time = as.character(Sys.time())
-	cat(sys_time, "-", sprintf(msg, ...))
+	sys.time = as.character(Sys.time())
+	cat(sys.time, "-", sprintf(msg, ...))
 }
 
-grad_fwd = function(f, x, h = 1e-5, ...) {
+grad.fwd = function(f, x, h = 1e-5, ...) {
 	k = length(x)
 	eye = diag(1, k)
 	res = numeric(k)
@@ -27,23 +27,34 @@ grad_fwd = function(f, x, h = 1e-5, ...) {
 	return(res)
 }
 
-hess_fwd = function(f, x, h = 1e-5, ...) {
+hess.fwd = function(f, x, h = 1e-5, ...) {
 	k = length(x)
 	eye = diag(1, k)
 	H = matrix(NA, k, k)
 
 	fx = f(x, ...)
-	fx_eps = numeric(k)
+	fx.eps = numeric(k)
 	for (j in 1:k) {
-		fx_eps[j] = f(x + h * eye[,j], ...)
+		fx.eps[j] = f(x + h * eye[,j], ...)
 	}
 
 	for (j in 1:k) {
 		for (l in 1:k) {
 			num = f(x + h * eye[,j] + h * eye[,l], ...) -
-				fx_eps[l] - fx_eps[j] + fx
+				fx.eps[l] - fx.eps[j] + fx
 			H[j,l] = num / h^2
 		}
 	}
 	(H + t(H)) / 2
+}
+
+is.zero.matrix = function(X, eps = 1e-12)
+{
+	all(abs(X) < eps)
+}
+
+is.intercept.only = function(X, eps = 1e-12)
+{
+	n = length(X)
+	all(dim(X) == c(n,1)) & is.zero.matrix(X-1, eps = eps)
 }

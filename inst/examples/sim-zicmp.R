@@ -35,7 +35,7 @@ equitest(zicmp.out)
 deviance(zicmp.out)
 
 # ----- Bootstrap -----
-boot.out = parametric_bootstrap(zicmp.out, reps = 50, report.period = 10)
+boot.out = parametric.bootstrap(zicmp.out, reps = 50, report.period = 10)
 plot(density(boot.out[,1])); abline(v = beta.true[1], lty = 2, lwd = 2, col = "red")
 plot(density(boot.out[,2])); abline(v = beta.true[2], lty = 2, lwd = 2, col = "red")
 plot(density(boot.out[,3])); abline(v = gamma.true[1], lty = 2, lwd = 2, col = "red")

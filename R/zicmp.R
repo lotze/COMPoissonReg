@@ -10,7 +10,7 @@
 #' @param nu dispersion parameter.
 #' @param p zero-inflation probability parameter.
 #' @param log logical; if TRUE, probabilities are returned on log-scale.
-#' @param log_p logical; if TRUE, probabilities p are given as \eqn{\log(p)}.
+#' @param log.p logical; if TRUE, probabilities p are given as \eqn{\log(p)}.
 #' 
 #' @return
 #' \describe{
@@ -33,7 +33,7 @@ NULL
 #' @export
 dzicmp = function(x, lambda, nu, p, log = FALSE)
 {
-	prep = prep_zicmp(length(x), lambda, nu, p)
+	prep = prep.zicmp(length(x), lambda, nu, p)
 	fx = prep$p*(x==0) + (1-prep$p)*dcmp(x, prep$lambda, prep$nu)
 	if (log) {
 		return(log(fx))
@@ -46,7 +46,7 @@ dzicmp = function(x, lambda, nu, p, log = FALSE)
 #' @export
 rzicmp = function(n, lambda, nu, p)
 {
-	prep = prep_zicmp(n, lambda, nu, p)
+	prep = prep.zicmp(n, lambda, nu, p)
 	s = rbinom(n, size = 1, prob = prep$p)
 	(1-s) * rcmp(n, prep$lambda, prep$nu)
 }
@@ -55,32 +55,32 @@ rzicmp = function(n, lambda, nu, p)
 #' @export
 pzicmp = function(x, lambda, nu, p)
 {
-	prep = prep_zicmp(length(x), lambda, nu, p)
+	prep = prep.zicmp(length(x), lambda, nu, p)
 	prep$p*(x >= 0) + (1-prep$p)*pcmp(x, prep$lambda, prep$nu)
 }
 
 #' @name ZICMP Distribution
 #' @export
-qzicmp = function(q, lambda, nu, p, log_p = FALSE)
+qzicmp = function(q, lambda, nu, p, log.p = FALSE)
 {
-	prep = prep_zicmp(length(q), lambda, nu, p)
-	if (log_p) {
-		log_q = q
+	prep = prep.zicmp(length(q), lambda, nu, p)
+	if (log.p) {
+		log.q = q
 	} else {
-		log_q = log(q)
+		log.q = log(q)
 	}
-	qzicmp_cpp(log_q, prep$lambda, prep$nu, prep$p)
+	qzicmp_cpp(log.q, prep$lambda, prep$nu, prep$p)
 }
 
-zicmp_expected_value = function(lambda, nu, p)
+zicmp.expected.value = function(lambda, nu, p)
 {
-	(1-p) * cmp_expected_value(lambda, nu)
+	(1-p) * cmp.expected.value(lambda, nu)
 }
 
 # Extend lambda, nu, and p vectors to be compatible lengths.
 # If all are length 1, do not extend them - this is a special case which
 # is handled more efficiently.
-prep_zicmp = function(n, lambda, nu, p = 0)
+prep.zicmp = function(n, lambda, nu, p = 0)
 {
 	L = max(length(lambda), length(nu), length(p))
 
