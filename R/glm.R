@@ -29,30 +29,36 @@
 #' @details 
 #' The COM-Poisson regression model is
 #' \deqn{
-#' y_i \sim \rm{CMP}(\lambda_i, \nu_i), \;\;\;
-#' \log \lambda_i = \bm{x}_i^\top \beta, \;\;\;
-#' \log \nu_i = \bm{s}_i^\top \gamma.
+#' y_i \sim {\rm CMP}(\lambda_i, \nu_i), \;\;\;
+#' \log \lambda_i = \bm{x}_i^\top \beta + t_i^{x}, \;\;\;
+#' \log \nu_i = \bm{s}_i^\top \gamma + t_i^{s}.
 #' }{
 #' y_i ~ CMP(lambda_i, nu_i),
-#' log lambda_i = x_i^T beta,
-#' log nu_i = s_i^T gamma.
+#' log lambda_i = x_i^T beta + tx_i,
+#' log nu_i = s_i^T gamma + ts_i.
 #' }
-#' 
+#' for \eqn{i = 1, \ldots, n}.
 #' The Zero-Inflated COM-Poisson regression model assumes that \eqn{y_i} is 0
 #' with probability \eqn{p_i} or \eqn{y_i^*} with probability \eqn{1 - p_i},
 #' where
 #' \deqn{
-#' y_i^* \sim \rm{CMP}(\lambda_i, \nu_i), \;\;\;
-#' \log \lambda_i = \bm{x}_i^\top \beta, \;\;\;
-#' \log \nu_i = \bm{s}_i^\top \gamma, \;\;\;
-#' \log p_i = \bm{w}_i^\top \zeta.
+#' y_i^* \sim {\rm CMP}(\lambda_i, \nu_i), \;\;\;
+#' \log \lambda_i = \bm{x}_i^\top \beta + t_i^{x}, \;\;\;
+#' \log \nu_i = \bm{s}_i^\top \gamma + t_i^{s}, \;\;\;
+#' \log p_i = \bm{w}_i^\top \zeta + t_i^{w}.
 #' }{
 #' y_i^* ~ CMP(lambda_i, nu_i),
-#' log lambda_i = x_i^T beta,
-#' log nu_i = s_i^T gamma,
-#' log p_i = w_i^T zeta.
+#' log lambda_i = x_i^T beta + tx_i,
+#' log nu_i = s_i^T gamma + ts_i,
+#' log p_i = w_i^T zeta + tw_i.
 #' }
-#'
+#' The terms \eqn{\bm{t}^{x} =  (t_1^{x}, \ldots, t_n^{x})},
+#' \eqn{\bm{t}^{s} =  (t_1^{s}, \ldots, t_n^{s})}, and 
+#' \eqn{\bm{t}^{w} =  (t_1^{w}, \ldots, t_n^{w})} are fixed offsets which
+#' can be specified using the \code{stats::offset} function in the regression
+#' formulas \code{formula.lambda}, \code{formula.nu}, and \code{formula.p},
+#' respectively.
+#' 
 #' @references
 #' Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
 #' Count Data. Annals of Applied Statistics, 4(2), 943-961.
