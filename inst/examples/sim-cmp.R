@@ -6,9 +6,11 @@ set.seed(1234)
 n = 400
 x = runif(n, 1, 4)
 X = model.matrix(~ x)
+S = matrix(1, n, 1)
 beta.true = c(1, 0.5)
+gamma.true = 0.75
 lambda.true = exp(X %*% beta.true)
-nu.true = 0.75
+nu.true = exp(S %*% gamma.true)
 y = rcmp(n, lambda = lambda.true, nu = nu.true)
 dat = data.frame(y = y, x = x)
 

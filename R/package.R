@@ -29,7 +29,7 @@
 #' From here, there are many ways to proceed, so order is irrelevant:
 #' \itemize{
 #' \item Perform a hypothesis test to assess for statistically significant
-#'       dispersion (using equitest or parametric_bootstrap).
+#'       dispersion (using equitest or parametric.bootstrap).
 #' \item Compute leverage (using leverage) and deviance (using deviance).
 #' \item Predict the outcome for new examples, using predict.
 #' }
@@ -71,57 +71,57 @@
 #' data(freight)
 #' 
 #' # Fit standard Poisson model
-#' glm_out = glm(broken ~ transfers, data=freight,
+#' glm.out = glm(broken ~ transfers, data=freight,
 #'   family=poisson, na.action=na.exclude)
-#' print(glm_out)
+#' print(glm.out)
 #' 
 #' # Fit COM-Poisson model (with intercept-only regression linked to the
 #' # dispersion parameter)
-#' cmp_out = glm.cmp(broken ~ transfers, data=freight)
-#' print(cmp_out)
-#' coef(cmp_out)
-#' nu(cmp_out)[1]
+#' cmp.out = glm.cmp(broken ~ transfers, data=freight)
+#' print(cmp.out)
+#' coef(cmp.out)
+#' nu(cmp.out)[1]
 #' 
 #' # Compute associated standard errors
-#' sdev(cmp_out)
+#' sdev(cmp.out)
 #' 
 #' # Get the full covariance matrix for the estimates
-#' vcov(cmp_out)
+#' vcov(cmp.out)
 #' 
 #' # Likelihood ratio test for dispersion parameter
 #' # Test for H_0: dispersion equal to 1 vs. H_1: not equal to 1
 #' # (i.e. Poisson vs. COM-Poisson regression models)
-#' lrt = equitest(cmp_out)
+#' lrt = equitest(cmp.out)
 #' 
 #' # Compute constant COM-Poisson leverage
-#' lev = leverage(cmp_out)
+#' lev = leverage(cmp.out)
 #' 
 #' \dontrun{
 #' # Compute constant COM-Poisson deviances
-#' dev = deviance(cmp_out)
+#' dev = deviance(cmp.out)
 #' }
 #' 
 #' # Compute fitted values
-#' y_hat = predict(cmp_out, newdata=freight)
+#' y.hat = predict(cmp.out, newdata=freight)
 #' 
 #' # Compute residual values
-#' res = residuals(cmp_out)
+#' res = residuals(cmp.out)
 #' print(summary(res))
 #' 
 #' # Compute MSE
 #' mean(res^2)
 #' 
 #' # Compute predictions on new data
-#' new_data = data.frame(transfers=(0:10))
-#' y_hat = predict(cmp_out, newdata=new_data)
-#' plot(0:10, y_hat, type="l",
+#' new.data = data.frame(transfers=(0:10))
+#' y.hat = predict(cmp.out, newdata=new.data)
+#' plot(0:10, y.hat, type="l",
 #'   xlab="number of transfers", ylab="predicted number broken")
 #' 
 #' \dontrun{
 #' # Compute parametric bootstrap results and use them to generate
 #' # 0.95 confidence intervals for parameters.
-#' cmp_boot = parametric_bootstrap(cmp_out, reps=1000)
-#' print(apply(cmp_boot, 2, quantile, c(0.025,0.975)))
+#' cmp.boot = parametric.bootstrap(cmp.out, reps=1000)
+#' print(apply(cmp.boot, 2, quantile, c(0.025,0.975)))
 #' }
 #' 
 #' \dontrun{
@@ -129,43 +129,43 @@
 #' data(couple)
 #' 
 #' # Fit standard Poisson model
-#' glm_out = glm(UPB ~ EDUCATION + ANXIETY, data=couple, family=poisson)
-#' print(glm_out)
+#' glm.out = glm(UPB ~ EDUCATION + ANXIETY, data=couple, family=poisson)
+#' print(glm.out)
 #' 
 #' # Fit ZICMP model
-#' zicmp_out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
-#'   formula_nu = ~ 1,
-#'   formula_p = ~ EDUCATION + ANXIETY,
+#' zicmp.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
+#'   formula.nu = ~ 1,
+#'   formula.p = ~ EDUCATION + ANXIETY,
 #'   data=couple)
-#' print(zicmp_out)
+#' print(zicmp.out)
 #' 
 #' # Compute standard errors for estimates of coefficients
-#' sdev(zicmp_out)
+#' sdev(zicmp.out)
 #' 
 #' # Get the full covariance matrix for the estimates
-#' vcov(zicmp_out)
+#' vcov(zicmp.out)
 #' 
 #' # Likelihood ratio test for equidispersion (H0: nu = 1 vs H1: not)
-#' equitest(zicmp_out)
+#' equitest(zicmp.out)
 #' 
 #' # Compute fitted values
-#' y_hat = predict(zicmp_out)
+#' y.hat = predict(zicmp.out)
 #' 
 #' # Compute residuals
-#' res_raw = residuals(zicmp_out, type = "raw")
-#' res_quan = residuals(zicmp_out, type = "quantile")
-#' print(summary(res_raw))
-#' print(summary(res_quan))
+#' res.raw = residuals(zicmp.out, type = "raw")
+#' res.quan = residuals(zicmp.out, type = "quantile")
+#' print(summary(res.raw))
+#' print(summary(res.quan))
 #' 
 #' # Compute predictions on new data
-#' new_data = data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length_out = 20))
-#' y_hat_new = predict(zicmp_out, newdata=new_data)
-#' print(y_hat_new)
+#' new.data = data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
+#' y.hat.new = predict(zicmp.out, newdata=new.data)
+#' print(y.hat.new)
 #' 
 #' # Compute parametric bootstrap results and use them to generate
 #' # 0.95 confidence intervals for parameters.
-#' zicmp_boot = parametric_bootstrap(zicmp_out, reps=1000)
-#' print(apply(zicmp_boot, 2, quantile, c(0.025,0.975)))
+#' zicmp.boot = parametric.bootstrap(zicmp.out, reps=1000)
+#' print(apply(zicmp.boot, 2, quantile, c(0.025,0.975)))
 #' }
 #' 
 #' @name COMPoissonReg-package

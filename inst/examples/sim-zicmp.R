@@ -4,11 +4,11 @@ set.seed(1234)
 
 # ----- Generate the data -----
 n = 400
-x = runif(n, -2, 2)
+x = runif(n, 2, 4)
 X = model.matrix(~ x)
 S = matrix(1, n, 1)
 W = model.matrix(~ x)
-beta.true = c(-0.25, 0.6)
+beta.true = c(0.05, 0.50)
 gamma.true = -0.3
 zeta.true = c(-2.5, 0.05)
 lambda.true = exp(X %*% beta.true)
@@ -32,7 +32,11 @@ plot(y.hat, res)
 equitest(zicmp.out)
 
 # ----- Deviance -----
-deviance(zicmp.out)
+tryCatch({
+	deviance(zicmp.out)
+}, error = function(e) {
+	print(e)	
+})
 
 # ----- Bootstrap -----
 boot.out = parametric.bootstrap(zicmp.out, reps = 50, report.period = 10)

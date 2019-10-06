@@ -1,3 +1,5 @@
+library(COMPoissonReg)
+
 # Compare ZICMP density to a histogram of draws
 n = 200000
 lambda = 10

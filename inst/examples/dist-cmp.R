@@ -1,3 +1,5 @@
+library(COMPoissonReg)
+
 # Compare CMP density to a histogram of draws
 n = 200000
 lambda = 10
