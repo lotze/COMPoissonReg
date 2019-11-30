@@ -152,6 +152,19 @@ print(y.hat.new)
 # 0.95 confidence intervals for parameters.
 zicmp.boot = parametric.bootstrap(zicmp.out, reps=1000)
 print(apply(zicmp.boot, 2, quantile, c(0.025,0.975)))
+
+# A CMP example with offset terms.
+cmp.out = glm.cmp(broken ~ transfers + offset(transfers), data=freight)
+print(cmp.out)
+coef(cmp.out)
+nu(cmp.out)[1]
+
+# A ZICMP example with offset terms.
+zicmp.out = glm.cmp(UPB ~ EDUCATION + ANXIETY + offset(ANXIETY),
+    formula.nu = ~ offset(ANXIETY),
+    formula.p = ~ EDUCATION + ANXIETY + offset(ANXIETY),
+    data=couple)
+print(zicmp.out)
 }
 
 }
