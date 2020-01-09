@@ -58,7 +58,7 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 		sprintf("W:%s", colnames(W)))
 
 	loglik = res$value
-	elapsed.sec = as.numeric(Sys.time() - start, type = "sec")
+	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
@@ -119,7 +119,7 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 	)
 
 	loglik = res$value
-	elapsed.sec = as.numeric(Sys.time() - start, type = "sec")
+	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
@@ -176,7 +176,7 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 		sprintf("W:%s", colnames(W)))
 
 	loglik = res$value
-	elapsed.sec = as.numeric(Sys.time() - start, type = "sec")
+	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
