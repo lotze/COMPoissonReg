@@ -309,23 +309,37 @@ residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 #' @export
 predict.zicmp = function(object, newdata = NULL, ...)
 {
-	if (!is.null(newdata)) {
+	if (is.null(newdata)) {
+		X = object$X
+		S = object$S
+		W = object$W
+		off.x = object$off.x
+		off.s = object$off.s
+		off.w = object$off.w
+	} else {
 		# If any of the original models had an intercept added via model.matrix, they
 		# will have an "(Intercept)" column. Let's add an "(Intercept)" to newdata
 		# in case the user didn't make one.
 		newdata$'(Intercept)' = 1
 
+		n.new = nrow(newdata)
 		X = as.matrix(newdata[,colnames(object$X)])
 		S = as.matrix(newdata[,colnames(object$S)])
 		W = as.matrix(newdata[,colnames(object$W)])
-	} else {
-		X = object$X
-		S = object$S
-		W = object$W
+
+		mf.x = model.frame(object$formula.lambda, data = newdata, ...)
+		mf.s = model.frame(object$formula.nu, data = newdata, ...)
+		mf.p = model.frame(object$formula.p, data = newdata, ...)
+		off.x = model.offset(mf.x)
+		off.s = model.offset(mf.s)
+		off.w = model.offset(mf.p)
+		if (is.null(off.x)) { off.x = rep(0, n.new) }
+		if (is.null(off.s)) { off.s = rep(0, n.new) }
+		if (is.null(off.w)) { off.w = rep(0, n.new) }
 	}
 
 	out = fitted.zicmp.internal(X, S, W, object$beta,
-		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
+		object$gamma, object$zeta, off.x, off.s, off.w)
 	y.hat = zicmp.expected.value(out$lambda, out$nu, out$p)
 	return(y.hat)
 }
