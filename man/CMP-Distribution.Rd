@@ -6,6 +6,7 @@
 \alias{rcmp}
 \alias{pcmp}
 \alias{qcmp}
+\alias{ecmp}
 \title{COM-Poisson Distribution}
 \usage{
 dcmp(x, lambda, nu, log = FALSE)
@@ -15,6 +16,8 @@ rcmp(n, lambda, nu)
 pcmp(x, lambda, nu)
 
 qcmp(q, lambda, nu, log.p = FALSE)
+
+ecmp(lambda, nu)
 }
 \arguments{
 \item{x}{vector of quantiles.}
@@ -32,11 +35,12 @@ qcmp(q, lambda, nu, log.p = FALSE)
 \item{log.p}{logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.}
 }
 \value{
-\itemize{
-\item \code{dcmp} gives the density,
-\item \code{pcmp} gives the cumulative probability,
-\item \code{qcmp} gives the quantile function, and
-\item \code{rcmp} generates random values.
+\describe{
+\item{dcmp}{gives the density,}
+\item{pcmp}{gives the cumulative probability,}
+\item{qcmp}{gives the quantile function,}
+\item{rcmp}{generates random values, and}
+\item{ecmp}{gives the expected value.}
 }
 }
 \description{

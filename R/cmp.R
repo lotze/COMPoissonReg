@@ -11,11 +11,12 @@
 #' @param log.p logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.
 #' 
 #' @return 
-#' \itemize{
-#' \item \code{dcmp} gives the density,
-#' \item \code{pcmp} gives the cumulative probability,
-#' \item \code{qcmp} gives the quantile function, and
-#' \item \code{rcmp} generates random values.
+#' \describe{
+#' \item{dcmp}{gives the density,}
+#' \item{pcmp}{gives the cumulative probability,}
+#' \item{qcmp}{gives the quantile function,}
+#' \item{rcmp}{generates random values, and}
+#' \item{ecmp}{gives the expected value.}
 #' }
 #' 
 #' @references
@@ -66,7 +67,9 @@ qcmp = function(q, lambda, nu, log.p = FALSE)
 	qcmp_cpp(log.q, prep$lambda, prep$nu, ymax = ymax)
 }
 
-cmp.expected.value = function(lambda, nu)
+#' @name CMP Distribution
+#' @export
+ecmp = function(lambda, nu)
 {
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)

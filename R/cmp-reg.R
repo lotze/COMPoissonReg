@@ -7,7 +7,7 @@
 #' @param type Type of residual to be computed.
 #' @param reps Number of bootstrap repetitions.
 #' @param report.period Report progress every \code{report.period} iterations.
-#' @param ... other model parameters, such as data.
+#' @param ... other arguments, such as \code{subset} and \code{na.action}.
 #' 
 #' @name glm.cmp, CMP support
 NULL
@@ -269,7 +269,7 @@ deviance.cmp = function(object, ...)
 residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 {
 	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma, object$off.x, object$off.s)
-	y.hat = predict.cmp(object, newdata = object$X)
+	y.hat = ecmp(out$lambda, out$nu)
 
 	type = match.arg(type)
 	if (type == "raw") {
@@ -287,23 +287,35 @@ residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 #' @export
 predict.cmp = function(object, newdata = NULL, ...)
 {
-	if (!is.null(newdata)) {
-		# If any of the original models had an intercept added via model.matrix, they
-		# will have an "(Intercept)" column. Let's add an "(Intercept)" to newdata
-		# in case the user didn't make one.
-		newdata = as.data.frame(newdata)
-        newdata$'(Intercept)' = 1
-		X = as.matrix(newdata[,colnames(object$X)])
-		S = as.matrix(newdata[,colnames(object$S)])
-	} else {
+	if (is.null(newdata)) {
 		X = object$X
 		S = object$S
+		off.x = object$off.x
+		off.s = object$off.s
+	} else {
+		# Only attempt to process newdata as a data.frame
+		newdata = as.data.frame(newdata)
+
+		# If the response was not included in newdata, add a column with zeros
+		response_name = all.vars(object$formula.lambda)[1]
+		if (is.null(newdata[[response_name]])) {
+			newdata[[response_name]] = 0
+		}
+
+		mf.x = model.frame(object$formula.lambda, data = newdata, ...)
+		mf.s = model.frame(object$formula.nu, data = newdata, ...)
+		X = model.matrix(object$formula.lambda, mf.x)
+		S = model.matrix(object$formula.nu, mf.s)
+		off.x = model.offset(mf.x)
+		off.s = model.offset(mf.s)
+
+		n.new = nrow(X)
+		if (is.null(off.x)) { off.x = rep(0, n.new) }
+		if (is.null(off.s)) { off.s = rep(0, n.new) }
 	}
 
-	out = fitted.cmp.internal(X, S, object$beta, object$gamma, object$off.x, object$off.s)
-	fnr = constantCMPfitsandresids(out$lambda, out$nu)
-	y.hat = fnr$fit
-	return(y.hat)
+	out = fitted.cmp.internal(X, S, object$beta, object$gamma, off.x, off.s)
+	ecmp(out$lambda, out$nu)
 }
 
 #' @name glm.cmp, CMP support
@@ -347,16 +359,6 @@ parametric.bootstrap.cmp = function(object, reps = 1000, report.period = reps+1,
 	return(boot.out)
 }
 
-constantCMPfitsandresids = function(lambda.hat, nu.hat, y = 0)
-{
-	# Determine estimated lambda.hat, fit, and residuals
-	lambda.hat = as.numeric(lambda.hat)
-	nu.hat = as.numeric(nu.hat)
-	fit = lambda.hat^(1/nu.hat) - ((nu.hat - 1)/(2*nu.hat))
-	resid = y - fit
-	list(fit = fit, resid = resid)
-}
-
 weights = function(X, S, beta, gamma, off.x, off.s)
 {
 	out = fitted.cmp.internal(X, S, beta, gamma, off.x, off.s)
@@ -372,6 +374,16 @@ weights = function(X, S, beta, gamma, off.x, off.s)
 	# Determine the weights
 	weight = Ey2 - E2y
 	return(weight)
+}
+
+constantCMPfitsandresids = function(lambda.hat, nu.hat, y = 0)
+{
+	# Determine estimated lambda.hat, fit, and residuals
+	lambda.hat = as.numeric(lambda.hat)
+	nu.hat = as.numeric(nu.hat)
+	fit = lambda.hat^(1/nu.hat) - ((nu.hat - 1)/(2*nu.hat))
+	resid = y - fit
+	list(fit = fit, resid = resid)
 }
 
 cmp.mse = function(y, X, S, beta, gamma, off.x, off.s)

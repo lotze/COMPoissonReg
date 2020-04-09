@@ -44,13 +44,12 @@
 
 \method{predict}{zicmp}(object, newdata = NULL, ...)
 
-\method{parametric.bootstrap}{zicmp}(object, reps = 1000,
-  report.period = reps + 1, ...)
+\method{parametric.bootstrap}{zicmp}(object, reps = 1000, report.period = reps + 1, ...)
 }
 \arguments{
 \item{object}{object of type \code{zicmp}.}
 
-\item{...}{other model parameters, such as data.}
+\item{...}{other arguments, such as \code{subset} and \code{na.action}.}
 
 \item{x}{object of type \code{zicmp}.}
 

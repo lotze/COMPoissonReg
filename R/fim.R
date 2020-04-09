@@ -14,7 +14,7 @@ fim.cmp = function(lambda, nu)
 	}
 	hess.eps = getOption("COMPoissonReg.hess.eps", default = 1e-2)
 	H = hess.fwd(f, c(lambda, nu), h = hess.eps)
-	H[1,1] = H[1,1] + cmp.expected.value(lambda, nu) / lambda^2
+	H[1,1] = H[1,1] + ecmp(lambda, nu) / lambda^2
 	return(H)
 }
 
@@ -49,7 +49,7 @@ fim.zicmp = function(lambda, nu, p)
 	stopifnot(length(p) == 1)
 
 	z = z_hybrid(lambda, nu)
-	meany = zicmp.expected.value(lambda, nu, p)
+	meany = ezicmp(lambda, nu, p)
 	f = function(theta) {
 		z_hybrid(theta[1], theta[2], take_log = TRUE)
 	}

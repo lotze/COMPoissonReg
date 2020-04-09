@@ -44,13 +44,12 @@
 
 \method{predict}{cmp}(object, newdata = NULL, ...)
 
-\method{parametric.bootstrap}{cmp}(object, reps = 1000,
-  report.period = reps + 1, ...)
+\method{parametric.bootstrap}{cmp}(object, reps = 1000, report.period = reps + 1, ...)
 }
 \arguments{
 \item{object}{object of type \code{cmp}.}
 
-\item{...}{other model parameters, such as data.}
+\item{...}{other arguments, such as \code{subset} and \code{na.action}.}
 
 \item{x}{object of type \code{cmp}.}
 

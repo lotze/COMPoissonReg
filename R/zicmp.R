@@ -17,7 +17,8 @@
 #' \item{dzicmp}{gives the density,}
 #' \item{pzicmp}{gives the cumulative probability,}
 #' \item{qzicmp}{gives the quantile value, and}
-#' \item{rzicmp}{generates random numbers.}
+#' \item{rzicmp}{generates random numbers,}
+#' \item{ezicmp}{gives the expected value.}
 #' }
 #' 
 #' @references
@@ -72,9 +73,11 @@ qzicmp = function(q, lambda, nu, p, log.p = FALSE)
 	qzicmp_cpp(log.q, prep$lambda, prep$nu, prep$p)
 }
 
-zicmp.expected.value = function(lambda, nu, p)
+#' @name ZICMP Distribution
+#' @export
+ezicmp = function(lambda, nu, p)
 {
-	(1-p) * cmp.expected.value(lambda, nu)
+	(1-p) * ecmp(lambda, nu)
 }
 
 # Extend lambda, nu, and p vectors to be compatible lengths.
