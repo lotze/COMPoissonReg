@@ -70,6 +70,11 @@ glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	off.x = model.offset(mf)
 	d1 = ncol(X)
 
+	weights = model.weights(mf)
+	if(!is.null(weights)) {
+		stop("weights argument is currently not supported")
+	}
+
 	# Parse formula.nu
 	mf = model.frame(formula.nu, data, ...)
 	S = model.matrix(formula.nu, mf)
