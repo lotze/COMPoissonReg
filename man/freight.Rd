@@ -4,11 +4,13 @@
 \name{freight}
 \alias{freight}
 \title{Freight dataset}
-\format{\describe{
+\format{
+\describe{
 \item{broken}{number of ampules found broken upon arrival.}
 \item{transfers}{number of times carton was transferred from one aircraft to
 another.}
-}}
+}
+}
 \usage{
 data(freight)
 }

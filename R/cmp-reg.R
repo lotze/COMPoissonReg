@@ -312,6 +312,11 @@ predict.cmp = function(object, newdata = NULL, ...)
 		n.new = nrow(X)
 		if (is.null(off.x)) { off.x = rep(0, n.new) }
 		if (is.null(off.s)) { off.s = rep(0, n.new) }
+		
+		weights = model.weights(mf.x)
+		if(!is.null(weights)) {
+			stop("weights argument is currently not supported")
+		}
 	}
 
 	out = fitted.cmp.internal(X, S, object$beta, object$gamma, off.x, off.s)
