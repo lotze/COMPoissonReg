@@ -16,5 +16,8 @@ License: GPL-2 | GPL-3
 LazyLoad: yes
 Depends: stats, Rcpp
 LinkingTo: Rcpp
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Encoding: UTF-8
+Suggests: R.rsp
+VignetteBuilder: R.rsp
+

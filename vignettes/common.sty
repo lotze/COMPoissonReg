@@ -1,0 +1,125 @@
+\usepackage{amsmath}
+\usepackage{amsbsy}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{lscape}
+\usepackage{color}
+\usepackage{mdwlist}
+\usepackage[round]{natbib}
+\usepackage{listings}
+\usepackage{framed}
+\usepackage{setspace}
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+
+\usepackage[tableposition=top]{caption}
+\usepackage{subcaption}
+\usepackage{capt-of}
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+\usepackage{fullpage}
+%\usepackage{mathtools}
+%\usepackage{mathrsfs}
+
+% Indent the first paragraph after a section header
+%\usepackage{indentfirst}
+
+\newcommand{\samplespace}{\Omega}
+\renewcommand{\vec}[1]{\bm{#1}}
+\renewcommand{\Vec}{\text{vec}}
+\newcommand{\definedas}{:=}
+\newcommand{\btheta}{{\vec{\theta}}}
+\newcommand{\bphi}{{\vec{\phi}}}
+\newcommand{\bmu}{{\vec{\mu}}}
+\newcommand{\bbeta}{{\vec{\beta}}}
+\newcommand{\indep}{\stackrel{\text{ind}}{\sim}}
+\newcommand{\iid}{\stackrel{\text{iid}}{\sim}}
+\newcommand{\given}{\;\middle\vert\;}
+\newcommand{\SI}[2]{${#1}\text{E}{#2}$}
+\newcommand{\Vbeta}{\vec{\Omega}_{\bbeta}}
+\newcommand{\Sigmabeta}{\vec{\Sigma}_{\bbeta}}
+\newcommand{\Sigmabetaj}{\vec{\Sigma}_{\bbeta^{(j)}}}
+% \newcommand{\myheading}[1]{\large{\textbf{\textsc{#1}}}}
+
+\DeclareMathOperator{\Diag}{Diag}
+\DeclareMathOperator{\blockdiag}{Blockdiag}
+\DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\Prob}{P}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\trace}{tr}
+\DeclareMathOperator{\conv}{conv}
+\DeclareMathOperator{\cone}{cone}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator{\rest}{---}
+
+\numberwithin{equation}{section}
+\numberwithin{algorithm}{section}
+
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{theorem}[thm]{Theorem}
+\newtheorem{proposition}[thm]{Proposition}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{corollary}[thm]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{remark}[thm]{Remark}
+\newtheorem{property}[thm]{Property}
+\newtheorem{example}[thm]{Example}
+
+\makeatletter
+\def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
+\makeatother
+
+%\renewcommand{\cite}{\citeyearpar}
+
+%\newdateformat{mydate}{\THEYEAR-\twodigit{\THEMONTH}-\twodigit{\THEDAY}}
+%\settimeformat{xxivtime}
+
+% AMR: use \singlespace{} command to mark main contents that
+% should be single spaced. Otherwise, set the general spacing for inputs
+% at the top level here
+%\usepackage{setspace}
+
+% Load hyperref last, as suggested by Latex forums, to avoid interference with other packages
+\usepackage[colorlinks=true, citecolor=blue, linkcolor=blue, urlcolor=blue]{hyperref}
+
+% Make a list of keywords
+\newcommand{\keywords}[1]{\par\noindent
+{\textbf{Keywords:} #1}}
+
+\newcommand{\code}[1]{\lstinline!#1!}
+\newcommand{\pkg}[1]{\lstinline!#1!}
+\newcommand{\file}[1]{\lstinline!#1!}
+\newcommand{\proglang}[1]{\lstinline!#1!}
+\newcommand{\bs}{$\backslash$}
+
+\DefineVerbatimEnvironment{CodeInput}{Verbatim}{numbers=left,
+fontsize=\small, tabsize=4, xleftmargin=5mm}
+\DefineVerbatimEnvironment{CodeOutput}{Verbatim}{numbers=left,
+fontsize=\small, tabsize=4, xleftmargin=5mm}
+\DefineVerbatimEnvironment{CodeChunk}{Verbatim}{numbers=left,
+fontsize=\small, tabsize=4, xleftmargin=5mm}
+
+\lstset{ 
+  backgroundcolor = \color{white},
+  % basicstyle=\footnotesize\ttfamily,
+  basicstyle  = \ttfamily,
+  tabsize = 4,
+}
+
+\newenvironment{myenumerate}
+{ \begin{enumerate}
+	\setlength{\itemsep}{5pt}
+	%\setlength{\parskip}{0pt}
+	%\setlength{\parsep}{0pt}
+}
+{ \end{enumerate} }
+
