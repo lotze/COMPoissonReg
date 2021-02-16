@@ -1,9 +1,11 @@
 .onAttach = function(libname, pkgname){
+	options(COMPoissonReg.ymax = 1e6)
 	options(COMPoissonReg.optim.method = 'L-BFGS-B')
 	options(COMPoissonReg.optim.control = list(maxit = 150))
 	options(COMPoissonReg.grad.eps = 1e-5)
 	options(COMPoissonReg.hess.eps = 1e-2)
-	options(COMPoissonReg.ymax = 1e6)
+	options(COMPoissonReg.hybrid_tol = 1e-2)
+	options(COMPoissonReg.truncate_tol = 1e-6)
 }
 
 format_difftime = function(x) {

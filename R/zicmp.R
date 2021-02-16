@@ -91,6 +91,7 @@ prep.zicmp = function(n, lambda, nu, p = 0)
 	if (length(lambda) == 1 && L > 1) { lambda = rep(lambda, L) }
 	if (length(nu) == 1 && L > 1) { nu = rep(nu, L) }
 	if (length(p) == 1 && L > 1) { p = rep(p, L) }
+	if (L > 1) { type = "indep" } else { type = "iid" }
 
-	list(lambda = lambda, nu = nu, p = p)
+	list(lambda = lambda, nu = nu, p = p, type = type)
 }

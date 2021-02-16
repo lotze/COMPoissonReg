@@ -34,16 +34,10 @@
 \renewcommand{\Vec}{\text{vec}}
 \newcommand{\definedas}{:=}
 \newcommand{\btheta}{{\vec{\theta}}}
-\newcommand{\bphi}{{\vec{\phi}}}
-\newcommand{\bmu}{{\vec{\mu}}}
-\newcommand{\bbeta}{{\vec{\beta}}}
 \newcommand{\indep}{\stackrel{\text{ind}}{\sim}}
 \newcommand{\iid}{\stackrel{\text{iid}}{\sim}}
 \newcommand{\given}{\;\middle\vert\;}
-\newcommand{\SI}[2]{${#1}\text{E}{#2}$}
-\newcommand{\Vbeta}{\vec{\Omega}_{\bbeta}}
-\newcommand{\Sigmabeta}{\vec{\Sigma}_{\bbeta}}
-\newcommand{\Sigmabetaj}{\vec{\Sigma}_{\bbeta^{(j)}}}
+% \newcommand{\logit}{\text{logit}}
 % \newcommand{\myheading}[1]{\large{\textbf{\textsc{#1}}}}
 
 \DeclareMathOperator{\Diag}{Diag}
@@ -54,14 +48,13 @@
 \DeclareMathOperator{\Cov}{Cov}
 \DeclareMathOperator{\Corr}{Corr}
 \DeclareMathOperator{\trace}{tr}
-\DeclareMathOperator{\conv}{conv}
-\DeclareMathOperator{\cone}{cone}
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclareMathOperator{\rest}{---}
+\DeclareMathOperator{\logit}{logit}
 
-\numberwithin{equation}{section}
-\numberwithin{algorithm}{section}
+%\numberwithin{equation}{section}
+%\numberwithin{algorithm}{section}
 
 \newtheorem{thm}{Theorem}[section]
 \newtheorem{theorem}[thm]{Theorem}
@@ -77,16 +70,6 @@
 \makeatletter
 \def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
 \makeatother
-
-%\renewcommand{\cite}{\citeyearpar}
-
-%\newdateformat{mydate}{\THEYEAR-\twodigit{\THEMONTH}-\twodigit{\THEDAY}}
-%\settimeformat{xxivtime}
-
-% AMR: use \singlespace{} command to mark main contents that
-% should be single spaced. Otherwise, set the general spacing for inputs
-% at the top level here
-%\usepackage{setspace}
 
 % Load hyperref last, as suggested by Latex forums, to avoid interference with other packages
 \usepackage[colorlinks=true, citecolor=blue, linkcolor=blue, urlcolor=blue]{hyperref}

@@ -14,9 +14,244 @@
 \date{2021-02-09}
 
 \begin{document}
-
 \maketitle
 
+\section{Introduction}
+Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway Maxwell Poisson random
+variable with density
+%
+\begin{align*}
+f(y) = \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad y = 0, 1, \ldots, \quad
+Z(\lambda, \nu) = \sum_{r=0}^\infty \frac{\lambda^r}{(r!)^\nu},
+\end{align*}
+%
+where $\lambda > 0$ and $\nu > 0$. Recall that $\text{CMP}(\lambda, \nu)$ is a
+natural exponential family with
+%
+\begin{align*}
+f(y) &= \exp\{ y \log \lambda - \nu \log(y!) - \log Z(\lambda, \nu) \} \\
+&= \exp\{ a(y) - b(\eta) + \vec{s}(y)^\top \vec{\eta}  \},
+\end{align*}
+%
+with natural parameter $\vec{\eta} = (\log \lambda, \nu)$, sufficient
+statistic
+$\vec{s}(y) = (y, -\log(y!))$, $b(\vec{\eta}) = \log Z(e^{\eta_1}, \eta_2)$,
+and $a(y) = 0$.
+
+Suppose there are $n$ subjects with count-valued outcomes $y_i$ and
+covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in \mathbb{R}^{d_2}$,
+and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$. The \pkg{COMPoissonReg}
+package fits Zero-Inflated COM-Poisson regression models of the form
+%
+\begin{align*}
+&y_i =
+\begin{cases}
+y_i^*, & \text{with probability $1 - p_i$}, \\
+0,     & \text{with probability $p_i$}
+\end{cases} \\
+%
+&y_i^* \sim \text{CMP}(\lambda_i, \nu_i), \\
+&\log \lambda_i = \vec{x}_i^\top \vec{\beta}, \quad
+\log \nu_i = \vec{s}_i^\top \vec{\gamma}, \quad
+\logit p_i = \vec{w}_i^\top \vec{\zeta}.
+\end{align*}
+%
+Writing $\btheta = (\vec{\beta}, \vec{\gamma}, \vec{\zeta})$, the likelihood is
+%
+\begin{align}
+L(\btheta) =
+\prod_{i=1}^n \left[(1 - p_i)
+\frac{\lambda_i^{y_i}}{(y_i!)^{\nu_i} Z(\lambda_i, \nu_i)}
++ p_i
+\right]
+\label{eqn:likelihood}
+\end{align}
+
+
+Useful special cases include COM-Poisson regression with $p_i \equiv 0$ and
+Zero-Inflated Poisson with $\nu_i \equiv 1$.
+
+\begin{itemize*}
+\item Give the expressions for expectation and variance, and associated code.
+\item To do this, we maximize the log-likelihood function in optim
+\item We provide some hooks to control optim
+\item Formula interface
+\item \citet{Eddelbuettel2013} for Rcpp ...
+\item For normalizing constant, can we somehow give lower bounds so we don't need to start summing from 0? Is it possible to use root-finding here since the bounds aren't quite invertible themselves?
+\item Maybe give code in Section~\ref{sec:normconst} to change the options for tolerances?
+\end{itemize*}
+
+
+\section{Normalizing Constant}
+\label{sec:normconst}
+The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the
+practical use of CMP models. First, there is no simple closed form expression
+for the series. Furthermore, the value of $Z(\lambda, \nu)$ may become
+extremely large in magnitude so that it is not practical to compute at its
+original scale. This occurs when $\lambda^{1/\nu}$ becomes large, especially
+when $\lambda > 1$ and $\nu \rightarrow 0$. For example,
+$Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision
+floating point number, and may evaluate to infinity if care is not taken.
+Approximation of $Z$ has been a topic of interest in the CMP literature.
+
+The strategy taken by \pkg{COMPoissonReg} is to use a hybrid approach. For a
+small given $\delta > 0$, if $\lambda^{-1/\nu} < \delta$, an approximation
+discussed in Section~\ref{sec:approx} is computed at the log-scale. Otherwise,
+the series is computed by summing a finite number of terms which is truncated
+according to Section~\ref{sec:truncate}.
+
+
+\subsection{Approximation}
+\label{sec:approx}
+One way to avoid the problem of large magnitudes is to work on the log-scale,
+but this does not seem possible if we are explicitly computing the series
+term-by-term. A suggestion by \citet{ShmueliEtAl2005} is
+%
+\begin{align*}
+\tilde{Z}(\lambda, \nu) &= \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} },
+\end{align*}
+%
+which is discussed further by \citet{GillispieGreen2015} and
+\citet{GauntEtAl2019}. The approximation may be directly computed on the
+log-scale as
+%
+\begin{align}
+\log \tilde{Z}(\lambda, \nu) &=  \nu \lambda^{1/\nu} - \frac{\nu-1}{2\nu} \log \lambda - \frac{\nu-1}{2} \log(2\pi) - \frac{1}{2} \log \nu.
+\label{eqn:z-approx}
+\end{align}
+%
+Also see \citet{DalyGaunt2016}, which has a number of insightful results for
+both CMP and CMB. Apparently, \citet{BrooksEtAl2017} also has an adaptive
+method for computing the CMP normalizing constant.
+
+\subsection{Truncated Series}
+\label{sec:truncate}
+We consider approximating $Z(\lambda, \nu)$ by the finite summation
+$Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. An
+adequately large $M$ can be selected by applying Stirling's approximation
+and bounding the remainder. \citet[Section~2.9]{Feller1968} gives the bound
+%
+\begin{align*}
+\sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n + 1)} < n! <
+\sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n)}.
+\end{align*}
+%
+From here, we can obtain bounds which will be convenient in the following calculations.%
+\footnote{This form is given at
+\url{https://en.wikipedia.org/wiki/Stirling\%27s_approximation}.}
+%
+\begin{align*}
+\sqrt{2\pi} n^{n + 1/2} e^{-n} \leq n! \leq e n^{n + 1/2} e^{-n}
+\end{align*}
+%
+by noting that $e^{1 / (12n + 1)} \geq 1$ for $n \geq 1$ and
+$\sqrt{2\pi} e^{1 / (12n)} \leq e$ for $n \geq 2$.
+%
+We may then bound the truncation error for $Z^{(M)}(\lambda, \nu)$ using
+%
+\begin{align}
+\lvert Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \rvert &= Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \nonumber \\
+&= \sum_{r=M+1}^\infty \frac{\lambda^r}{(r!)^\nu} \nonumber \\
+&\leq \sum_{r=M+1}^\infty \frac{\lambda^r}{(2\pi)^{\nu/2} r^{\nu r + \nu/2} e^{-r \nu}} \nonumber \\
+&\leq \sum_{r=M+1}^\infty \frac{\lambda^r}{(2\pi)^{\nu/2} (M+1)^{\nu r + \nu/2} e^{-r \nu}} \nonumber \\
+&= (2\pi)^{-\nu/2} (M+1)^{-\nu/2} \sum_{r=M+1}^\infty \left( \frac{\lambda e^{\nu}}{(M+1)^{\nu}} \right)^r \label{eqn:geom} \\
+&= (2\pi)^{-\nu/2} (M+1)^{-\nu/2} \sum_{r=0}^\infty \left( \frac{\lambda e^{\nu}}{(M+1)^{\nu}} \right)^{r+M+1} \nonumber \\
+&= (2\pi)^{-\nu/2} (M+1)^{-\nu/2} \left( \frac{\lambda e^{\nu}}{(M+1)^{\nu}} \right)^{M+1} \frac{1}{1 - \frac{\lambda e^{\nu}}{(M+1)^{\nu}}} \nonumber \\
+&=: \Delta_M, \nonumber
+\end{align}
+%
+assuming that $|\lambda e^\nu / (M+1)^\nu| < 1$ for convergence of the
+geometric series in \eqref{eqn:geom}. To ensure this we choose $M$ at least
+large enough so that
+%
+\begin{align*}
+\lambda e^\nu / (M+1)^\nu < 1 \iff
+M > \lambda^{1/\nu} e - 1.
+\end{align*}
+%
+Consider bounding the relative error by a small given number $\epsilon > 0$:
+%
+\begin{align*}
+&\frac{\lvert Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \rvert}{Z^{(M)}(\lambda, \nu)}
+\leq \frac{\Delta_M}{Z^{(M)}(\lambda, \nu)}
+< \epsilon.
+\end{align*}
+%
+This condition can be expressed on the log-scale using
+%
+\begin{align}
+\log \Delta_M - \log Z^{(M)}(\lambda, \nu) < \log \epsilon,
+\label{eqn:adaptive-log-scale}
+\end{align}
+%
+where
+%
+\begin{align*}
+\log \Delta_M
+= -\frac{\nu}{2} \log(2\pi)
+- \nu \left( M+\frac{3}{2} \right) \log (M+1)
++ (M+1) (\nu + \log \lambda)
+- \log\left(1 - \frac{\lambda e^\nu}{(M+1)^\nu} \right).
+\end{align*}
+%
+Therefore, we compute $Z^{(M)}(\lambda, \nu)$ until at least
+$M > \lambda^{1/\nu} e - 1$, increasing $M$ and updating
+$Z^{(M)}(\lambda, \nu)$ until \eqref{eqn:adaptive-log-scale} is satisfied.
+
+
+\paragraph{TBD}
+\begin{itemize*}
+\item A good way to motivate adding these complications is to show some plots of $f(y) = \lambda^y / (y!)^\nu$.
+\item We could potentially compute score and FIM via the Lindsey and Merch trick and avoid numerical derivatives. Can we use our bound above to help guide the truncation there? (The approximation method might not be straightforward to connect). Do we want to deal with this now?
+\end{itemize*}
+
+\subsection{Computation of Functions involving $Z$}
+Derivatives of $\log Z(\lambda, \nu)$ are needed to compute expected values, score functions, and covariance matrices needed by \pkg{COMPoissonReg}. Using the hybrid procedure described at the beginning of Section~\ref{sec:normconst} to compute $\log Z(\lambda, \nu)$, we make use of the numerical differentiation in the following ways.
+
+The gradient of the log-likelihood \eqref{eqn:likelihood} is needed in \code{optim} during likelihood maximization.  The Hessian of the log-likelihood is used to estimate $\Var(\hat{\btheta})$ given a solution $\hat{\btheta} = (\vec{\beta}, \vec{\gamma}, \vec{\zeta})$ from \code{optim}. The expected value $\E(Y) = \lambda \frac{\partial}{\partial \lambda} \log Z(\lambda, \nu)$ and variance $\Var(Y) = \text{TBD}$ of $Y \sim \text{CMP}(\lambda, \nu)$ may be of interest to package users as well.
+
+Suppose $Y \sim \text{CMP}(\lambda, \nu)$. We use numerical differentiation to compute the expected value
+%
+\begin{align}
+\E(Y) &= \lambda \frac{\partial}{\partial \lambda} \log Z(\lambda, \nu), \nonumber \\
+&= \lim_{\epsilon \downarrow 0} \lambda \frac{\log Z(\lambda + \epsilon, \nu) - \log Z(\lambda, \nu)}{\epsilon} \nonumber \\
+&\approx \frac{\log Z(\lambda + h, \nu) - \log Z(\lambda, \nu) }{h / \lambda},
+\label{eqn:fwdderiv}
+\end{align}
+%
+given a small $h > 0$. Forward differentiation respects the boundary $\lambda = 0$.
+
+ SimilarThe gradient and Hessian are computed 
+
+The gradient and Hessian of the log-likelihood \eqref{} involve first and second derivatives of $\log Z(\lambda, \nu)$. 
+
+
+How are they used?
+
+The gradient and Hessian of $\log Z(\lambda, \nu)$ are also needed to compute the Fisher Information Matrix for the CMP and ZICMP models; see the expressions in \citet{SellersRaim2016}. We may compute them in a similar manner as \eqref{eqn:fwdderiv}. For a given function $g : \mathbb{R}^k \rightarrow \mathbb{R}$, we may compute the $j$th entry of the gradient as
+%
+\begin{align*}
+\nabla_j g(\vec{x})
+\approx \frac{ g(\vec{x} + h \vec{e}_j) - g(\vec{x}) }{h},
+\end{align*}
+%
+and the $(j,l)$th entry of the Hessian as
+%
+\begin{align*}
+\nabla^2_{jl} g(\vec{x})
+\approx \frac{g(\vec{x} + h \vec{e}_j + h \vec{e}_l) -
+g(\vec{x} + h \vec{e}_j) -
+g(\vec{x} + h \vec{e}_l) +
+g(\vec{x})}{h^2}.
+\end{align*}
+%
+Here, $\vec{e}_1, \ldots, \vec{e}_k$ represent the columns of a $k \times k$ identity matrix.
+
+We make use of various derivatives of $\log Z(\lambda, \nu)$ as well, especially to compute the Fisher Information matrix \citep{SellersRaim2016}. These derivatives can be obtained as closed-form infinite sums, but a very large number of terms may be needed to get a reasonable approximation. (TBD: The issue appears potentially worse in some of the derivatives than in $\log Z(\lambda, \nu)$, but I did not investigate this in detail. Also, we no long use this part of the code, and just use the Hessian instead of the FIM).
+
+
+\begin{comment}
+\section{Delete This}
 To include a PDF vignette that is compiled from a plain LaTeX file,
 all you need is the LaTeX file with LaTeX comments containing
 meta directives to R such that it will be listed as a vignette in the
@@ -49,7 +284,7 @@ part of the built package.
 
 Also, the above first two entries are required whereas the keyword
 entries are optional.  Note also that the
-\code{\%{\bs}VignetteIndexEntry\{\}} controls the title shown in R's
+%\code{\%{\bs}VignetteIndexEntry\{\}} controls the title shown in R's
 help indices as well as in online package respositories such as CRAN. 
 
 As for any type of (non-Sweave) package vignette, don't forget to specify:
@@ -62,6 +297,99 @@ VignetteBuilder: R.rsp
 in your package's DESCRIPTION file.  That's all it takes to include a
 LaTeX file that will be compiled into a PDF vignette as part of the
 package build.
+\end{comment}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+%\input{references.bbl}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\appendix
+
+\clearpage
+
+
+\section{Adaptive Computation of $Z$ (TBD: Obsolete)}
+Let $h(x) := x \log \lambda - \nu \log \Gamma(x+1)$ denote the unnormalized CMP log-density and $\delta > 0$ be a small prespecified number. In this section, we will discuss a procedure to find an $M$ such that 
+%
+\begin{align}
+\exp\{ h(x) \} < \delta, \quad \text{for all $x \geq M$}.
+\label{eqn:diff}
+\end{align}
+%
+To do this, we will establish that $h(x)$ is a concave function of $x \in \mathbb{R}$. We have first and second derivatives
+%
+\begin{align*}
+&h'(x) = \log \lambda - \nu \frac{\partial}{\partial x} \log \Gamma(x+1)
+= \log \lambda - \nu \psi(x+1), \\
+&h''(x) = - \nu \frac{\partial^2}{\partial x^2} \log \Gamma(x+1).
+\end{align*}
+%
+where $\psi(x) = \frac{\partial}{\partial x} \log \Gamma(x)$ is the digamma function. It is well-known that $\log \Gamma(\cdot)$ is a convex function (TBD: cite?), so $h(x)$ has a negative second derivative and is therefore a concave function of $x$. Then $h(x)$ has a unique maximum $x^*$ such that $h'(x) = 0$ Therefore, $h'(x)$ will be positive for $x < x^*$, zero for $x = x^*$, and negative for $x > x^*$. Consequently, $h(x)$ will be decreasing for $x > x^*$ so that \eqref{eqn:diff} can be satisfied.
+
+Our strategy will be to compute $Z^{(M)}(\lambda, \nu)$ in three phases: first, increase $M$ until $h'(M) \leq 0$ is satisfied; second, increase $M$ until $h(M) < \log \delta$ is satisfied; finally, increase $M$ until \eqref{eqn:adaptive-log-scale} is satisfied. To facilitate computing $h'(x)$, we recall the well-known property that $\psi(x+1) = \psi(x) + \frac{1}{x}$, so that
+%
+\begin{align*}
+\psi(M+1) = \psi(M) + \frac{1}{M} = \cdots = \psi(1) + \sum_{r=1}^M \frac{1}{r},
+\end{align*}
+%
+where $-\psi(1) = \gamma \approx 0.5772157$ is the Euler-Mascheroni constant. We now state the adaptive computation as Algorithm~\ref{alg:adaptz}.
+
+\begin{algorithm}
+\caption{An adaptive computation of the series in $Z(\lambda, \nu)$.}
+\label{alg:adaptz}
+\begin{algorithmic}
+\Function{AdaptiveZ}{$\lambda, \nu, \delta, \epsilon$}
+\State $z \leftarrow 0$,
+$h(y) \leftarrow \infty$,
+$\psi \leftarrow -\gamma$,
+$y \leftarrow 0$,
+$h'(y) \leftarrow \infty$
+\While{$h'(y) > 0$}
+\State $h(y) \leftarrow y \log \lambda - \nu \log \Gamma(y+1)$
+\State $z \leftarrow z + \exp\{h(y)\}$
+\State $\psi \leftarrow \psi + 1 / (y+1)$
+\State $h'(y) \leftarrow \log \lambda - \nu \psi$
+\State $y \leftarrow y + 1$
+\EndWhile
+
+\While{$h(y) > \log \delta$}
+\State $h(y) \leftarrow y \log \lambda - \nu \log \Gamma(y+1)$
+\State $z \leftarrow z + \exp\{ h(y) \}$
+\State $y \leftarrow y + 1$
+\EndWhile
+
+\While{$M \leq \lambda^{1/\nu} e - 1$}
+\State $h(y) \leftarrow y \log \lambda - \nu \log \Gamma(y+1)$
+\State $z \leftarrow z + \exp\{ h(y) \}$
+\State $y \leftarrow y + 1$
+\EndWhile
+
+\State Compute $\log \Delta_M$ according to Section~\ref{sec:quantify-error}
+\While{$\log \Delta_M - \log z \geq \log \epsilon$}
+\State $h(y) \leftarrow y \log \lambda - \nu \log \Gamma(y+1)$
+\State $z \leftarrow z + \exp\{ h(y) \}$
+\State $y \leftarrow y + 1$
+\State Recompute $\log \Delta_M$
+\EndWhile
+
+\State \Return $z$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+%
+To address issue A3, we can employ a ``hybrid'' method to compute $\log Z(\lambda, \nu)$. Given some threshold $\kappa > 0$, we return $\log \tilde{Z}(\lambda, \nu)$ computed via \eqref{eqn:z-approx} if $\lambda^{-1/\nu} < \kappa$, and $\log \tilde{Z}(\lambda, \nu)$ computed via Algorithm~\ref{alg:adaptz} otherwise.
 
 \end{document}
 

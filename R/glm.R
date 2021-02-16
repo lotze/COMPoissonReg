@@ -41,12 +41,12 @@
 #' y_i^* \sim \rm{CMP}(\lambda_i, \nu_i), \;\;\;
 #' \log \lambda_i = \bm{x}_i^\top \beta, \;\;\;
 #' \log \nu_i = \bm{s}_i^\top \gamma, \;\;\;
-#' \log p_i = \bm{w}_i^\top \zeta.
+#' \rm{logit} p_i = \bm{w}_i^\top \zeta.
 #' }{
 #' y_i^* ~ CMP(lambda_i, nu_i),
 #' log lambda_i = x_i^T beta,
 #' log nu_i = s_i^T gamma,
-#' log p_i = w_i^T zeta.
+#' logit p_i = w_i^T zeta.
 #' }
 #'
 #' @references

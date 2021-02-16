@@ -1,6 +1,5 @@
-#include <Rcpp.h>
-#include <list>
 #include "util.h"
+#include <vector>
 
 // Solaris gives errors on CRAN if we do not define this.
 double log(unsigned int x)
@@ -12,7 +11,7 @@ double log(unsigned int x)
 // provided in Rcpp Sugar yet.
 Rcpp::IntegerVector which(const Rcpp::LogicalVector& x)
 {
-	std::list<int> idx;
+	std::vector<int> idx;
 	for (int i = 0; i < x.size(); i++) {
 		if (x(i)) {
 			idx.push_back(i);
@@ -22,27 +21,45 @@ Rcpp::IntegerVector which(const Rcpp::LogicalVector& x)
 	return Rcpp::IntegerVector(idx.begin(), idx.end());
 }
 
-// Quantile function for a discrete distribution with values (0, 1, ..., k-1)
-// and probabilities p = (p(0), ..., p(k-1)). If p does not sum to 1, we assume
-// that p(k) = 1 - p(0) - ... - p(k-1). If log_scale = TRUE, interpret q and p
-// as log-probabilities
-double qdiscrete(double q, const Rcpp::NumericVector& p, bool log_scale)
+// This is intended to be like the linspace function in Armadillo
+Rcpp::NumericVector linspace(double start, double end, unsigned int N)
 {
-	unsigned int k = p.size();
-	Rcpp::IntegerVector idx;
+	Rcpp::NumericVector out(N);
+	double inc = (end - start) / (N-1);
 
-	if (log_scale) {
-		Rcpp::NumericVector lcp = logcumprobs(p);
-		idx = which(q < lcp);
-	} else {
-		Rcpp::NumericVector cumprobs = Rcpp::cumsum(p);
-		idx = which(q < cumprobs);
+	for (unsigned int i = 0; i < N; i++) {
+		out(i) = start + i * inc;
 	}
 
-	if (idx.size() > 0) {
-		return idx(0);
+	return out;
+}
+
+// Compute quantiles of a discrete distribution with values 0, 1, ..., k-1 and
+// associated *cumulative* probabilities cp(0), cp(1), ..., cp(k-1). Use a
+// bisection search because cp can be rather large. q and cp can be given on
+// the log-scale or probability scale, but they are expected to be compatible.
+unsigned int qdiscrete(double q, const Rcpp::NumericVector& cp)
+{
+	unsigned int k = cp.size();
+	if (q > cp(k-1)) {
+		Rcpp::stop("q > max(cp)");
+	}
+
+	// Otherwise do a binary search
+	unsigned int x_lo = 0;
+	unsigned int x_hi = k-1;
+	unsigned int x = int(floor((x_hi + x_lo) / 2.0));
+	while (x_hi - x_lo > 1) {
+		bool ind = (cp(x) >= q);
+		x_lo = (1 - ind) * x + ind * x_lo;
+		x_hi = ind * x + (1 - ind) * x_hi;
+		x = int(floor((x_hi + x_lo) / 2.0));
+	}
+
+	if (cp(x_lo) >= q) {
+		return x_lo;
 	} else {
-		return k;
+		return x_hi;
 	}
 }
 

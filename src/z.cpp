@@ -1,78 +1,133 @@
-#include <Rcpp.h>
-#include "cmp.h"
+#include "z.h"
 #include "util.h"
 
-// Brute force computation of the z-function. This computation is done at the
-// original scale (as opposed to the log-scale), so it becomes unstable when
-// the magnitudes of the terms become very large.
-// [[Rcpp::export]]
-Rcpp::NumericVector z_exact(const Rcpp::NumericVector& lambda,
-	const Rcpp::NumericVector& nu, double tol = 1e-6, bool take_log = false,
-	double ymax = 1e100)
+// This follows the same logic as cmp_allprobs, except only stores the
+// normalizing constant.
+double z_trunc(double lambda, double nu, double tol, bool take_log, double ymax)
 {
-	unsigned int n = lambda.size();
-	if (n != nu.size()) {
-		Rcpp::stop("Length of lambda must be same as length of nu");
+	double log_tol = log(tol);
+	double diff = R_PosInf;
+	unsigned int y;
+
+	// Compute for y = 0 outside of the loop to avoid errors in log_Z_trunc sum
+	double lp = -nu*lgamma(1);
+	double log_Z_trunc = lp;
+
+	for (y = 1; (diff > log_tol) && (y < ymax); y++) {
+		lp = y*log(lambda) - nu*lgamma(y + 1);
+
+		// Sum normalizing constant on the log scale. Try to avoid too much
+		// numerical error. Use the property: log(a + b) = log(a) + log(1 + b/a)
+		log_Z_trunc += log1p(exp(lp - log_Z_trunc));
+
+		double log_ratio = log(lambda) + nu - nu*log(y+1);
+		if (log_ratio < 0) {
+			double log_Delta = -nu / 2 * log(2 * M_PI) -
+				nu * (y + 3 / 2.0) * log(y + 1) +
+				(y + 1) * (nu + log(lambda)) -
+				log1p(-lambda * exp(nu) / pow(y + 1, nu));
+			diff = log_Delta - log_Z_trunc;
+		}
+
+	 	if (y % 10000 == 0) {
+	 		R_CheckUserInterrupt();
+	 	}
 	}
 
-	Rcpp::NumericVector z(n);
-	for (unsigned int i = 0; i < n; i++) {
-		const Rcpp::NumericVector& probs = cmp_allprobs(lambda(i), nu(i), tol, false, ymax, false);
-		z(i) = Rcpp::sum(probs);
+	if (y == ymax) {
+		char msg[512];
+		sprintf(msg,
+			"CMP(%g, %g) truncated to %g has absolute relative error %g\n"
+			"Consider changing the following options: "
+			"COMPoissonReg.ymax, COMPoissonReg.hybrid_tol, and "
+			"COMPoissonReg.truncate_tol",
+			ymax, lambda, nu, exp(diff));
+		Rf_warning(msg);
 	}
 
 	if (take_log) {
-		return log(z);
+		return log_Z_trunc;
 	} else {
-		return z;
+		return exp(log_Z_trunc);
 	}
 }
 
-// Approximation to the z-function from Shmueli et al (JRSS-C, 2005)
-// [[Rcpp::export]]
-Rcpp::NumericVector z_approx(const Rcpp::NumericVector& lambda,
-	const Rcpp::NumericVector& nu, bool take_log = false)
+double z_approx(double lambda, double nu, bool take_log)
 {
-	unsigned int n = lambda.size();
-	if (n != nu.size()) {
-		Rcpp::stop("Length of lambda must be same as length of nu");
-	}
-
-	Rcpp::NumericVector logz = nu*exp(1/nu * log(lambda)) -
+	double out = nu*exp(1/nu * log(lambda)) -
 		(nu-1)/(2*nu) * log(lambda) -
 		(nu-1)/2 * log(2*M_PI) - 0.5*log(nu);
 
 	if (take_log) {
-		return logz;
+		return out;
 	} else {
-		return exp(logz);
+		return exp(out);
 	}
 }
 
-// Sum (j>=0) { lambda^j / (j!)^nu }
-// If lambda^{-1/nu} is small, it is more efficient (and often numerically more stable)
-// to use an approximation at the log-scale.
-// [[Rcpp::export]]
+double z_hybrid(double lambda, double nu, bool take_log, double hybrid_tol,
+	double truncate_tol, double ymax)
+{
+	bool cond = exp(-1/nu * log(lambda)) < hybrid_tol;
+	double out;
+	
+	if (cond) {
+		out = z_approx(lambda, nu, take_log);
+	} else {
+		out = z_trunc(lambda, nu, truncate_tol, take_log, ymax);
+	}
+
+	return out;
+}
+
+Rcpp::NumericVector z_trunc(const Rcpp::NumericVector& lambda,
+	const Rcpp::NumericVector& nu, double tol, bool take_log,
+	double ymax)
+{
+	unsigned int n = lambda.size();
+	if (n != nu.size()) {
+		Rcpp::stop("Length of lambda must be same as length of nu");
+	}
+
+	Rcpp::NumericVector out(n);
+	for (unsigned int i = 0; i < n; i++) {
+		out(i) = z_trunc(lambda(i), nu(i), tol, take_log, ymax);
+	}
+
+	return out;
+}
+
+Rcpp::NumericVector z_approx(const Rcpp::NumericVector& lambda,
+	const Rcpp::NumericVector& nu, bool take_log)
+{
+	unsigned int n = lambda.size();
+	if (n != nu.size()) {
+		Rcpp::stop("Length of lambda must be same as length of nu");
+	}
+
+	Rcpp::NumericVector out(n);
+	for (unsigned int i = 0; i < n; i++) {
+		out(i) = z_approx(lambda(i), nu(i), take_log);
+	}
+
+	return out;
+}
+
 Rcpp::NumericVector z_hybrid(const Rcpp::NumericVector& lambda,
-	const Rcpp::NumericVector& nu, bool take_log = false,
-	double tol1 = 1e-2, double tol2 = 1e-6)
+	const Rcpp::NumericVector& nu, bool take_log,
+	double hybrid_tol, double truncate_tol, double ymax)
 {
 	unsigned int n = lambda.size();
 	if (n != nu.size()) {
 		Rcpp::stop("lambda and nu must be the same length");
 	}
 
-	Rcpp::LogicalVector cond = exp(-1/nu * log(lambda)) < tol1;
-	Rcpp::IntegerVector idx_approx = which(cond);
-	Rcpp::IntegerVector idx_exact = which(!cond);
-
-	Rcpp::NumericVector logz(n);
-	logz[idx_approx] = z_approx(lambda[idx_approx], nu[idx_approx], true);
-	logz[idx_exact] = z_exact(lambda[idx_exact], nu[idx_exact], tol2, true);
-
-	if (take_log) {
-		return logz;
-	} else {
-		return exp(logz);
+	Rcpp::NumericVector out(n);
+	for (unsigned int i = 0; i < n; i++) {
+		out(i) = z_hybrid(lambda(i), nu(i), take_log, hybrid_tol,
+			truncate_tol, ymax);
 	}
+
+	return out;
 }
+

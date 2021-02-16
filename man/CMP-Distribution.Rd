@@ -7,6 +7,7 @@
 \alias{pcmp}
 \alias{qcmp}
 \alias{ecmp}
+\alias{vcmp}
 \title{COM-Poisson Distribution}
 \usage{
 dcmp(x, lambda, nu, log = FALSE)
@@ -18,6 +19,8 @@ pcmp(x, lambda, nu)
 qcmp(q, lambda, nu, log.p = FALSE)
 
 ecmp(lambda, nu)
+
+vcmp(lambda, nu)
 }
 \arguments{
 \item{x}{vector of quantiles.}

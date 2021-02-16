@@ -211,6 +211,7 @@ NULL
 #'   differences are taken.
 #' @param COMPoissonReg.ymax Maximum count value to be considered. Larger
 #'   values are truncated.
+#' TBD: Add tol options!
 #' 
 #' @name COMPoissonReg-options
 NULL

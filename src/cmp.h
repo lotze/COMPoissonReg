@@ -3,27 +3,36 @@
 
 #include <Rcpp.h>
 
-// [[Rcpp::export]]
-Rcpp::NumericVector cmp_allprobs(double lambda, double nu, double tol = 1e-6,
-	bool take_log = false, double ymax = 1e100, bool normalize = true);
+//' TBD: I think we might want to delete this, but not sure if we can yet.
+// @export
+//' [[Rcpp::export]]
+//Rcpp::NumericVector allprobs_cmp(double lambda, double nu, double tol,
+//	bool take_log, double ymax, bool normalize);
 
 // [[Rcpp::export]]
-Rcpp::NumericVector dcmp_cpp(const Rcpp::NumericVector& x,
+double loglik_cmp(const Rcpp::NumericVector& x,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
-	double tol = 1e-6, bool take_log = false, double ymax = 1e100);
+	double hybrid_tol, double truncate_tol, double ymax);
 
 // [[Rcpp::export]]
-Rcpp::NumericVector pcmp_cpp(const Rcpp::NumericVector& x,
-	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
-	double tol = 1e-6, double ymax = 1e100);
+Rcpp::NumericVector d_cmp(const Rcpp::NumericVector& x, double lambda,
+	double nu, bool take_log, bool normalize, double hybrid_tol,
+	double truncate_tol, double ymax);
 
 // [[Rcpp::export]]
-Rcpp::NumericVector qcmp_cpp(const Rcpp::NumericVector& logq,
-	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
-	double tol = 1e-6, double ymax = 1e100);
+Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda,
+	double nu, double hybrid_tol, double truncate_tol, double ymax);
 
+// Assume that quantiles q are given on the log scale.
+// Work on the log-scale for stability.
 // [[Rcpp::export]]
-Rcpp::NumericVector rcmp_cpp(unsigned int n, const Rcpp::NumericVector& lambda,
-	const Rcpp::NumericVector& nu, double tol = 1e-6, double ymax = 1e100);
+Rcpp::NumericVector q_cmp(const Rcpp::NumericVector& logq, double lambda,
+	double nu, double hybrid_tol, double truncate_tol, double ymax);
+
+// Produce n iid draws.
+// If n is a scalar, take n(i) to be n
+// [[Rcpp::export]]
+Rcpp::NumericVector r_cmp(unsigned int n, double lambda, double nu,
+	double hybrid_tol, double truncate_tol, double ymax);
 
 #endif

@@ -17,7 +17,8 @@ are taken.}
 differences are taken.}
 
 \item{COMPoissonReg.ymax}{Maximum count value to be considered. Larger
-values are truncated.}
+  values are truncated.
+TBD: Add tol options!}
 }
 \description{
 Global options used by the COMPoissonReg package.

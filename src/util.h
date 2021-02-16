@@ -8,7 +8,11 @@ double log(unsigned int x);
 Rcpp::IntegerVector which(const Rcpp::LogicalVector& x);
 
 // [[Rcpp::export]]
-double qdiscrete(double q, const Rcpp::NumericVector& p, bool log_scale = false);
+Rcpp::NumericVector linspace(double start, double end, unsigned int N);
+
+//' @export
+// [[Rcpp::export]]
+unsigned int qdiscrete(double q, const Rcpp::NumericVector& cp);
 
 // [[Rcpp::export]]
 double logsumprobs(const Rcpp::NumericVector& logprob, unsigned int baseidx);
