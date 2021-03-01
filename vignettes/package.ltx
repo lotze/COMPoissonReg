@@ -17,7 +17,56 @@
 \maketitle
 
 \section{Introduction}
-Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway Maxwell Poisson random
+\label{sec:intro}
+TBD
+\begin{enumerate*}
+\item This vignette gives an overview of the COMPoissonReg package.
+
+\item The COMPoissonReg package fits COM-Poisson (CMP) and Zero-Inflated COM-Poisson (ZICMP) regression models.
+
+\item A brief review of relevant literature (and whatever we want to mention).
+%
+\begin{enumerate*}
+\item The distribution was first described in \citet{ConwayMaxwell1962}.
+\item It found a renewed interest in count modeling in \citet{ShmueliEtAl2005} because of its ability to capture both over- and underdispersion.
+\item Other interesting count distributions include Negative Binomial, Generalized Poisson, \ldots
+\item CMP was explored for use in count regression models in \citet{SellersShmueli2010}.
+\item ZICMP was explored for zero-inflated count regression in \citet{SellersRaim2016}.
+\item Works by \citet{Huang2017} and \citet{RibeiroEtAl2020} reparameterize CMP to be more interpretable in terms of the mean.
+\item Some other interesting extensions to CMP include the multivariate CMP distribution \citep{SellersMorrisBalakrishnan2016}, count processes based on CMP \citep{ZhuEtAl2017}, zero- and $k$-inflated CMP \citep{AroraChagantySellers2021}, the Conway Maxwell Binomial (CMB) regression model (TBD: cite), the Conway Maxwell Multinomial (CMM) regression model \citep{KadaneWang2018,MorrisRaimSellers2020}, \ldots
+\end{enumerate*}
+
+
+\item Normalizing constant.
+%
+\begin{enumerate*}
+\item \citet{ShmueliEtAl2005} seem to be the first ones to address this. Others listed here are more sophisticated and build on this initial work. We don't use them in the software, but they may be interesting to readers.
+\item \citet{GillispieGreen2015} 
+\item \citet{DalyGaunt2016}
+\item \citet{BrooksEtAl2017} apparently also has an adaptive method for computing the CMP normalizing constant.
+\item \citet{GauntEtAl2019}
+\end{enumerate*}
+
+\item Related software packages.
+%
+\begin{enumerate*}
+\item The \code{compoisson} R package \citep{compoisson} implements CMP distribution functions. It had been on CRAN since 2011, but was deprecated on 2/16/2020.
+\item The \code{CompGLM} R package \citep{CompGLM} implements CMP regression. It had been on CRAN since 2014, but was deprecated on 10/16/2019.
+\item CMP regression is supported in the SAS COUNTREG procedure \citep{SASProcCountreg2018}
+\item The \code{mpcmp} R package \citep{FungEtAl2020} implements the mean-parameterized CMP regression described in \citet{Huang2017}.
+\item The \code{cmpreg} R package \citep{cmpreg} implements the CMP parameterization from \citet{RibeiroEtAl2020}.
+\item The \code{combayes} R package \citep{combayes} implements Bayesian CMP analysis.
+\item The \code{multicmp} R package \citep{multicmp} supports the multivariate CMP distribution \citep{SellersMorrisBalakrishnan2016}.
+\item The \code{COMMultReg} R package \citep{COMMultReg} supports the CMM regression model.
+\end{enumerate*}
+
+\item In Section~\ref{sec:model}, we briefly review the model. In Section~\ref{sec:normconst}, we discuss computation of the normalizing constant, \ldots
+\end{enumerate*}
+
+\section{Model}
+\label{sec:model}
+\paragraph{Conway Maxwell Poisson.}
+Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway Maxwell Poisson (CMP) random
 variable with density
 %
 \begin{align*}
@@ -38,6 +87,17 @@ statistic
 $\vec{s}(y) = (y, -\log(y!))$, $b(\vec{\eta}) = \log Z(e^{\eta_1}, \eta_2)$,
 and $a(y) = 0$.
 
+TBD
+\begin{itemize*}
+\item Special cases?
+\item Expected value?
+\item Variance?
+\item Anything else?
+\end{itemize*}
+
+\paragraph{Zero-Inflated Conway Maxwell Poisson.}
+
+\paragraph{ZICMP Regression Model.}
 Suppose there are $n$ subjects with count-valued outcomes $y_1, \ldots, y_n$
 and covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in
 \mathbb{R}^{d_2}$, and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$.
@@ -70,7 +130,7 @@ L(\btheta) =
 
 Useful special cases include COM-Poisson regression with $p_i \equiv 0$ and
 Zero-Inflated Poisson with $\nu_i \equiv 1$. (TBD: we might want to review the
-other interesting special cases here too: geometric, etc).
+other interesting special cases here too: geometric, etc). (TBD: mention that, if possible, we will try to discuss in terms of the ZICMP model, for which all the other models are special cases.)
 
 \begin{itemize*}
 \item Give the expressions for expectation and variance, and associated code.
@@ -80,60 +140,38 @@ other interesting special cases here too: geometric, etc).
 \item \citet{Eddelbuettel2013} for Rcpp ...
 \item For normalizing constant, can we somehow give lower bounds so we don't need to start summing from 0? Is it possible to use root-finding here since the bounds aren't quite invertible themselves?
 \item Maybe give code in Section~\ref{sec:normconst} to change the options for tolerances?
+\item Maybe mention the trick that we use to sum on the log scale $\log(x + y) = \log x + \log(1 + \exp\{ \log x - \log y \})$
 \end{itemize*}
 
 
 \section{Normalizing Constant}
 \label{sec:normconst}
 The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the
-practical use of CMP models. 
-Approximation of $Z$ has been a topic of interest in the CMP literature. (TBD:
-maybe give an overview here, and specifics later if they are needed).
-
-First, there is no simple closed form expression
-for the series. Furthermore, the value of $Z(\lambda, \nu)$ may become
-extremely large in magnitude so that it is not practical to compute at its
-original scale. This occurs when $\lambda^{1/\nu}$ becomes large, especially
-when $\lambda > 1$ and $\nu \rightarrow 0$. (TBD: This would be a good place
-for the asymptotic expansion). For example,
-$Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision
-floating point number, and may evaluate to infinity if care is not taken.
-
-The strategy taken by \pkg{COMPoissonReg} is to use a hybrid approach. For a
-small given $\delta > 0$, if $\lambda^{-1/\nu} < \delta$, an approximation
-discussed in Section~\ref{sec:approx} is computed at the log-scale. Otherwise,
-the series is computed truncating the series to a finite number of terms,
-which is described in Section~\ref{sec:truncate}.
-
-
-\subsection{Approximation}
-\label{sec:approx}
-One way to avoid the problem of large magnitudes is to work on the log-scale,
-but this does not seem possible if we are explicitly computing the series
-term-by-term. A suggestion by \citet{ShmueliEtAl2005} is
-%
-\begin{align*}
-\tilde{Z}(\lambda, \nu) &= \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} },
-\end{align*}
-%
-which is discussed further by \citet{GillispieGreen2015} and
-\citet{GauntEtAl2019}. The approximation may be directly computed on the
-log-scale as
+practical use of CMP models and has been a topic of interest in the CMP literature. In general, there is no simple closed form expression for the series. Furthermore, the value of $Z(\lambda, \nu)$ can change by many orders of magnitude when $\lambda$ and $\nu$ are varied. (TBD: maybe give an overview here or earlier in the intro, and specifics later if they are needed). \citet{ShmueliEtAl2005} give the approximation
 %
 \begin{align}
-\log \tilde{Z}(\lambda, \nu) &=  \nu \lambda^{1/\nu} - \frac{\nu-1}{2\nu} \log \lambda - \frac{\nu-1}{2} \log(2\pi) - \frac{1}{2} \log \nu.
+Z(\lambda, \nu) &= \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} }
+\left\{ 1 + O(\lambda^{-1/\nu}) \right\},
+\label{eqn:approx}
+\end{align}
+%
+which has been refined further in subsequent literature mentioned in Section~\ref{sec:intro}. The first term in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes when $\lambda > 1$ as $\nu \rightarrow 0$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision
+floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
+
+In practice, the \code{COMPoissonReg} packages does not place constraints on $\lambda$ and $\nu$, except to ensure that they are positive, so that their values are driven by the data and/or user's selection. A hybrid strategy motivated by \eqref{eqn:approx} is taken by \pkg{COMPoissonReg}. Given a small tolerance $\delta > 0$, if $\lambda^{-1/\nu} < \delta$, the first term of \eqref{eqn:approx} dominates the second term, and we take
+%
+\begin{align}
+Z(\lambda, \nu) &\approx \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} } \nonumber \\
+&=\exp\left\{
+\nu \lambda^{1/\nu} - \frac{\nu-1}{2\nu} \log \lambda - \frac{\nu-1}{2} \log(2\pi) - \frac{1}{2} \log \nu
+\right\}.
 \label{eqn:z-approx}
 \end{align}
 %
-Also see \citet{DalyGaunt2016}, which has a number of insightful results for
-both CMP and CMB. Apparently, \citet{BrooksEtAl2017} also has an adaptive
-method for computing the CMP normalizing constant.
+as an approximation. Otherwise, the series is computed truncating the series to a finite number of terms, which is described next. In either case, computations are kept on the log-scale as much as possible to accommodate numbers with potentially very large magnitudes.
 
-\subsection{Truncated Series}
-\label{sec:truncate}
-We consider approximating $Z(\lambda, \nu)$ by the finite summation
-$Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. The general
-approach for this has been laid out in Appendix~B of \citet{ShmueliEtAl2005}.
+If $\lambda^{-1/\nu} \geq \delta$, we approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. The general
+approach for this is described in Appendix~B of \citet{ShmueliEtAl2005}.
 Here we consider Stirling's approximation in particular; for an adequately
 large $M$, Stirling's approximation can be applied to obtain bounds for the
 remainder with a closed form. \citet[Section~2.9]{Feller1968} gives the bound
