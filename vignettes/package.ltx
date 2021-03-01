@@ -38,10 +38,11 @@ statistic
 $\vec{s}(y) = (y, -\log(y!))$, $b(\vec{\eta}) = \log Z(e^{\eta_1}, \eta_2)$,
 and $a(y) = 0$.
 
-Suppose there are $n$ subjects with count-valued outcomes $y_i$ and
-covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in \mathbb{R}^{d_2}$,
-and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$. The \pkg{COMPoissonReg}
-package fits Zero-Inflated COM-Poisson regression models of the form
+Suppose there are $n$ subjects with count-valued outcomes $y_1, \ldots, y_n$
+and covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in
+\mathbb{R}^{d_2}$, and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$.
+The \pkg{COMPoissonReg} package fits Zero-Inflated COM-Poisson regression
+models of the form
 %
 \begin{align*}
 &y_i =
@@ -63,13 +64,13 @@ L(\btheta) =
 \prod_{i=1}^n \left[(1 - p_i)
 \frac{\lambda_i^{y_i}}{(y_i!)^{\nu_i} Z(\lambda_i, \nu_i)}
 + p_i
-\right]
+\right].
 \label{eqn:likelihood}
 \end{align}
 
-
 Useful special cases include COM-Poisson regression with $p_i \equiv 0$ and
-Zero-Inflated Poisson with $\nu_i \equiv 1$.
+Zero-Inflated Poisson with $\nu_i \equiv 1$. (TBD: we might want to review the
+other interesting special cases here too: geometric, etc).
 
 \begin{itemize*}
 \item Give the expressions for expectation and variance, and associated code.
@@ -85,20 +86,24 @@ Zero-Inflated Poisson with $\nu_i \equiv 1$.
 \section{Normalizing Constant}
 \label{sec:normconst}
 The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the
-practical use of CMP models. First, there is no simple closed form expression
+practical use of CMP models. 
+Approximation of $Z$ has been a topic of interest in the CMP literature. (TBD:
+maybe give an overview here, and specifics later if they are needed).
+
+First, there is no simple closed form expression
 for the series. Furthermore, the value of $Z(\lambda, \nu)$ may become
 extremely large in magnitude so that it is not practical to compute at its
 original scale. This occurs when $\lambda^{1/\nu}$ becomes large, especially
-when $\lambda > 1$ and $\nu \rightarrow 0$. For example,
+when $\lambda > 1$ and $\nu \rightarrow 0$. (TBD: This would be a good place
+for the asymptotic expansion). For example,
 $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision
 floating point number, and may evaluate to infinity if care is not taken.
-Approximation of $Z$ has been a topic of interest in the CMP literature.
 
 The strategy taken by \pkg{COMPoissonReg} is to use a hybrid approach. For a
 small given $\delta > 0$, if $\lambda^{-1/\nu} < \delta$, an approximation
 discussed in Section~\ref{sec:approx} is computed at the log-scale. Otherwise,
-the series is computed by summing a finite number of terms which is truncated
-according to Section~\ref{sec:truncate}.
+the series is computed truncating the series to a finite number of terms,
+which is described in Section~\ref{sec:truncate}.
 
 
 \subsection{Approximation}
@@ -127,9 +132,11 @@ method for computing the CMP normalizing constant.
 \subsection{Truncated Series}
 \label{sec:truncate}
 We consider approximating $Z(\lambda, \nu)$ by the finite summation
-$Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. An
-adequately large $M$ can be selected by applying Stirling's approximation
-and bounding the remainder. \citet[Section~2.9]{Feller1968} gives the bound
+$Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. The general
+approach for this has been laid out in Appendix~B of \citet{ShmueliEtAl2005}.
+Here we consider Stirling's approximation in particular; for an adequately
+large $M$, Stirling's approximation can be applied to obtain bounds for the
+remainder with a closed form. \citet[Section~2.9]{Feller1968} gives the bound
 %
 \begin{align*}
 \sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n + 1)} < n! <

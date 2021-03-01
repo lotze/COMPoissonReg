@@ -20,6 +20,9 @@ double z_trunc(double lambda, double nu, double tol, bool take_log, double ymax)
 		// numerical error. Use the property: log(a + b) = log(a) + log(1 + b/a)
 		log_Z_trunc += log1p(exp(lp - log_Z_trunc));
 
+		// log_ratio needs to be < 0 before we can use our Stirling
+		// approximation to bound the sum. Until then, consider diff to
+		// be infinity.
 		double log_ratio = log(lambda) + nu - nu*log(y+1);
 		if (log_ratio < 0) {
 			double log_Delta = -nu / 2 * log(2 * M_PI) -
@@ -37,11 +40,12 @@ double z_trunc(double lambda, double nu, double tol, bool take_log, double ymax)
 	if (y == ymax) {
 		char msg[512];
 		sprintf(msg,
-			"CMP(%g, %g) truncated to %g has absolute relative error %g\n"
+			"Absolute relative error exp(%g) obtained when CMP(%g, %g) was "
+			"truncated to %g. This was larger than tolerance %g. "
 			"Consider changing the following options: "
 			"COMPoissonReg.ymax, COMPoissonReg.hybrid_tol, and "
 			"COMPoissonReg.truncate_tol",
-			ymax, lambda, nu, exp(diff));
+			diff, lambda, nu, tol, ymax);
 		Rf_warning(msg);
 	}
 

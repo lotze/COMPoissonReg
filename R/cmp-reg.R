@@ -314,7 +314,7 @@ predict.cmp = function(object, newdata = NULL, ...)
 		if (is.null(off.s)) { off.s = rep(0, n.new) }
 		
 		weights = model.weights(mf.x)
-		if(!is.null(weights)) {
+		if (!is.null(weights)) {
 			stop("weights argument is currently not supported")
 		}
 	}
@@ -336,7 +336,7 @@ parametric.bootstrap.cmp = function(object, reps = 1000, report.period = reps+1,
 	nu.hat = out$nu
 
 	# Generate `reps` samples, using beta.hat and nu.hat from full dataset
-	# Run CMP regression on each boostrap sample to generate new beta and nu estimates
+	# Run CMP regression on each bootstrap sample to generate new beta and nu estimates
 	
 	boot.out = matrix(NA, nrow = reps, ncol = d1 + d2)
 

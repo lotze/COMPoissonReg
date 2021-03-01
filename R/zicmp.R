@@ -83,9 +83,16 @@ ezicmp = function(lambda, nu, p)
 # Extend lambda, nu, and p vectors to be compatible lengths.
 # If all are length 1, do not extend them - this is a special case which
 # is handled more efficiently.
+#
+# This also seems to be a good place to make sure parameters are in the right
+# space. TBD: Or we could check in the underlying C++ functions?
 prep.zicmp = function(n, lambda, nu, p = 0)
 {
 	L = max(length(lambda), length(nu), length(p))
+
+	stopifnot(all(lambda > 0))
+	stopifnot(all(nu > 0))
+	stopifnot(all(p >= 0 & p <= 1))
 
 	if (n > 1 && L > 1) { stopifnot(n == L) }
 	if (length(lambda) == 1 && L > 1) { lambda = rep(lambda, L) }
