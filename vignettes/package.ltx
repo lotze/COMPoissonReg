@@ -159,7 +159,6 @@ L(\btheta) =
 \item \citet{Eddelbuettel2013} for Rcpp ...
 \item For normalizing constant, can we somehow give lower bounds so we don't need to start summing from 0? Is it possible to use root-finding here since the bounds aren't quite invertible themselves?
 \item Maybe give code in Section~\ref{sec:normconst} to change the options for tolerances?
-\item Maybe mention the trick that we use to sum on the log scale $\log(x + y) = \log x + \log(1 + \exp\{ \log x - \log y \})$
 \end{itemize*}
 
 
@@ -261,6 +260,14 @@ where
 Therefore, we compute $Z^{(M)}(\lambda, \nu)$ until at least
 $M > \lambda^{1/\nu} e - 1$, increasing $M$ and updating
 $Z^{(M)}(\lambda, \nu)$ until \eqref{eqn:adaptive-log-scale} is satisfied.
+
+The individual terms $\lambda^r / (r!)^\nu$ in the summation may be too large to store at their original scale. Therefore, summation is carried out at the log-scale, wherever possible, using the identity
+%
+\begin{align*}
+\log(x + y) = \log x + \log(1 + \exp\{ \log y - \log x \});
+\end{align*}
+%
+this is especially helpful when $0 < y << x$, as $\log x$ may be kept on the log-scale by the first term of the RHS, and the standard library function \code{log1p} may be used with the second term to accurately compute $\log(1 + \epsilon)$ for very small $\epsilon > 0$.
 
 
 \paragraph{TBD}

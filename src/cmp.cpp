@@ -4,64 +4,6 @@
 #include "z.h"
 #include "util.h"
 
-/*
-// TBD: Do we still need this, or can it be removed?
-// Enumerate the terms lambda^y / (y!)^nu for y >= 0, until they become small,
-// or until y = ymax is reached.
-Rcpp::NumericVector allprobs_cmp(double lambda, double nu, double tol,
-	bool take_log, double ymax, bool normalize)
-{
-	std::vector<double> logp_unnorm;
-	double log_tol = log(tol);
-	double diff = R_PosInf;
-	unsigned int y;
-
-	// Compute for y = 0 outside of the loop to avoid errors in log_Z_trunc sum
-	double lp = -nu*lgamma(1);
-	double log_Z_trunc = lp;
-	logp_unnorm.push_back(lp);
-
-	for (y = 1; (diff > log_tol) && (y < ymax); y++) {
-		lp = y*log(lambda) - nu*lgamma(y + 1);
-		logp_unnorm.push_back(lp);
-
-		// Sum normalizing constant on the log scale. Try to avoid too much numerical error.
-		// Using the property: log(a + b) = log(a) + log(1 + b/a)
-		log_Z_trunc += log1p(exp(lp - log_Z_trunc));
-
-		double log_ratio = log(lambda) + nu - nu*log(y+1);
-		if (log_ratio < 0) {
-			double log_Delta = -nu/2 * log(2*M_PI) - nu*(y + 3/2.0) * log(y + 1) +
-				(y + 1)*(nu + log(lambda)) - log1p(-lambda * exp(nu) / pow(y + 1, nu));
-			diff = log_Delta - log_Z_trunc;
-		}
-
-	 	if (y % 10000 == 0) {
-	 		R_CheckUserInterrupt();
-	 	}
-	}
-
-	if (y == ymax) {
-		char msg[128];
-		sprintf(msg, "%s\n\toptions(COMPoissonReg.ymax = %g)\n",
-			"Larger numbers may be needed for CMP. Try increasing this setting:", ymax);
-		Rf_warning(msg);
-	}
-
-	Rcpp::NumericVector logp(logp_unnorm.begin(), logp_unnorm.end());
-
-	if (normalize) {
-		logp = logp - log_Z_trunc;
-	}
-
-	if (take_log) {
-		return logp;
-	} else {
-		return exp(logp);
-	}
-}
-*/
-
 double loglik_cmp(const Rcpp::NumericVector& x,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
 	double hybrid_tol, double truncate_tol, double ymax)
@@ -105,22 +47,20 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 	unsigned int n = x.size();
 	Rcpp::NumericVector out(n);
 
-	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol,
-		truncate_tol, ymax);
+	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol, truncate_tol, ymax);
 
 	unsigned int x_max = int(std::min(double(Rcpp::max(x)), ymax));
 	const Rcpp::NumericVector& x_range = linspace(0, x_max, x_max + 1);
-	const Rcpp::NumericVector& all_lp_unnorm = d_cmp(x_range, lambda, nu, true,
-			false, hybrid_tol, truncate_tol, ymax);
 
 	for (unsigned int i = 0; i < n; i++) {
-		double lp = lnormconst;
-		for (unsigned int j = 0; j <= x(i) && j <= x_max; j++) {
+		double lcp = -lnormconst;
+		for (unsigned int j = 1; j <= x(i) && j <= x_max; j++) {
 			// Do summation on the log-scale.
 			// Use the property: log(a + b) = log(a) + log(1 + b/a).
-			lp += log1p(exp(all_lp_unnorm(j) - lp));
+			double lp = j*log(lambda) - nu*lgamma(j + 1) - lnormconst;
+			lcp = logadd(lcp, lp);
 		}
-		out(i) = lp;
+		out(i) = lcp;
 	}
 
 	return Rcpp::exp(out);
@@ -147,7 +87,7 @@ Rcpp::NumericVector q_cmp(const Rcpp::NumericVector& logq, double lambda,
 		// Do summation on the log-scale.
 		// Use the property: log(a + b) = log(a) + log(1 + b/a).
 		double lp = j*log(lambda) - nu*lgamma(j+1) - lnormconst;
-		lcp += log1p(exp(lp - lcp));
+		lcp = logadd(lcp, lp);
 		all_lcp_vec.push_back(lcp);
 
 	 	if (j % 10000 == 0 && j > 0) {

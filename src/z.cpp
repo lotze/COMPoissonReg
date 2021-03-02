@@ -18,7 +18,7 @@ double z_trunc(double lambda, double nu, double tol, bool take_log, double ymax)
 
 		// Sum normalizing constant on the log scale. Try to avoid too much
 		// numerical error. Use the property: log(a + b) = log(a) + log(1 + b/a)
-		log_Z_trunc += log1p(exp(lp - log_Z_trunc));
+		log_Z_trunc = logadd(log_Z_trunc, lp);
 
 		// log_ratio needs to be < 0 before we can use our Stirling
 		// approximation to bound the sum. Until then, consider diff to

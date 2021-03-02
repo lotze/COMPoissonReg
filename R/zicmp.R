@@ -64,13 +64,16 @@ pzicmp = function(x, lambda, nu, p)
 #' @export
 qzicmp = function(q, lambda, nu, p, log.p = FALSE)
 {
+	ymax = getOption("COMPoissonReg.ymax")
+	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
+	truncate_tol = getOption("COMPoissonReg.truncate_tol")
 	prep = prep.zicmp(length(q), lambda, nu, p)
 	if (log.p) {
 		log.q = q
 	} else {
 		log.q = log(q)
 	}
-	qzicmp_cpp(log.q, prep$lambda, prep$nu, prep$p)
+	q_zicmp(log.q, prep$lambda, prep$nu, prep$p, hybrid_tol, truncate_tol, ymax)
 }
 
 #' @name ZICMP Distribution

@@ -10,8 +10,7 @@ Rcpp::NumericVector d_zicmp(const Rcpp::NumericVector& x, double lambda,
 	unsigned int n = x.size();
 
 	// Normalizing constant of CMP (not ZICMP)
-	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol,
-		truncate_tol, ymax);
+	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol, truncate_tol, ymax);
 
 	// TBD: We need to check for integer values, here and probably in
 	// d_cmp. Or we can take integers as input...
@@ -24,9 +23,8 @@ Rcpp::NumericVector d_zicmp(const Rcpp::NumericVector& x, double lambda,
 		// zero-inflated part.
 		double log_a = log(1-p) + x(i)*log(lambda) - nu*lgamma(x(i) + 1) - lnormconst;
 		double log_b = ind_zero(i) * log(p);
-		double lp = log_a + log1p(exp(log_b - log_a));
-		double lcp = log1p(exp(lp - lcp));
-		out(i) = lcp;
+		double lp = logadd(log_a, log_b);
+		out(i) = lp;
 	}
 
 	if (take_log) {
@@ -57,8 +55,7 @@ Rcpp::NumericVector q_zicmp(const Rcpp::NumericVector& logq, double lambda,
 	double nu, double p, double hybrid_tol, double truncate_tol, double ymax)
 {
 	// Normalizing constant of CMP (not ZICMP)
-	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol,
-		truncate_tol, ymax);
+	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol, truncate_tol, ymax);
 
 	double logq_max = Rcpp::max(logq);
 	std::vector<double> all_lcp_vec;
@@ -69,18 +66,18 @@ Rcpp::NumericVector q_zicmp(const Rcpp::NumericVector& logq, double lambda,
 	// Use the property: log(a + b) = log(a) + log(1 + b/a).
 	double log_a = log(1-p) - lnormconst;
 	double log_b = log(p);
-	double lp = log_a + log1p(exp(log_b - log_a));
-	double lcp = log1p(exp(lp - lcp));
+	double lp = logadd(log_a, log_b);
+	double lcp = lp;
 	all_lcp_vec.push_back(lcp);
 
 	for (unsigned int j = 1; j <= ymax; j++) {
 		// Do summation on the log-scale.
 		// Use the property: log(a + b) = log(a) + log(1 + b/a).
 		lp = j*log(lambda) - nu*lgamma(j+1) + log(1-p) - lnormconst;
-		lcp += log1p(exp(lp - lcp));
+		lcp = logadd(lcp, lp);
 		all_lcp_vec.push_back(lcp);
 
-		if (lcp <= logq_max) {
+		if (lcp >= logq_max) {
 			break;
 		}
 	}
