@@ -80,6 +80,15 @@ ezicmp = function(lambda, nu, p)
 	(1-p) * ecmp(lambda, nu)
 }
 
+#' @name ZICMP Distribution
+#' @export
+vzicmp = function(lambda, nu, p)
+{
+	ee  = ecmp(lambda, nu)
+	vv  = vcmp(lambda, nu)
+	(1-p) * (p*ee^2 + vv)
+}
+
 # Extend lambda, nu, and p vectors to be compatible lengths.
 # If all are length 1, do not extend them - this is a special case which
 # is handled more efficiently.

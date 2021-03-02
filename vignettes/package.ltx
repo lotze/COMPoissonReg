@@ -70,11 +70,11 @@ Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway Maxwell Poisson (CMP) random
 variable with density
 %
 \begin{align*}
-f(y) = \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad y = 0, 1, \ldots, \quad
+f(y \mid \lambda, \nu) = \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad y = 0, 1, \ldots, \quad
 Z(\lambda, \nu) = \sum_{r=0}^\infty \frac{\lambda^r}{(r!)^\nu},
 \end{align*}
 %
-where $\lambda > 0$ and $\nu > 0$. Recall that $\text{CMP}(\lambda, \nu)$ is a
+where $\lambda > 0$ and $\nu > 0$. $\text{CMP}(\lambda, \nu)$ is a
 natural exponential family with
 %
 \begin{align*}
@@ -85,17 +85,46 @@ f(y) &= \exp\{ y \log \lambda - \nu \log(y!) - \log Z(\lambda, \nu) \} \\
 with natural parameter $\vec{\eta} = (\log \lambda, \nu)$, sufficient
 statistic
 $\vec{s}(y) = (y, -\log(y!))$, $b(\vec{\eta}) = \log Z(e^{\eta_1}, \eta_2)$,
-and $a(y) = 0$.
-
-TBD
-\begin{itemize*}
-\item Special cases?
-\item Expected value?
-\item Variance?
-\item Anything else?
-\end{itemize*}
+and $a(y) = 0$. For expected value and variance, we have
+%
+\begin{align*}
+\E(Y) &= \lambda \frac{\partial}{\partial \lambda} \log Z(\lambda, \nu), \\
+\Var(Y) &= \lambda^2 \frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu) + \E(Y)
+\end{align*}
+%
+Three notable special cases of $\text{CMP}(\lambda, \nu)$ help to demonstrate its flexibility in capturing dispersion. The case $\nu = 1$ corresponds to $\text{Poisson}(\lambda)$. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, the $\text{CMP}(\lambda, \nu)$ distribution becomes $\text{Geometric}(\lambda)$ with density $f(y \mid \lambda) = \lambda^y (1 - \lambda)^{1-y}$ for $y = 0, 1, \ldots$, which is overdispersed relative to Poisson. When $\nu \rightarrow \infty$, $\text{CMP}(\lambda, \nu)$ converges to a $\text{Bernoulli}(\lambda / (1 + \lambda))$ distribution which is underdispersed relative to Poisson.
 
 \paragraph{Zero-Inflated Conway Maxwell Poisson.}
+Let $S \sim \text{Bernoulli}(p)$ and $T \sim \text{CMP}(\lambda, \nu)$ be independent random variables. Then $Y = (1-S) T$ has Zero-Inflated Conway Maxwell Poisson distribution $\text{ZICMP}(\lambda, \nu, p)$ with density
+%
+\begin{align*}
+f(y \mid \lambda, \nu, p) =  (1 - p) \frac{\lambda^{y}}{(y!)^{\nu} Z(\lambda, \nu)}
++ p \cdot \ind(y = 0).
+\end{align*}
+%
+Many of the properties of ZICMP are apparent from its CMP construction; for example
+%
+\begin{align*}
+\E(Y) &= (1-p) \E(T), \\
+\Var(Y) &= (1-p) \left\{ \Var(T) + p[\E(T)]^2 \right\}.
+\end{align*}
+%
+Like CMP, several interesting special cases are obtained by varying $\nu$. 
+%
+\begin{itemize}
+\item[(a)] Taking $\nu = 1$ corresponds to Zero-Inflated Poisson $\text{ZIP}(\lambda, p)$ with density $f(y \mid \lambda, p) = (1 - p) e^{-\lambda} \lambda^{y} / y!
++ p \cdot \ind(y = 0)$.
+
+\item[(b)] When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, $\text{ZICMP}(\lambda, \nu)$ converges to a Zero-Inflated Geometric distribution with density $f(y \mid \lambda, p) = (1 - p) \lambda^y (1 - \lambda)^{1-y} + p \cdot \ind(y = 0)$ for $y = 0, 1, \ldots$.
+
+\item[(c)] Finally, when $\nu \rightarrow \infty$, $\text{ZICMP}(\lambda, \nu, p)$ converges to a ``Zero-Inflated Bernoulli'' distribution with density 
+%
+\begin{math}
+f(y \mid \lambda, p) = (1 - p) \left[ \lambda/(1+\lambda) \right]^y \left[ 1/(1+\lambda) \right]^{1-y} + p \cdot \ind(y = 0).
+\end{math}
+\end{itemize}
+
+In case~(c) the $\lambda$ and $p$ parameters are not identifiable, and users may want to avoid ZICMP in data analyses with extreme underdispersion.
 
 \paragraph{ZICMP Regression Model.}
 Suppose there are $n$ subjects with count-valued outcomes $y_1, \ldots, y_n$
@@ -105,38 +134,28 @@ The \pkg{COMPoissonReg} package fits Zero-Inflated COM-Poisson regression
 models of the form
 %
 \begin{align*}
-&y_i =
-\begin{cases}
-y_i^*, & \text{with probability $1 - p_i$}, \\
-0,     & \text{with probability $p_i$}
-\end{cases} \\
-%
-&y_i^* \sim \text{CMP}(\lambda_i, \nu_i), \\
-&\log \lambda_i = \vec{x}_i^\top \vec{\beta}, \quad
-\log \nu_i = \vec{s}_i^\top \vec{\gamma}, \quad
-\logit p_i = \vec{w}_i^\top \vec{\zeta}.
+Y_i \indep \text{ZICMP}(\lambda_i, \nu_i, p_i), \quad i = 1, \ldots, n,
 \end{align*}
 %
-Writing $\btheta = (\vec{\beta}, \vec{\gamma}, \vec{\zeta})$, the likelihood is
+where $\log \lambda_i = \vec{x}_i^\top \vec{\beta}$, $\log \nu_i = \vec{s}_i^\top \vec{\gamma}$, and $\logit p_i = \vec{w}_i^\top \vec{\zeta}$. Writing $\btheta = (\vec{\beta}, \vec{\gamma}, \vec{\zeta})$, the likelihood is
 %
 \begin{align}
 L(\btheta) =
 \prod_{i=1}^n \left[(1 - p_i)
 \frac{\lambda_i^{y_i}}{(y_i!)^{\nu_i} Z(\lambda_i, \nu_i)}
-+ p_i
++ p_i \ind(y_i = 0)
 \right].
 \label{eqn:likelihood}
 \end{align}
 
-Useful special cases include COM-Poisson regression with $p_i \equiv 0$ and
-Zero-Inflated Poisson with $\nu_i \equiv 1$. (TBD: we might want to review the
-other interesting special cases here too: geometric, etc). (TBD: mention that, if possible, we will try to discuss in terms of the ZICMP model, for which all the other models are special cases.)
+(TBD: mention that, if possible, we will try to discuss in terms of the ZICMP model, for which all the other models are special cases.)
 
 \begin{itemize*}
-\item Give the expressions for expectation and variance, and associated code.
+\item Demonstrate functions for the CMP and ZICMP distributions. This should include \code{d}, \code{p}, \code{q}, and \code{r} functions, \code{e} and \code{v}, and the normalizing constant.
 \item To do this, we maximize the log-likelihood function in optim
 \item We provide some hooks to control optim
 \item Formula interface
+\item We might need a section on handling large counts in the regression model. This is especially where numerical problems tend to occur.
 \item \citet{Eddelbuettel2013} for Rcpp ...
 \item For normalizing constant, can we somehow give lower bounds so we don't need to start summing from 0? Is it possible to use root-finding here since the bounds aren't quite invertible themselves?
 \item Maybe give code in Section~\ref{sec:normconst} to change the options for tolerances?
@@ -248,6 +267,7 @@ $Z^{(M)}(\lambda, \nu)$ until \eqref{eqn:adaptive-log-scale} is satisfied.
 \begin{itemize*}
 \item A good way to motivate adding these complications is to show some plots of $f(y) = \lambda^y / (y!)^\nu$.
 \item We could potentially compute score and FIM via the Lindsey and Merch trick and avoid numerical derivatives. Can we use our bound above to help guide the truncation there? (The approximation method might not be straightforward to connect). Do we want to deal with this now?
+\item We need to explain / demonstrate ymax and the other options somewhere around here.
 \end{itemize*}
 
 \subsection{Computation of Functions involving $Z$}

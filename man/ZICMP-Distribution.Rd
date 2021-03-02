@@ -7,6 +7,7 @@
 \alias{pzicmp}
 \alias{qzicmp}
 \alias{ezicmp}
+\alias{vzicmp}
 \title{ZICMP Distribution}
 \usage{
 dzicmp(x, lambda, nu, p, log = FALSE)
@@ -18,6 +19,8 @@ pzicmp(x, lambda, nu, p)
 qzicmp(q, lambda, nu, p, log.p = FALSE)
 
 ezicmp(lambda, nu, p)
+
+vzicmp(lambda, nu, p)
 }
 \arguments{
 \item{x}{vector of quantiles.}
