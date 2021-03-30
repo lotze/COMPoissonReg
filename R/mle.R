@@ -15,8 +15,8 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 	stopifnot(d2 == length(gamma.init))
 	stopifnot(d3 == length(zeta.init))
 
-	optim.method = getOption("COMPoissonReg.optim.method")
-	optim.control = getOption("COMPoissonReg.optim.control")
+	optim.method = getOption("COMPoissonReg.optim.method", default = 'L-BFGS-B')
+	optim.control = getOption("COMPoissonReg.optim.control", default = list(maxit = 150))
 
 	tx = function(par) {
 		list(
@@ -58,7 +58,7 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 		sprintf("W:%s", colnames(W)))
 
 	loglik = res$value
-	elapsed.sec = as.numeric(Sys.time() - start, type = "sec")
+	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
@@ -79,8 +79,8 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d2 == length(gamma.init))
 
-	optim.method = getOption("COMPoissonReg.optim.method")
-	optim.control = getOption("COMPoissonReg.optim.control")
+	optim.method = getOption("COMPoissonReg.optim.method", default = 'L-BFGS-B')
+	optim.control = getOption("COMPoissonReg.optim.control", default = list(maxit = 150))
 
 	tx = function(par) {
 		list(
@@ -119,7 +119,7 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 	)
 
 	loglik = res$value
-	elapsed.sec = as.numeric(Sys.time() - start, type = "sec")
+	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
@@ -140,8 +140,8 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d3 == length(zeta.init))
 
-	optim.method = getOption("COMPoissonReg.optim.method")
-	optim.control = getOption("COMPoissonReg.optim.control")
+	optim.method = getOption("COMPoissonReg.optim.method", default = 'L-BFGS-B')
+	optim.control = getOption("COMPoissonReg.optim.control", default = list(maxit = 150))
 
 	tx = function(par) {
 		list(
@@ -176,7 +176,7 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 		sprintf("W:%s", colnames(W)))
 
 	loglik = res$value
-	elapsed.sec = as.numeric(Sys.time() - start, type = "sec")
+	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
 		elapsed.sec = elapsed.sec, loglik = loglik, n = n)

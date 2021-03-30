@@ -4,8 +4,7 @@
 \alias{parametric.bootstrap}
 \title{Parametric Bootstrap}
 \usage{
-parametric.bootstrap(object, reps = 1000, report.period = reps + 1,
-  ...)
+parametric.bootstrap(object, reps = 1000, report.period = reps + 1, ...)
 }
 \arguments{
 \item{object}{a model object}

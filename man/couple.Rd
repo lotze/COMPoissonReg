@@ -4,11 +4,13 @@
 \name{couple}
 \alias{couple}
 \title{Couple dataset}
-\format{\describe{
+\format{
+\describe{
 \item{UPB}{number of unwanted pursuit behavior perpetrations.}
 \item{EDUCATION}{1 if at least bachelor's degree; 0 otherwise.}
 \item{ANXIETY}{continuous measure of anxious attachment.}
-}}
+}
+}
 \usage{
 data(couple)
 }

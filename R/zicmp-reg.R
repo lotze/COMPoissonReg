@@ -7,7 +7,7 @@
 #' @param type Type of residual to be computed.
 #' @param reps Number of bootstrap repetitions.
 #' @param report.period Report progress every \code{report.period} iterations.
-#' @param ... other model parameters, such as data.
+#' @param ... other arguments, such as \code{subset} and \code{na.action}.
 #' 
 #' @name glm.cmp, ZICMP support
 NULL
@@ -120,7 +120,7 @@ print.zicmp = function(x, ...)
 	printf("X^2 = %0.4f, df = 1, ", tt$teststat)
 	printf("p-value = %0.4e\n", tt$pvalue)
 	printf("--\n")
-	printf("Elapsed Sec: %0.2f   ", s$elapsed.sec)
+	printf("Elapsed: %s   ", format_difftime(s$elapsed.sec))
 	printf("Sample size: %d   ", s$n)
 	printf("SEs via Hessian\n")
 	printf("LogLik: %0.4f   ", s$loglik)
@@ -288,16 +288,13 @@ residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 {
 	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
 		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
-	lambda.hat = out$lambda
-	nu.hat = out$nu
-	p.hat = out$p
-	y.hat = predict.zicmp(object)
+	y.hat = ezicmp(out$lambda, out$nu, out$p)
 
 	type = match.arg(type)
 	if (type == "raw") {
 		res = object$y - y.hat
 	} else if (type == "quantile") {
-		res = rqres.zicmp(object$y, lambda.hat, nu.hat, p.hat)
+		res = rqres.zicmp(object$y, out$lambda, out$nu, out$p)
 	} else {
 		stop("Unsupported residual type")
 	}
@@ -309,25 +306,47 @@ residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 #' @export
 predict.zicmp = function(object, newdata = NULL, ...)
 {
-	if (!is.null(newdata)) {
-		# If any of the original models had an intercept added via model.matrix, they
-		# will have an "(Intercept)" column. Let's add an "(Intercept)" to newdata
-		# in case the user didn't make one.
-		newdata$'(Intercept)' = 1
-
-		X = as.matrix(newdata[,colnames(object$X)])
-		S = as.matrix(newdata[,colnames(object$S)])
-		W = as.matrix(newdata[,colnames(object$W)])
-	} else {
+	if (is.null(newdata)) {
 		X = object$X
 		S = object$S
 		W = object$W
+		off.x = object$off.x
+		off.s = object$off.s
+		off.w = object$off.w
+	} else {
+		# Only attempt to process newdata as a data.frame
+		newdata = as.data.frame(newdata)
+
+		# If the response was not included in newdata, add a column with zeros
+		response_name = all.vars(object$formula.lambda)[1]
+		if (is.null(newdata[[response_name]])) {
+			newdata[[response_name]] = 0
+		}
+
+		mf.x = model.frame(object$formula.lambda, data = newdata, ...)
+		mf.s = model.frame(object$formula.nu, data = newdata, ...)
+		mf.w = model.frame(object$formula.p, data = newdata, ...)
+		X = model.matrix(object$formula.lambda, mf.x)
+		S = model.matrix(object$formula.nu, mf.s)
+		W = model.matrix(object$formula.p, mf.w)
+		off.x = model.offset(mf.x)
+		off.s = model.offset(mf.s)
+		off.w = model.offset(mf.w)
+
+		n.new = nrow(X)
+		if (is.null(off.x)) { off.x = rep(0, n.new) }
+		if (is.null(off.s)) { off.s = rep(0, n.new) }
+		if (is.null(off.w)) { off.w = rep(0, n.new) }
+
+		weights = model.weights(mf.x)
+		if(!is.null(weights)) {
+			stop("weights argument is currently not supported")
+		}
 	}
 
 	out = fitted.zicmp.internal(X, S, W, object$beta,
-		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
-	y.hat = zicmp.expected.value(out$lambda, out$nu, out$p)
-	return(y.hat)
+		object$gamma, object$zeta, off.x, off.s, off.w)
+	ezicmp(out$lambda, out$nu, out$p)
 }
 
 #' @name glm.cmp, ZICMP support

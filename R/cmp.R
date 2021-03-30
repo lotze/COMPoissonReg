@@ -11,11 +11,13 @@
 #' @param log.p logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.
 #' 
 #' @return 
-#' \itemize{
-#' \item \code{dcmp} gives the density,
-#' \item \code{pcmp} gives the cumulative probability,
-#' \item \code{qcmp} gives the quantile function, and
-#' \item \code{rcmp} generates random values.
+#' \describe{
+#' \item{dcmp}{gives the density,}
+#' \item{pcmp}{gives the cumulative probability,}
+#' \item{qcmp}{gives the quantile function,}
+#' \item{rcmp}{generates random values, and}
+#' \item{ecmp}{gives the expected value,}
+#' \item{vcmp}{gives the variance.}
 #' }
 #' 
 #' @references
@@ -40,7 +42,7 @@ dcmp = function(x, lambda, nu, log = FALSE)
 rcmp = function(n, lambda, nu)
 {
 	prep = prep.zicmp(n, lambda, nu)
-	ymax = getOption("COMPoissonReg.ymax")
+	ymax = getOption("COMPoissonReg.ymax", default = 1e6)
 	rcmp_cpp(n, prep$lambda, prep$nu, ymax = ymax)
 }
 
@@ -62,11 +64,13 @@ qcmp = function(q, lambda, nu, log.p = FALSE)
 	} else {
 		log.q = log(q)
 	}
-	ymax = getOption("COMPoissonReg.ymax")
+	ymax = getOption("COMPoissonReg.ymax", default = 1e6)
 	qcmp_cpp(log.q, prep$lambda, prep$nu, ymax = ymax)
 }
 
-cmp.expected.value = function(lambda, nu)
+#' @name CMP Distribution
+#' @export
+ecmp = function(lambda, nu)
 {
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)
@@ -76,4 +80,33 @@ cmp.expected.value = function(lambda, nu)
 		res[i] = prep$lambda[i] * grad.fwd(z_hybrid, prep$lambda[i], nu = prep$nu[i], take_log = TRUE)
 	}
 	return(res)
+}
+
+#' @name CMP Distribution
+#' @export
+vcmp = function(lambda, nu)
+{
+	n = max(length(lambda), length(nu))
+	ymax = getOption("COMPoissonReg.ymax", default = 1e6)
+	prep = prep.zicmp(n, lambda, nu)
+
+	# These tolerances will be made into options in a later version of the
+	# code. For now, too many places need to be changed from using default
+	# values.
+	hybrid_tol = 1e-2
+	truncate_tol = 1e-6
+
+	ev = ecmp(lambda, nu)
+	if (length(ev) == 1) { ev = rep(ev, n) }
+
+	out = numeric(n)
+	for (i in 1:n) {
+		# This expression for dd is equal to Var(X) - E(X)
+		dd = prep$lambda[i]^2 * hess.fwd(z_hybrid, prep$lambda[i],
+		 	nu = prep$nu[i], take_log = TRUE, tol1 = hybrid_tol,
+		 	tol2 = truncate_tol)
+		out[i] = dd + ev[i]
+	}
+
+	return(out)
 }

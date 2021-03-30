@@ -4,17 +4,29 @@
 \alias{glm.cmp}
 \title{COM-Poisson and Zero-Inflated COM-Poisson regression}
 \usage{
-glm.cmp(formula.lambda, formula.nu = NULL, formula.p = NULL,
-  beta.init = NULL, gamma.init = NULL, zeta.init = NULL, ...)
+glm.cmp(
+  formula.lambda,
+  formula.nu = ~1,
+  formula.p = NULL,
+  data = NULL,
+  beta.init = NULL,
+  gamma.init = NULL,
+  zeta.init = NULL,
+  ...
+)
 }
 \arguments{
-\item{formula.lambda}{regression formula linked to \code{log(lambda)}.}
+\item{formula.lambda}{regression formula linked to \code{log(lambda)}.
+The response should be specified here.}
 
-\item{formula.nu}{regression formula linked to \code{log(nu)}. If NULL
-(the default), is taken to be intercept only.}
+\item{formula.nu}{regression formula linked to \code{log(nu)}. The
+default, is taken to be only an intercept.}
 
 \item{formula.p}{regression formula linked to \code{logit(p)}. If NULL
 (the default), zero-inflation term is excluded from the model.}
+
+\item{data}{An optional data.frame with variables to be used with regression
+formulas. Variables not found here are read from the envionment.}
 
 \item{beta.init}{initial values for regression coefficients of \code{lambda}.}
 
@@ -22,7 +34,7 @@ glm.cmp(formula.lambda, formula.nu = NULL, formula.p = NULL,
 
 \item{zeta.init}{initial values for regression coefficients of \code{p}.}
 
-\item{...}{other model parameters, such as data.}
+\item{...}{other arguments, such as \code{subset} and \code{na.action}.}
 }
 \value{
 \code{glm.cmp} produces an object of either class 'cmp' or 'zicmp', depending
@@ -53,12 +65,12 @@ where
 y_i^* \sim \rm{CMP}(\lambda_i, \nu_i), \;\;\;
 \log \lambda_i = \bm{x}_i^\top \beta, \;\;\;
 \log \nu_i = \bm{s}_i^\top \gamma, \;\;\;
-\log p_i = \bm{w}_i^\top \zeta.
+\rm{logit} p_i = \bm{w}_i^\top \zeta.
 }{
 y_i^* ~ CMP(lambda_i, nu_i),
 log lambda_i = x_i^T beta,
 log nu_i = s_i^T gamma,
-log p_i = w_i^T zeta.
+logit p_i = w_i^T zeta.
 }
 }
 \references{

@@ -6,6 +6,8 @@
 \alias{rzicmp}
 \alias{pzicmp}
 \alias{qzicmp}
+\alias{ezicmp}
+\alias{vzicmp}
 \title{ZICMP Distribution}
 \usage{
 dzicmp(x, lambda, nu, p, log = FALSE)
@@ -15,6 +17,10 @@ rzicmp(n, lambda, nu, p)
 pzicmp(x, lambda, nu, p)
 
 qzicmp(q, lambda, nu, p, log.p = FALSE)
+
+ezicmp(lambda, nu, p)
+
+vzicmp(lambda, nu, p)
 }
 \arguments{
 \item{x}{vector of quantiles.}
@@ -38,7 +44,9 @@ qzicmp(q, lambda, nu, p, log.p = FALSE)
 \item{dzicmp}{gives the density,}
 \item{pzicmp}{gives the cumulative probability,}
 \item{qzicmp}{gives the quantile value, and}
-\item{rzicmp}{generates random numbers.}
+\item{rzicmp}{generates random numbers,}
+\item{ezicmp}{gives the expected value,}
+\item{vzicmp}{gives the variance.}
 }
 }
 \description{

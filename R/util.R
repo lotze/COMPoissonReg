@@ -6,6 +6,30 @@
 	options(COMPoissonReg.ymax = 1e6)
 }
 
+format_difftime = function(x)
+{
+	s = as.numeric(x, units = "secs")
+	dd = floor(s / (60^2 * 24))
+	dd_resid = s / (60^2 * 24) - dd
+	hh = floor(24*dd_resid)
+	hh_resid = 24*dd_resid - floor(24*dd_resid)
+	mm = floor(60*hh_resid)
+	mm_resid = 60*hh_resid - floor(60*hh_resid)
+	ss = floor(60*mm_resid)
+
+	if (dd > 0) {
+		fmt = sprintf("%02dd:%02dh:%02dm:%02ds", dd, hh, mm, ss)
+	} else if (hh > 0) {
+		fmt = sprintf("%02dh:%02dm:%02ds", hh, mm, ss)
+	} else if (mm > 0) {
+		fmt = sprintf("%02dm:%02ds", mm, ss)
+	} else {
+		fmt = sprintf("%0.2f sec", x)
+	}
+
+	return(fmt)
+}
+
 printf = function(msg, ...) {
 	cat(sprintf(msg, ...))
 }

@@ -1,7 +1,7 @@
 Package: COMPoissonReg
 Type: Package
 Title: Conway-Maxwell Poisson (COM-Poisson) Regression
-Version: 0.7.0
+Version: 0.7.1
 Author: Kimberly Sellers <kfs7@georgetown.edu>
 	Thomas Lotze <thomas.lotze@thomaslotze.com>
 	Andrew Raim <andrew.raim@gmail.com>
@@ -16,5 +16,5 @@ License: GPL-2 | GPL-3
 LazyLoad: yes
 Depends: stats, Rcpp
 LinkingTo: Rcpp
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 Encoding: UTF-8

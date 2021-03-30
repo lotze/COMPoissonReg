@@ -6,7 +6,7 @@
 // original scale (as opposed to the log-scale), so it becomes unstable when
 // the magnitudes of the terms become very large.
 // [[Rcpp::export]]
-Rcpp::NumericVector z_exact(const Rcpp::NumericVector& lambda,
+Rcpp::NumericVector z_trunc(const Rcpp::NumericVector& lambda,
 	const Rcpp::NumericVector& nu, double tol = 1e-6, bool take_log = false,
 	double ymax = 1e100)
 {
@@ -68,7 +68,7 @@ Rcpp::NumericVector z_hybrid(const Rcpp::NumericVector& lambda,
 
 	Rcpp::NumericVector logz(n);
 	logz[idx_approx] = z_approx(lambda[idx_approx], nu[idx_approx], true);
-	logz[idx_exact] = z_exact(lambda[idx_exact], nu[idx_exact], tol2, true);
+	logz[idx_exact] = z_trunc(lambda[idx_exact], nu[idx_exact], tol2, true);
 
 	if (take_log) {
 		return logz;

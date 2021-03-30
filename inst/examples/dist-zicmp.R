@@ -16,9 +16,18 @@ ff = dzicmp(0:max(x), lambda = lambda, nu = nu, p = p)
 plot(0:max(x), tt)
 points(0:max(x), ff, pch = 2, col = "blue")
 
+# Empirical CDF vs. CDF function
 FF = pzicmp(0:max(x), lambda = lambda, nu = nu, p = p)
 plot(ecdf(x))
 points(0:max(x), FF, pch = 2, col = "blue")
 
 delta = min(FF)/2
 qzicmp(FF - delta, lambda = lambda, nu = nu, p = p)
+
+# Empirical mean vs. expected value
+mean(x)
+ezicmp(lambda, nu, p)
+
+# Empirical variance vs. variance function
+var(x)
+vzicmp(lambda, nu, p)

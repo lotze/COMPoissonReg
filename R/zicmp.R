@@ -17,7 +17,9 @@
 #' \item{dzicmp}{gives the density,}
 #' \item{pzicmp}{gives the cumulative probability,}
 #' \item{qzicmp}{gives the quantile value, and}
-#' \item{rzicmp}{generates random numbers.}
+#' \item{rzicmp}{generates random numbers,}
+#' \item{ezicmp}{gives the expected value,}
+#' \item{vzicmp}{gives the variance.}
 #' }
 #' 
 #' @references
@@ -72,9 +74,20 @@ qzicmp = function(q, lambda, nu, p, log.p = FALSE)
 	qzicmp_cpp(log.q, prep$lambda, prep$nu, prep$p)
 }
 
-zicmp.expected.value = function(lambda, nu, p)
+#' @name ZICMP Distribution
+#' @export
+ezicmp = function(lambda, nu, p)
 {
-	(1-p) * cmp.expected.value(lambda, nu)
+	(1-p) * ecmp(lambda, nu)
+}
+
+#' @name ZICMP Distribution
+#' @export
+vzicmp = function(lambda, nu, p)
+{
+	ee  = ecmp(lambda, nu)
+	vv  = vcmp(lambda, nu)
+	(1-p) * (p*ee^2 + vv)
 }
 
 # Extend lambda, nu, and p vectors to be compatible lengths.
@@ -83,6 +96,10 @@ zicmp.expected.value = function(lambda, nu, p)
 prep.zicmp = function(n, lambda, nu, p = 0)
 {
 	L = max(length(lambda), length(nu), length(p))
+
+	stopifnot(all(lambda > 0))
+	stopifnot(all(nu > 0))
+	stopifnot(all(p >= 0 & p <= 1))
 
 	if (n > 1 && L > 1) { stopifnot(n == L) }
 	if (length(lambda) == 1 && L > 1) { lambda = rep(lambda, L) }
