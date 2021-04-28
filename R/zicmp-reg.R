@@ -92,7 +92,7 @@ summary.zicmp = function(object, ...)
 	)
 }
 
-fitted.zicmp.internal = function(X, S, W, beta, gamma, zeta, off.x, off.s, off.w)
+fitted_zicmp_internal = function(X, S, W, beta, gamma, zeta, off.x, off.s, off.w)
 {
 	list(
 		lambda = as.numeric(exp(X %*% beta + off.x)),
@@ -165,7 +165,7 @@ coef.zicmp = function(object, ...)
 #' @export
 nu.zicmp = function(object, ...)
 {
-	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
+	out = fitted_zicmp_internal(object$X, object$S, object$W, object$beta,
 		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
 	out$nu
 }
@@ -213,12 +213,12 @@ equitest.zicmp = function(object, ...)
 	beta0.hat = fit0.out$theta.hat$beta
 	zeta0.hat = fit0.out$theta.hat$zeta
 
-	out1 = fitted.zicmp.internal(X, S, W, beta.hat, gamma.hat, zeta.hat, off.x, off.s, off.w)
+	out1 = fitted_zicmp_internal(X, S, W, beta.hat, gamma.hat, zeta.hat, off.x, off.s, off.w)
 	lambda.hat = out1$lambda
 	nu.hat = out1$nu
 	p.hat = out1$p
 
-	out0 = fitted.zicmp.internal(X, S, W, beta0.hat, numeric(d2), zeta0.hat, off.x, off.s, off.w)
+	out0 = fitted_zicmp_internal(X, S, W, beta0.hat, numeric(d2), zeta0.hat, off.x, off.s, off.w)
 	lambda0.hat = out0$lambda
 	p0.hat = out0$p
 
@@ -263,7 +263,7 @@ deviance.zicmp = function(object, ...)
 			beta = par[1:d1]
 			gamma = par[1:d2 + d1]
 			zeta = par[1:d3 + d1 + d2]
-			out = fitted.zicmp.internal(X[i,], S[i,], W[i,], beta, gamma, zeta,
+			out = fitted_zicmp_internal(X[i,], S[i,], W[i,], beta, gamma, zeta,
 				off.x[i], off.s[i], off.w[i])
 			dzicmp(y[i], out$lambda, out$nu, out$p, log = TRUE)
 		}
@@ -286,7 +286,7 @@ deviance.zicmp = function(object, ...)
 #' @export
 residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 {
-	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
+	out = fitted_zicmp_internal(object$X, object$S, object$W, object$beta,
 		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
 	y.hat = ezicmp(out$lambda, out$nu, out$p)
 
@@ -344,7 +344,7 @@ predict.zicmp = function(object, newdata = NULL, ...)
 		}
 	}
 
-	out = fitted.zicmp.internal(X, S, W, object$beta,
+	out = fitted_zicmp_internal(X, S, W, object$beta,
 		object$gamma, object$zeta, off.x, off.s, off.w)
 	ezicmp(out$lambda, out$nu, out$p)
 }
@@ -357,7 +357,7 @@ parametric.bootstrap.zicmp = function(object, reps = 1000, report.period = reps+
 	qq = length(object$beta) + length(object$gamma) + length(object$zeta)
 	theta.boot = matrix(NA, reps, qq)
 
-	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
+	out = fitted_zicmp_internal(object$X, object$S, object$W, object$beta,
 		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
 	lambda.hat = out$lambda
 	nu.hat = out$nu

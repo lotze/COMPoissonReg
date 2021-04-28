@@ -3,9 +3,9 @@
 
 #include <Rcpp.h>
 
-//' TBD: I think we might want to delete this, but not sure if we can yet.
+// TBD: I think we might want to delete this, but not sure if we can yet.
 // @export
-//' [[Rcpp::export]]
+// // [[Rcpp::export]]
 //Rcpp::NumericVector allprobs_cmp(double lambda, double nu, double tol,
 //	bool take_log, double ymax, bool normalize);
 

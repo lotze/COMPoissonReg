@@ -17,6 +17,7 @@
 #' \item{qcmp}{gives the quantile function,}
 #' \item{rcmp}{generates random values, and}
 #' \item{ecmp}{gives the expected value.}
+#' \item{vcmp}{gives the variance.}
 #' }
 #' 
 #' @references
@@ -34,8 +35,8 @@ dcmp = function(x, lambda, nu, log = FALSE)
 {
 	n = length(x)
 	ymax = getOption("COMPoissonReg.ymax")
-	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
-	truncate_tol = getOption("COMPoissonReg.truncate_tol")
+	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate_tol = getOption("COMPoissonReg.truncate.tol")
 	prep = prep.zicmp(n, lambda, nu)
 
 	if (prep$type == "iid") {
@@ -60,8 +61,8 @@ dcmp = function(x, lambda, nu, log = FALSE)
 rcmp = function(n, lambda, nu)
 {
 	ymax = getOption("COMPoissonReg.ymax")
-	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
-	truncate_tol = getOption("COMPoissonReg.truncate_tol")
+	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate_tol = getOption("COMPoissonReg.truncate.tol")
 	prep = prep.zicmp(n, lambda, nu)
 
 	if (prep$type == "iid") {
@@ -84,8 +85,8 @@ pcmp = function(x, lambda, nu)
 {
 	n = length(x)
 	ymax = getOption("COMPoissonReg.ymax")
-	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
-	truncate_tol = getOption("COMPoissonReg.truncate_tol")
+	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate_tol = getOption("COMPoissonReg.truncate.tol")
 	prep = prep.zicmp(n, lambda, nu)
 
 	if (prep$type == "iid") {
@@ -108,8 +109,8 @@ qcmp = function(q, lambda, nu, log.p = FALSE)
 {
 	n = length(x)
 	ymax = getOption("COMPoissonReg.ymax")
-	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
-	truncate_tol = getOption("COMPoissonReg.truncate_tol")
+	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate_tol = getOption("COMPoissonReg.truncate.tol")
 	prep = prep.zicmp(n, lambda, nu)
 
 	if (log.p) { lq = q } else { lq = log(q) }
@@ -134,8 +135,8 @@ ecmp = function(lambda, nu)
 {
 	n = max(length(lambda), length(nu))
 	ymax = getOption("COMPoissonReg.ymax")
-	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
-	truncate_tol = getOption("COMPoissonReg.truncate_tol")
+	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate_tol = getOption("COMPoissonReg.truncate.tol")
 	prep = prep.zicmp(n, lambda, nu)
 
 	out = numeric(n)
@@ -154,8 +155,8 @@ vcmp = function(lambda, nu)
 {
 	n = max(length(lambda), length(nu))
 	ymax = getOption("COMPoissonReg.ymax")
-	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
-	truncate_tol = getOption("COMPoissonReg.truncate_tol")
+	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate_tol = getOption("COMPoissonReg.truncate.tol")
 	prep = prep.zicmp(n, lambda, nu)
 
 	ev = ecmp(lambda, nu)
@@ -168,6 +169,39 @@ vcmp = function(lambda, nu)
 		 	nu = prep$nu[i], take_log = TRUE, hybrid_tol = hybrid_tol,
 		 	truncate_tol = truncate_tol, ymax = ymax)
 		out[i] = dd + ev[i]
+	}
+
+	return(out)
+}
+
+#' TBD: Update this description
+#' TBD: Pass around options instead of relying on defaults.
+#' Brute force computation of the z-function. This computation is done at the
+#' original scale (as opposed to the log-scale), so it becomes unstable when
+#' the magnitudes of the terms become very large.
+#' Sum (j>=0) { lambda^j / (j!)^nu }
+#' @name CMP Normalizing Constant
+#' @export
+ncmp = function(lambda, nu, log = FALSE, method = "hybrid")
+{
+	ymax = getOption("COMPoissonReg.ymax")
+	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
+	truncate_tol = getOption("COMPoissonReg.truncate_tol")
+
+	n = max(length(lambda), length(nu))
+	prep = prep.zicmp(n, lambda, nu)
+
+	if (method == "trunc") {
+		out = z_trunc(prep$lambda, prep$nu, tol = truncate_tol, take_log = log,
+			ymax = ymax)
+	} else if (method == "approx") {
+		out = z_approx(prep$lambda, prep$nu, take_log = log)
+	} else if (method == "hybrid") {
+		out = z_hybrid(prep$lambda, prep$nu, take_log = log,
+			hybrid_tol = hybrid_tol, truncate_tol = truncate_tol, ymax = ymax)
+	} else {
+		msg = sprintf("Method not recognized: %s", method)
+		stop(msg)
 	}
 
 	return(out)

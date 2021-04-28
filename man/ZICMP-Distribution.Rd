@@ -46,6 +46,7 @@ vzicmp(lambda, nu, p)
 \item{qzicmp}{gives the quantile value, and}
 \item{rzicmp}{generates random numbers,}
 \item{ezicmp}{gives the expected value.}
+\item{vzicmp}{gives the variance.}
 }
 }
 \description{

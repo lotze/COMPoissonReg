@@ -4,8 +4,8 @@
 	options(COMPoissonReg.optim.control = list(maxit = 150))
 	options(COMPoissonReg.grad.eps = 1e-5)
 	options(COMPoissonReg.hess.eps = 1e-2)
-	options(COMPoissonReg.hybrid_tol = 1e-2)
-	options(COMPoissonReg.truncate_tol = 1e-6)
+	options(COMPoissonReg.hybrid.tol = 1e-2)
+	options(COMPoissonReg.truncate.tol = 1e-6)
 }
 
 format_difftime = function(x) {

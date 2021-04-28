@@ -44,6 +44,7 @@ vcmp(lambda, nu)
 \item{qcmp}{gives the quantile function,}
 \item{rcmp}{generates random values, and}
 \item{ecmp}{gives the expected value.}
+\item{vcmp}{gives the variance.}
 }
 }
 \description{
