@@ -11,6 +11,7 @@
 #' @param p zero-inflation probability parameter.
 #' @param log logical; if TRUE, probabilities are returned on log-scale.
 #' @param log.p logical; if TRUE, probabilities p are given as \eqn{\log(p)}.
+#' @param method a string: \code{hybrid}, \code{approx}, or \code{hybrid}.
 #' 
 #' @return
 #' \describe{
@@ -35,13 +36,10 @@ NULL
 #' @export
 dzicmp = function(x, lambda, nu, p, log = FALSE)
 {
-	prep = prep.zicmp(length(x), lambda, nu, p)
+	n = length(x)
+	prep = prep.zicmp(n, lambda, nu, p)
 	fx = prep$p*(x==0) + (1-prep$p)*dcmp(x, prep$lambda, prep$nu)
-	if (log) {
-		return(log(fx))
-	} else {
-		return(fx)
-	}
+	if (log) { return(log(fx)) } else { return(fx) }
 }
 
 #' @name ZICMP Distribution
@@ -57,7 +55,8 @@ rzicmp = function(n, lambda, nu, p)
 #' @export
 pzicmp = function(x, lambda, nu, p)
 {
-	prep = prep.zicmp(length(x), lambda, nu, p)
+	n = length(q)
+	prep = prep.zicmp(n, lambda, nu, p)
 	prep$p*(x >= 0) + (1-prep$p)*pcmp(x, prep$lambda, prep$nu)
 }
 
@@ -65,31 +64,31 @@ pzicmp = function(x, lambda, nu, p)
 #' @export
 qzicmp = function(q, lambda, nu, p, log.p = FALSE)
 {
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid_tol = getOption("COMPoissonReg.hybrid_tol")
-	truncate_tol = getOption("COMPoissonReg.truncate_tol")
+	n = length(q)
 	prep = prep.zicmp(length(q), lambda, nu, p)
-	if (log.p) {
-		log.q = q
-	} else {
-		log.q = log(q)
-	}
-	q_zicmp(log.q, prep$lambda, prep$nu, prep$p, hybrid_tol, truncate_tol, ymax)
+
+	ymax = getOption("COMPoissonReg.ymax")
+	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+
+	if (log.p) { lq = q } else { lq = log(q) }
+	q_zicmp(lq, prep$lambda, prep$nu, prep$p, hybrid_tol = hybrid.tol,
+		truncate_tol = truncate.tol, ymax = ymax)
 }
 
 #' @name ZICMP Distribution
 #' @export
-ezicmp = function(lambda, nu, p)
+ezicmp = function(lambda, nu, p, method = "hybrid")
 {
-	(1-p) * ecmp(lambda, nu)
+	(1-p) * ecmp(lambda, nu, method)
 }
 
 #' @name ZICMP Distribution
 #' @export
-vzicmp = function(lambda, nu, p)
+vzicmp = function(lambda, nu, p, method = "hybrid")
 {
-	ee  = ecmp(lambda, nu)
-	vv  = vcmp(lambda, nu)
+	ee  = ecmp(lambda, nu, method)
+	vv  = vcmp(lambda, nu, method)
 	(1-p) * (p*ee^2 + vv)
 }
 
@@ -98,7 +97,7 @@ vzicmp = function(lambda, nu, p)
 # is handled more efficiently.
 #
 # This also seems to be a good place to make sure parameters are in the right
-# space. TBD: Or we could check in the underlying C++ functions?
+# space. TBD: do we need to check in the underlying C++ functions?
 prep.zicmp = function(n, lambda, nu, p = 0)
 {
 	L = max(length(lambda), length(nu), length(p))

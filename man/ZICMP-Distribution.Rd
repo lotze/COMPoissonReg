@@ -18,9 +18,9 @@ pzicmp(x, lambda, nu, p)
 
 qzicmp(q, lambda, nu, p, log.p = FALSE)
 
-ezicmp(lambda, nu, p)
+ezicmp(lambda, nu, p, method = "hybrid")
 
-vzicmp(lambda, nu, p)
+vzicmp(lambda, nu, p, method = "hybrid")
 }
 \arguments{
 \item{x}{vector of quantiles.}
@@ -38,6 +38,8 @@ vzicmp(lambda, nu, p)
 \item{q}{vector of probabilities.}
 
 \item{log.p}{logical; if TRUE, probabilities p are given as \eqn{\log(p)}.}
+
+\item{method}{a string: \code{hybrid}, \code{approx}, or \code{hybrid}.}
 }
 \value{
 \describe{

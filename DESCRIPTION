@@ -14,7 +14,7 @@ Description: Fit Conway-Maxwell Poisson (COM-Poisson or CMP) regression models
     <doi:10.1016/j.csda.2016.01.007> is also supported.
 License: GPL-2 | GPL-3
 LazyLoad: yes
-Depends: stats, Rcpp
+Depends: stats, Rcpp, numDeriv
 LinkingTo: Rcpp
 RoxygenNote: 7.1.1
 Encoding: UTF-8

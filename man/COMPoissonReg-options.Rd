@@ -17,8 +17,13 @@ are taken.}
 differences are taken.}
 
 \item{COMPoissonReg.ymax}{Maximum count value to be considered. Larger
-  values are truncated.
-TBD: Add tol options!}
+values are truncated.}
+
+\item{COMPoissonReg.hybrid.tol}{Determines whether asymptotic approximation
+or truncation approach will be used will be used for expressions based on
+the CMP normalizing constant. See details.}
+
+\item{COMPoissonReg.truncate.tol}{Tolerance for truncation approach.}
 }
 \description{
 Global options used by the COMPoissonReg package.
@@ -30,5 +35,9 @@ Global options used by the COMPoissonReg package.
 \item \code{options(COMPoissonReg.grad.eps = 1e-5)}
 \item \code{options(COMPoissonReg.hess.eps = 1e-2)}
 \item \code{options(COMPoissonReg.ymax = 1e6)}
+\item \code{options(COMPoissonReg.hybrid.tol = 1e-2)}
+\item \code{options(COMPoissonReg.truncate.tol = 1e-6)}
 }
+
+TBD
 }

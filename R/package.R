@@ -185,6 +185,7 @@
 #' @useDynLib COMPoissonReg, .registration = TRUE
 #' @import Rcpp
 #' @import stats
+#' @importFrom numDeriv grad hessian
 #' @docType package
 NULL
 
@@ -199,19 +200,26 @@ NULL
 #' \item \code{options(COMPoissonReg.grad.eps = 1e-5)}
 #' \item \code{options(COMPoissonReg.hess.eps = 1e-2)}
 #' \item \code{options(COMPoissonReg.ymax = 1e6)}
+#' \item \code{options(COMPoissonReg.hybrid.tol = 1e-2)}
+#' \item \code{options(COMPoissonReg.truncate.tol = 1e-6)}
 #' }
 #' 
 #' @param COMPoissonReg.optim.method Optim method to use when computing
-#'   maximum likelihood estimates.
+#' maximum likelihood estimates.
 #' @param COMPoissonReg.optim.control A list to be passed to \code{control}
-#'   when calling \code{optim}. \code{fnscale} will be ignored if specified.
+#' when calling \code{optim}. \code{fnscale} will be ignored if specified.
 #' @param COMPoissonReg.grad.eps Distance to be used when finite differences
-#'   are taken.
+#' are taken.
 #' @param COMPoissonReg.hess.eps Distance to be used when finite second
-#'   differences are taken.
+#' differences are taken.
 #' @param COMPoissonReg.ymax Maximum count value to be considered. Larger
-#'   values are truncated.
-#' TBD: Add tol options!
+#' values are truncated.
+#' @param COMPoissonReg.hybrid.tol Determines whether asymptotic approximation
+#' or truncation approach will be used will be used for expressions based on
+#' the CMP normalizing constant. See details.
+#' @param COMPoissonReg.truncate.tol Tolerance for truncation approach.
+#' 
+#' @details TBD
 #' 
 #' @name COMPoissonReg-options
 NULL

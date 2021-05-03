@@ -75,7 +75,7 @@ summary.cmp = function(object, ...)
 	)
 }
 
-fitted_cmp_internal = function(X, S, beta, gamma, off.x, off.s)
+fitted.cmp.internal = function(X, S, beta, gamma, off.x, off.s)
 {
 	list(
 		lambda = as.numeric(exp(X %*% beta + off.x)),
@@ -102,7 +102,7 @@ print.cmp = function(x, ...)
 	printf("X^2 = %0.4f, df = 1, ", tt$teststat)
 	printf("p-value = %0.4e\n", tt$pvalue)
 	printf("--\n")
-	printf("Elapsed: %s   ", format_difftime(s$elapsed.sec))
+	printf("Elapsed: %s   ", format.difftime(s$elapsed.sec))
 	printf("Sample size: %d   ", s$n)
 	printf("SEs via Hessian\n")
 	printf("LogLik: %0.4f   ", s$loglik)
@@ -147,7 +147,7 @@ coef.cmp = function(object, ...)
 #' @export
 nu.cmp = function(object, ...)
 {
-	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
+	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
 		object$off.x, object$off.s)
 	out$nu
 }
@@ -175,27 +175,24 @@ equitest.cmp = function(object, ...)
 		return(object$equitest)
 	}
 
-	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate_tol = getOption("COMPoissonReg.truncate.tol")
+	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate.tol = getOption("COMPoissonReg.truncate.tol")
 	ymax = getOption("COMPoissonReg.ymax")
 
 	y = object$y
+	n = length(y)
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
 
-	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
+	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
 		object$off.x, object$off.s)
-	lambda.hat = out$lambda
-	nu.hat = out$nu
-
-	out0 = fitted_cmp_internal(object$X, object$S, object$beta.glm,
+	out0 = fitted.cmp.internal(object$X, object$S, object$beta.glm,
 		gamma = numeric(d2), object$off.x, object$off.s)
-	lambda0.hat = out0$lambda
-
-	logz = z_hybrid(lambda.hat, nu.hat, take_log = TRUE,
-		hybrid_tol = hybrid_tol, truncate_tol = truncate_tol, ymax = ymax)
-	teststat = -2 * sum(y*log(lambda0.hat) - lgamma(y+1) - lambda0.hat -
-		y*log(lambda.hat) + nu.hat*lgamma(y+1) + logz)
+	ll = loglik_cmp(y, out$lambda, out$nu, hybrid_tol = hybrid.tol,
+		truncate_tol = truncate.tol, ymax = ymax)
+	ll0 = loglik_cmp(y, out0$lambda, nu = out0$nu, hybrid_tol = hybrid.tol,
+		truncate_tol = truncate.tol, ymax = ymax)
+	teststat = -2 * (ll0 - ll)
 	pvalue = pchisq(teststat, df = 1, lower.tail = FALSE)
 	list(teststat = teststat, pvalue = pvalue)
 }
@@ -205,34 +202,47 @@ equitest.cmp = function(object, ...)
 leverage.cmp = function(object, ...)
 {
 	y = object$y
+	n = length(y)
 
-	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate_tol = getOption("COMPoissonReg.truncate.tol")
-	ymax = getOption("COMPoissonReg.ymax")
-
-	# 1) to code the WW matrix  (diagonal matrix with Var(Y_i) )
-	ww = weights(object$X, object$S, object$beta, object$gamma, object$off.x, object$off.s)
-	WW = diag(ww)
-
-	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
+	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
 		object$off.x, object$off.s)
-	lambda.hat = out$lambda
-	nu.hat = out$nu
-	z.hat = z_hybrid(lambda.hat, nu.hat, take_log = FALSE, hybrid_tol = hybrid_tol,
-		truncate_tol = truncate_tol, ymax = ymax)
+
+	# 1) Some quantities corresponding to parameters lambda and nu: Normalizing
+	# constants, expected values, variances, and truncation values.
+	z.hat = ncmp(out$lambda, out$nu)
+	E.y = ecmp(out$lambda, out$nu)
+	V.y = vcmp(out$lambda, out$nu)
+	y.trunc = max(tcmp(out$lambda, out$nu))
+
+	# Note that z_prodlogj uses truncation, even if we would approximate z 
+	# using the asymptotic expression using some of the given lambda and nu
+	# pairs. This might be something that could be improved later.
 
 	#    and X matrix (in Appendix)
-	E.y = z_prodj(lambda.hat, nu.hat) / z.hat
-	E.logfacty = z_prodlogj(lambda.hat, nu.hat) / z.hat
-	extravec = (-lgamma(y+1) + E.logfacty)/(y - E.y)
+	E.logfacty = z_prodlogj(out$lambda, out$nu, max = y.trunc) / z.hat
+	extravec = (E.logfacty - lgamma(y+1)) / (y - E.y)
 	curlyX.mat = cbind(object$X, extravec)
 
-	# 2) to compute H using eq (12)  on p. 11
-	H1 = t(curlyX.mat) %*% sqrt(WW)
-	H2 = solve(t(curlyX.mat) %*% WW %*% curlyX.mat)
-	H = t(H1) %*% H2 %*% H1
-	diagH = diag(H)
-	return(diagH)
+	# 2) to compute H using equation (12)  on p. 11
+	if (FALSE) {
+		# Here is a more readable version, but it creates n x n matrices so may
+		# have problems with large inputs.
+		WW = diag(V.y)
+		H1 = t(curlyX.mat) %*% sqrt(WW)
+		H2 = solve(t(curlyX.mat) %*% WW %*% curlyX.mat)
+		H = t(H1) %*% H2 %*% H1
+		diag.H = diag(H)
+	} else {
+		# This version avoids creating large matrices, but is a bit harder to read.
+		diag.H = numeric(n)
+		H1 = t(curlyX.mat * sqrt(V.y))
+		H2 = solve(t(curlyX.mat * V.y) %*% curlyX.mat)
+		for (i in 1:n) {
+			diag.H[i] = t(H1[,i]) %*% H2 %*% H1[,i]
+		}
+	}
+
+	return(diag.H)
 }
 
 #' @name glm.cmp, CMP support
@@ -243,8 +253,9 @@ deviance.cmp = function(object, ...)
 	y = object$y
 	n = length(y)
 
-	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate_tol = getOption("COMPoissonReg.truncate.tol")
+	opt.method = getOption("COMPoissonReg.optim.method")
+	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate.tol = getOption("COMPoissonReg.truncate.tol")
 	ymax = getOption("COMPoissonReg.ymax")
 
 	# Compute optimal log likelihood value for given nu-hat value
@@ -255,30 +266,30 @@ deviance.cmp = function(object, ...)
 	for (i in 1:n) {
 		# loglik for single observation
 		logf = function(beta) {
-			out = fitted_cmp_internal(object$X[i,], object$S[i,], beta, object$gamma,
-				object$off.x[i], object$off.s[i])
-			y[i]*log(out$lambda) - out$nu*lgamma(y[i] + 1) -
-				z_hybrid(out$lambda, out$nu, take_log = TRUE,
-					hybrid_tol = hybrid_tol, truncate_tol = truncate_tol,
-					ymax = ymax)
+			out = fitted.cmp.internal(object$X[i,], object$S[i,], beta,
+				object$gamma, object$off.x[i], object$off.s[i])
+			loglik_cmp(y[i], out$lambda, out$nu, hybrid_tol = hybrid.tol,
+				truncate_tol = truncate.tol, ymax = ymax)
 		}
 
 		# Determine the MLEs
 		# Using optim rather than nlm because optim handles -Inf more gracefully, if encountered
-		opt.method = getOption("COMPoissonReg.optim.method")
 		res = optim(beta.init, logf, method = opt.method, control = list(fnscale = -1))
 		ll.y[i] = res$value
 	}
 
 	# Compute exact deviances
-	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
+	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
 		object$off.x, object$off.s)
-	ll.mu = y*log(out$lambda) - out$nu * lgamma(y+1) -
-		z_hybrid(out$lambda, out$nu, take_log = TRUE, hybrid_tol = hybrid_tol,
-			truncate_tol = truncate_tol, ymax = ymax)
-	d = -2*(ll.mu - ll.y)
+	ll.mu = numeric(n)
+	for (i in 1:n) {
+		ll.mu[i] = loglik_cmp(y[i], out$lambda[i], out$nu[i],
+			hybrid_tol = hybrid.tol, truncate_tol = truncate.tol, ymax = ymax)
+	}
+
+	dev = -2*(ll.mu - ll.y)
 	lev = leverage.cmp(object)
-	cmpdev = d / sqrt(1 - lev)
+	cmpdev = dev / sqrt(1 - lev)
 	return(cmpdev)
 }
 
@@ -286,7 +297,7 @@ deviance.cmp = function(object, ...)
 #' @export
 residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 {
-	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma, object$off.x, object$off.s)
+	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma, object$off.x, object$off.s)
 	y.hat = ecmp(out$lambda, out$nu)
 
 	type = match.arg(type)
@@ -315,9 +326,9 @@ predict.cmp = function(object, newdata = NULL, ...)
 		newdata = as.data.frame(newdata)
 
 		# If the response was not included in newdata, add a column with zeros
-		response_name = all.vars(object$formula.lambda)[1]
-		if (is.null(newdata[[response_name]])) {
-			newdata[[response_name]] = 0
+		response.name = all.vars(object$formula.lambda)[1]
+		if (is.null(newdata[[response.name]])) {
+			newdata[[response.name]] = 0
 		}
 
 		mf.x = model.frame(object$formula.lambda, data = newdata, ...)
@@ -337,7 +348,7 @@ predict.cmp = function(object, newdata = NULL, ...)
 		}
 	}
 
-	out = fitted_cmp_internal(X, S, object$beta, object$gamma, off.x, off.s)
+	out = fitted.cmp.internal(X, S, object$beta, object$gamma, off.x, off.s)
 	ecmp(out$lambda, out$nu)
 }
 
@@ -349,13 +360,13 @@ parametric.bootstrap.cmp = function(object, reps = 1000, report.period = reps+1,
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
 
-	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma, object$off.x, object$off.s)
+	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma, object$off.x, object$off.s)
 	lambda.hat = out$lambda
 	nu.hat = out$nu
 
 	# Generate `reps` samples, using beta.hat and nu.hat from full dataset
 	# Run CMP regression on each bootstrap sample to generate new beta and nu estimates
-	
+
 	boot.out = matrix(NA, nrow = reps, ncol = d1 + d2)
 
 	for (r in 1:reps){
@@ -380,45 +391,4 @@ parametric.bootstrap.cmp = function(object, reps = 1000, report.period = reps+1,
 
 	colnames(boot.out) = c(colnames(object$X), colnames(object$S), recursive=TRUE)
 	return(boot.out)
-}
-
-weights = function(X, S, beta, gamma, off.x, off.s)
-{
-	out = fitted_cmp_internal(X, S, beta, gamma, off.x, off.s)
-
-	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate_tol = getOption("COMPoissonReg.truncate.tol")
-	ymax = getOption("COMPoissonReg.ymax")
-
-	# Compute the parts that comprise the weight functions
-	w1 = z_prodj2(out$lambda, out$nu)
-	w2 = z_prodj(out$lambda, out$nu)
-	w3 = z_hybrid(out$lambda, out$nu, take_log = FALSE, hybrid_tol = hybrid_tol,
-		truncate_tol = truncate_tol, ymax = ymax)
-
-	Ey2 = w1 / w3
-	E2y = (w2 / w3)^2
-
-	# Determine the weights
-	weight = Ey2 - E2y
-	return(weight)
-}
-
-constantCMPfitsandresids = function(lambda.hat, nu.hat, y = 0)
-{
-	# Determine estimated lambda.hat, fit, and residuals
-	lambda.hat = as.numeric(lambda.hat)
-	nu.hat = as.numeric(nu.hat)
-	fit = lambda.hat^(1/nu.hat) - ((nu.hat - 1)/(2*nu.hat))
-	resid = y - fit
-	list(fit = fit, resid = resid)
-}
-
-cmp.mse = function(y, X, S, beta, gamma, off.x, off.s)
-{
-	out = fitted_cmp_internal(X, S, beta, gamma, off.x, off.s)
-	fnr = constantCMPfitsandresids(out$lambda, out$nu, y)
-	res = fnr$resid
-	mse = mean(res^2)
-	return(mse)
 }

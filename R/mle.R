@@ -15,10 +15,10 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 	stopifnot(d2 == length(gamma.init))
 	stopifnot(d3 == length(zeta.init))
 
-	optim_method = getOption("COMPoissonReg.optim.method")
-	optim_control = getOption("COMPoissonReg.optim.control")
-	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate_tol = getOption("COMPoissonReg.truncate.tol")
+	optim.method = getOption("COMPoissonReg.optim.method")
+	optim.control = getOption("COMPoissonReg.optim.control")
+	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate.tol = getOption("COMPoissonReg.truncate.tol")
 	ymax = getOption("COMPoissonReg.ymax")
 
 	tx = function(par) {
@@ -31,16 +31,15 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 
 	loglik = function(par) {
 		theta = tx(par)
-		out = fitted_zicmp_internal(X, S, W, theta$beta, theta$gamma,
+		out = fitted.zicmp.internal(X, S, W, theta$beta, theta$gamma,
 			theta$zeta, off.x, off.s, off.w)
-		loglik_zicmp(y, out$lambda, out$nu, out$p, hybrid_tol, truncate_tol,
-			ymax);
+		loglik_zicmp(y, out$lambda, out$nu, out$p, hybrid.tol, truncate.tol, ymax)
 	}
 
-	optim_control$fnscale = -1
+	optim.control$fnscale = -1
 	par.init = c(beta.init, gamma.init, zeta.init)
-	res = optim(par.init, loglik, method = optim_method,
-		control = optim_control, hessian = TRUE)
+	res = optim(par.init, loglik, method = optim.method,
+		control = optim.control, hessian = TRUE)
 
 	theta.hat = list(
 		beta = res$par[1:d1],
@@ -79,10 +78,10 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d2 == length(gamma.init))
 
-	optim_method = getOption("COMPoissonReg.optim.method")
-	optim_control = getOption("COMPoissonReg.optim.control")
-	hybrid_tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate_tol = getOption("COMPoissonReg.truncate.tol")
+	optim.method = getOption("COMPoissonReg.optim.method")
+	optim.control = getOption("COMPoissonReg.optim.control")
+	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
+	truncate.tol = getOption("COMPoissonReg.truncate.tol")
 	ymax = getOption("COMPoissonReg.ymax")
 
 	tx = function(par) {
@@ -94,15 +93,15 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 
 	loglik = function(par) {
 		theta = tx(par)
-		out = fitted_cmp_internal(X, S, theta$beta, theta$gamma, off.x, off.s)
-		loglik_cmp(y, out$lambda, out$nu, hybrid_tol, truncate_tol, ymax)
+		out = fitted.cmp.internal(X, S, theta$beta, theta$gamma, off.x, off.s)
+		loglik_cmp(y, out$lambda, out$nu, hybrid.tol, truncate.tol, ymax)
 	}
 
-	optim_control$fnscale = -1
+	optim.control$fnscale = -1
 	par.init = c(beta.init, gamma.init)
 
-	res = optim(par.init, loglik, method = optim_method,
-		control = optim_control, hessian = TRUE)
+	res = optim(par.init, loglik, method = optim.method,
+		control = optim.control, hessian = TRUE)
 
 	theta.hat = list(
 		beta = res$par[1:d1],
@@ -139,8 +138,8 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d3 == length(zeta.init))
 
-	optim_method = getOption("COMPoissonReg.optim.method")
-	optim_control = getOption("COMPoissonReg.optim.control")
+	optim.method = getOption("COMPoissonReg.optim.method")
+	optim.control = getOption("COMPoissonReg.optim.control")
 
 	tx = function(par) {
 		list(
@@ -151,7 +150,7 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 
 	loglik = function(par) {
 		theta = tx(par)
-		out = fitted_zip_internal(X, W, theta$beta, theta$zeta, off.x, off.w)
+		out = fitted.zip.internal(X, W, theta$beta, theta$zeta, off.x, off.w)
 		lambda = out$lambda
 		p = out$p
 
@@ -159,10 +158,10 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 			(1-u)*(y*log(lambda) - lambda - lgamma(y+1)))
 	}
 
-	optim_control$fnscale = -1
+	optim.control$fnscale = -1
 	par.init = c(beta.init, zeta.init)
-	res = optim(par.init, loglik, method = optim_method,
-		control = optim_control, hessian = TRUE)
+	res = optim(par.init, loglik, method = optim.method,
+		control = optim.control, hessian = TRUE)
 
 	theta.hat = list(
 		beta = res$par[1:d1],

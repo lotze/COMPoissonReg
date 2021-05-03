@@ -31,7 +31,8 @@ Rcpp::NumericVector d_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 	}
 
 	if (normalize) {
-		out = out - z_hybrid(lambda, nu, true, hybrid_tol, truncate_tol, ymax);
+		double lnormcost = z_hybrid(lambda, nu, true, hybrid_tol, truncate_tol, ymax);
+		out = out - lnormcost;
 	}
 
 	if (take_log) {
@@ -50,7 +51,6 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol, truncate_tol, ymax);
 
 	unsigned int x_max = int(std::min(double(Rcpp::max(x)), ymax));
-	const Rcpp::NumericVector& x_range = linspace(0, x_max, x_max + 1);
 
 	for (unsigned int i = 0; i < n; i++) {
 		double lcp = -lnormconst;

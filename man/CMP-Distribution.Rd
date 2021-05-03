@@ -8,6 +8,8 @@
 \alias{qcmp}
 \alias{ecmp}
 \alias{vcmp}
+\alias{ncmp}
+\alias{tcmp}
 \title{COM-Poisson Distribution}
 \usage{
 dcmp(x, lambda, nu, log = FALSE)
@@ -18,9 +20,13 @@ pcmp(x, lambda, nu)
 
 qcmp(q, lambda, nu, log.p = FALSE)
 
-ecmp(lambda, nu)
+ecmp(lambda, nu, method = "hybrid")
 
-vcmp(lambda, nu)
+vcmp(lambda, nu, method = "hybrid")
+
+ncmp(lambda, nu, log = FALSE, method = "hybrid")
+
+tcmp(lambda, nu)
 }
 \arguments{
 \item{x}{vector of quantiles.}
@@ -36,19 +42,26 @@ vcmp(lambda, nu)
 \item{q}{vector of probabilities.}
 
 \item{log.p}{logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.}
+
+\item{method}{a string: \code{hybrid}, \code{approx}, or \code{hybrid}.}
 }
 \value{
 \describe{
 \item{dcmp}{gives the density,}
 \item{pcmp}{gives the cumulative probability,}
 \item{qcmp}{gives the quantile function,}
-\item{rcmp}{generates random values, and}
-\item{ecmp}{gives the expected value.}
-\item{vcmp}{gives the variance.}
+\item{rcmp}{generates random values,}
+\item{ecmp}{gives the expected value,}
+\item{vcmp}{gives the variance,}
+\item{ncmp}{gives the value of the normalizing constant, and}
+\item{tcmp}{gives the truncating upper value (see details).}
 }
 }
 \description{
 Functions for the COM-Poisson distribution.
+}
+\details{
+TBD: tcmp
 }
 \references{
 Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for

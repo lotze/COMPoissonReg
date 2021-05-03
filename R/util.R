@@ -8,15 +8,15 @@
 	options(COMPoissonReg.truncate.tol = 1e-6)
 }
 
-format_difftime = function(x) {
+format.difftime = function(x) {
 	s = as.numeric(x, units = "secs")
 	dd = floor(s / (60^2 * 24))
-	dd_resid = s / (60^2 * 24) - dd
-	hh = floor(24*dd_resid)
-	hh_resid = 24*dd_resid - floor(24*dd_resid)
-	mm = floor(60*hh_resid)
-	mm_resid = 60*hh_resid - floor(60*hh_resid)
-	ss = floor(60*mm_resid)
+	dd.resid = s / (60^2 * 24) - dd
+	hh = floor(24*dd.resid)
+	hh.resid = 24*dd.resid - floor(24*dd.resid)
+	mm = floor(60*hh.resid)
+	mm.resid = 60*hh.resid - floor(60*hh.resid)
+	ss = floor(60*mm.resid)
 
 	if (dd > 0) {
 		fmt = sprintf("%02dd:%02dh:%02dm:%02ds", dd, hh, mm, ss)

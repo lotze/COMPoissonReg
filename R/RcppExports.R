@@ -21,11 +21,6 @@ r_cmp <- function(n, lambda, nu, hybrid_tol, truncate_tol, ymax) {
     .Call(`_COMPoissonReg_r_cmp`, n, lambda, nu, hybrid_tol, truncate_tol, ymax)
 }
 
-linspace <- function(start, end, N) {
-    .Call(`_COMPoissonReg_linspace`, start, end, N)
-}
-
-#' @export
 qdiscrete <- function(q, cp) {
     .Call(`_COMPoissonReg_qdiscrete`, q, cp)
 }
@@ -60,6 +55,10 @@ z_approx <- function(lambda, nu, take_log) {
 
 z_hybrid <- function(lambda, nu, take_log, hybrid_tol, truncate_tol, ymax) {
     .Call(`_COMPoissonReg_z_hybrid`, lambda, nu, take_log, hybrid_tol, truncate_tol, ymax)
+}
+
+y_trunc <- function(lambda, nu, tol, ymax) {
+    .Call(`_COMPoissonReg_y_trunc`, lambda, nu, tol, ymax)
 }
 
 loglik_zicmp <- function(x, lambda, nu, p, hybrid_tol, truncate_tol, ymax) {

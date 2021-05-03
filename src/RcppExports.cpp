@@ -87,19 +87,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// linspace
-Rcpp::NumericVector linspace(double start, double end, unsigned int N);
-RcppExport SEXP _COMPoissonReg_linspace(SEXP startSEXP, SEXP endSEXP, SEXP NSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type start(startSEXP);
-    Rcpp::traits::input_parameter< double >::type end(endSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type N(NSEXP);
-    rcpp_result_gen = Rcpp::wrap(linspace(start, end, N));
-    return rcpp_result_gen;
-END_RCPP
-}
 // qdiscrete
 unsigned int qdiscrete(double q, const Rcpp::NumericVector& cp);
 RcppExport SEXP _COMPoissonReg_qdiscrete(SEXP qSEXP, SEXP cpSEXP) {
@@ -221,13 +208,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// y_trunc
+Rcpp::IntegerVector y_trunc(const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, double tol, double ymax);
+RcppExport SEXP _COMPoissonReg_y_trunc(SEXP lambdaSEXP, SEXP nuSEXP, SEXP tolSEXP, SEXP ymaxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< double >::type ymax(ymaxSEXP);
+    rcpp_result_gen = Rcpp::wrap(y_trunc(lambda, nu, tol, ymax));
+    return rcpp_result_gen;
+END_RCPP
+}
 // loglik_zicmp
-double loglik_zicmp(const Rcpp::NumericVector& x, const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, const Rcpp::NumericVector& p, double hybrid_tol, double truncate_tol, double ymax);
+double loglik_zicmp(const Rcpp::IntegerVector& x, const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, const Rcpp::NumericVector& p, double hybrid_tol, double truncate_tol, double ymax);
 RcppExport SEXP _COMPoissonReg_loglik_zicmp(SEXP xSEXP, SEXP lambdaSEXP, SEXP nuSEXP, SEXP pSEXP, SEXP hybrid_tolSEXP, SEXP truncate_tolSEXP, SEXP ymaxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type p(pSEXP);
@@ -239,12 +240,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // d_zicmp
-Rcpp::NumericVector d_zicmp(const Rcpp::NumericVector& x, double lambda, double nu, double p, bool take_log, double hybrid_tol, double truncate_tol, double ymax);
+Rcpp::NumericVector d_zicmp(const Rcpp::IntegerVector& x, double lambda, double nu, double p, bool take_log, double hybrid_tol, double truncate_tol, double ymax);
 RcppExport SEXP _COMPoissonReg_d_zicmp(SEXP xSEXP, SEXP lambdaSEXP, SEXP nuSEXP, SEXP pSEXP, SEXP take_logSEXP, SEXP hybrid_tolSEXP, SEXP truncate_tolSEXP, SEXP ymaxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
     Rcpp::traits::input_parameter< double >::type p(pSEXP);
@@ -280,7 +281,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_COMPoissonReg_p_cmp", (DL_FUNC) &_COMPoissonReg_p_cmp, 6},
     {"_COMPoissonReg_q_cmp", (DL_FUNC) &_COMPoissonReg_q_cmp, 6},
     {"_COMPoissonReg_r_cmp", (DL_FUNC) &_COMPoissonReg_r_cmp, 6},
-    {"_COMPoissonReg_linspace", (DL_FUNC) &_COMPoissonReg_linspace, 3},
     {"_COMPoissonReg_qdiscrete", (DL_FUNC) &_COMPoissonReg_qdiscrete, 2},
     {"_COMPoissonReg_z_prodj", (DL_FUNC) &_COMPoissonReg_z_prodj, 3},
     {"_COMPoissonReg_z_prodj2", (DL_FUNC) &_COMPoissonReg_z_prodj2, 3},
@@ -290,6 +290,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_COMPoissonReg_z_trunc", (DL_FUNC) &_COMPoissonReg_z_trunc, 5},
     {"_COMPoissonReg_z_approx", (DL_FUNC) &_COMPoissonReg_z_approx, 3},
     {"_COMPoissonReg_z_hybrid", (DL_FUNC) &_COMPoissonReg_z_hybrid, 6},
+    {"_COMPoissonReg_y_trunc", (DL_FUNC) &_COMPoissonReg_y_trunc, 4},
     {"_COMPoissonReg_loglik_zicmp", (DL_FUNC) &_COMPoissonReg_loglik_zicmp, 7},
     {"_COMPoissonReg_d_zicmp", (DL_FUNC) &_COMPoissonReg_d_zicmp, 8},
     {"_COMPoissonReg_q_zicmp", (DL_FUNC) &_COMPoissonReg_q_zicmp, 7},
