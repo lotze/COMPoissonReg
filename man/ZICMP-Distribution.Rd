@@ -39,7 +39,7 @@ vzicmp(lambda, nu, p, method = "hybrid")
 
 \item{log.p}{logical; if TRUE, probabilities p are given as \eqn{\log(p)}.}
 
-\item{method}{a string: \code{hybrid}, \code{approx}, or \code{hybrid}.}
+\item{method}{a string: \code{hybrid}, \code{approx}, or \code{trunc}.}
 }
 \value{
 \describe{

@@ -43,7 +43,7 @@ tcmp(lambda, nu)
 
 \item{log.p}{logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.}
 
-\item{method}{a string: \code{hybrid}, \code{approx}, or \code{hybrid}.}
+\item{method}{a string: \code{hybrid}, \code{approx}, or \code{trunc}.}
 }
 \value{
 \describe{
@@ -54,7 +54,7 @@ tcmp(lambda, nu)
 \item{ecmp}{gives the expected value,}
 \item{vcmp}{gives the variance,}
 \item{ncmp}{gives the value of the normalizing constant, and}
-\item{tcmp}{gives the truncating upper value (see details).}
+\item{tcmp}{gives the upper value to which we would truncate (see details).}
 }
 }
 \description{

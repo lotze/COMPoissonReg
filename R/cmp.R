@@ -9,7 +9,7 @@
 #' @param nu dispersion parameter.
 #' @param log logical; if TRUE, probabilities are returned on log-scale.
 #' @param log.p logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.
-#' @param method a string: \code{hybrid}, \code{approx}, or \code{hybrid}.
+#' @param method a string: \code{hybrid}, \code{approx}, or \code{trunc}.
 #' 
 #' @return 
 #' \describe{
@@ -20,7 +20,7 @@
 #' \item{ecmp}{gives the expected value,}
 #' \item{vcmp}{gives the variance,}
 #' \item{ncmp}{gives the value of the normalizing constant, and}
-#' \item{tcmp}{gives the truncating upper value (see details).}
+#' \item{tcmp}{gives the upper value to which we would truncate (see details).}
 #' }
 #' 
 #' @details 
@@ -227,12 +227,6 @@ vcmp = function(lambda, nu, method = "hybrid")
 	return(out)
 }
 
-#' TBD: Update this description
-#' TBD: Pass around options instead of relying on defaults.
-#' Brute force computation of the z-function. This computation is done at the
-#' original scale (as opposed to the log-scale), so it becomes unstable when
-#' the magnitudes of the terms become very large.
-#' Sum (j>=0) { lambda^j / (j!)^nu }
 #' @name CMP Distribution
 #' @export
 ncmp = function(lambda, nu, log = FALSE, method = "hybrid")
@@ -262,7 +256,6 @@ ncmp = function(lambda, nu, log = FALSE, method = "hybrid")
 	return(out)
 }
 
-# TBD: return the max value to be used with truncation methods.
 #' @name CMP Distribution
 #' @export
 tcmp = function(lambda, nu)

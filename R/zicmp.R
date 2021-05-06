@@ -11,7 +11,7 @@
 #' @param p zero-inflation probability parameter.
 #' @param log logical; if TRUE, probabilities are returned on log-scale.
 #' @param log.p logical; if TRUE, probabilities p are given as \eqn{\log(p)}.
-#' @param method a string: \code{hybrid}, \code{approx}, or \code{hybrid}.
+#' @param method a string: \code{hybrid}, \code{approx}, or \code{trunc}.
 #' 
 #' @return
 #' \describe{

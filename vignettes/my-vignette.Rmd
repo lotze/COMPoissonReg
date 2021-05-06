@@ -1,0 +1,242 @@
+---
+title: "A Vignette for the COMPoissonReg Package"
+author: Andrew and ?
+#output:
+#  html_vignette:
+#    number_sections: true
+#    extra_dependencies: ["common"]
+output: 
+  pdf_document:
+    highlight: pygments
+    number_sections: true
+    extra_dependencies:
+      common: null
+      # hyperref: ["colorlinks=true", "citecolor=blue", "linkcolor=blue", "urlcolor=blue"]
+      # hyperref: ["linkcolor=blue"]
+date: "Version 0.8.0"
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{A Vignette for the COMPoissonReg Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  prompt = TRUE,
+  comment = ""
+)
+```
+
+```{r setup, include = FALSE}
+library(COMPoissonReg)
+set.seed(1234)
+```
+
+# Introduction
+\label{sec:intro}
+
+# Conway Maxwell Poisson Distribution
+
+Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway Maxwell Poisson (CMP) random variable with density
+<!-- -->
+\begin{align*}
+f(y \mid \lambda, \nu) = \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad y = 0, 1, \ldots, \quad
+Z(\lambda, \nu) = \sum_{r=0}^\infty \frac{\lambda^r}{(r!)^\nu},
+\end{align*}
+<!-- -->
+where $\lambda > 0$ and $\nu > 0$. Three notable special cases of $\text{CMP}(\lambda, \nu)$ help to demonstrate its flexibility in capturing dispersion.
+
+a. The case $\nu = 1$ corresponds to $\text{Poisson}(\lambda)$. 
+
+a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, the $\text{CMP}(\lambda, \nu)$ distribution becomes $\text{Geometric}(\lambda)$ with density $f(y \mid \lambda) = \lambda^y (1 - \lambda)^{1-y}$ for $y = 0, 1, \ldots$, which is overdispersed relative to Poisson. 
+
+a. When $\nu \rightarrow \infty$, $\text{CMP}(\lambda, \nu)$ converges to a $\text{Bernoulli}(\lambda / (1 + \lambda))$ distribution which is underdispersed relative to Poisson.
+
+## Normalizing Constant
+The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the practical use of CMP models and has been a topic of interest in the CMP literature. In general, there is no simple closed form expression for the series $Z(\lambda, \nu)$. Furthermore, its value can change by many orders of magnitude when $\lambda$ and $\nu$ are varied. (TBD: maybe give an overview here or earlier in the intro, and specifics later if they are needed). @ShmueliEtAl2005 give the approximation
+<!-- -->
+\begin{align}
+Z(\lambda, \nu) &= \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} }
+\left\{ 1 + O(\lambda^{-1/\nu}) \right\},
+\label{eqn:approx}
+\end{align}
+<!-- -->
+which has been refined further in subsequent literature mentioned in Section \ref{sec:intro}. The first term in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes when $\lambda > 1$ as $\nu \rightarrow 0$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
+
+In practice, the `COMPoissonReg` package does not place constraints on $\lambda$ and $\nu$, except to ensure that they are positive, so that their values are driven by the data or the user's selection. A hybrid strategy motivated by \eqref{eqn:approx} is taken by `COMPoissonReg`. Given a small tolerance $\delta > 0$, if $\lambda^{-1/\nu} < \delta$, the first term of \eqref{eqn:approx} dominates the second term, and we take
+<!-- -->
+\begin{align}
+Z(\lambda, \nu) &\approx \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} } \nonumber \\
+&=\exp\left\{
+\nu \lambda^{1/\nu} - \frac{\nu-1}{2\nu} \log \lambda - \frac{\nu-1}{2} \log(2\pi) - \frac{1}{2} \log \nu
+\right\}.
+\label{eqn:z-approx}
+\end{align}
+<!-- -->
+as an approximation. Otherwise, the series is computed truncating the series to a finite number of terms, which is described next. In either case, computations are kept on the log-scale as much as possible to accommodate numbers with potentially very large magnitudes.
+
+If $\lambda^{-1/\nu} \geq \delta$, we approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. The general approach for this is described in Appendix~B of @ShmueliEtAl2005. Here we consider Stirling's approximation in particular; for an adequately
+large $M$, Stirling's approximation can be applied to obtain bounds for the remainder with a closed form. @Feller1968 [, Section 2.9] gives the bound
+<!-- -->
+\begin{align*}
+\sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n + 1)} < n! <
+\sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n)}.
+\end{align*}
+<!-- -->
+(This form is stated at <https://en.wikipedia.org/wiki/Stirling\%27s_approximation>.) Now we can obtain bounds which will be convenient in the following calculations.
+<!-- -->
+\begin{align*}
+\sqrt{2\pi} n^{n + 1/2} e^{-n} \leq n! \leq e n^{n + 1/2} e^{-n}
+\end{align*}
+<!-- -->
+by noting that $e^{1 / (12n + 1)} \geq 1$ for $n \geq 1$ and $\sqrt{2\pi} e^{1 / (12n)} \leq e$ for $n \geq 2$. We may then bound the truncation error for $Z^{(M)}(\lambda, \nu)$ using
+<!-- -->
+\begin{align}
+\lvert Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \rvert &= Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \nonumber \\
+&= \sum_{r=M+1}^\infty \frac{\lambda^r}{(r!)^\nu} \nonumber \\
+&\leq \sum_{r=M+1}^\infty \frac{\lambda^r}{(2\pi)^{\nu/2} r^{\nu r + \nu/2} e^{-r \nu}} \nonumber \\
+&\leq \sum_{r=M+1}^\infty \frac{\lambda^r}{(2\pi)^{\nu/2} (M+1)^{\nu r + \nu/2} e^{-r \nu}} \nonumber \\
+&= (2\pi)^{-\nu/2} (M+1)^{-\nu/2} \sum_{r=M+1}^\infty \left( \frac{\lambda e^{\nu}}{(M+1)^{\nu}} \right)^r \label{eqn:geom} \\
+&= (2\pi)^{-\nu/2} (M+1)^{-\nu/2} \sum_{r=0}^\infty \left( \frac{\lambda e^{\nu}}{(M+1)^{\nu}} \right)^{r+M+1} \nonumber \\
+&= (2\pi)^{-\nu/2} (M+1)^{-\nu/2} \left( \frac{\lambda e^{\nu}}{(M+1)^{\nu}} \right)^{M+1} \frac{1}{1 - \frac{\lambda e^{\nu}}{(M+1)^{\nu}}} \nonumber \\
+&=: \Delta_M, \nonumber
+\end{align}
+<!-- -->
+assuming that $|\lambda e^\nu / (M+1)^\nu| < 1$ for convergence of the
+geometric series in \eqref{eqn:geom}. To ensure this we choose $M$ at least
+large enough so that
+<!-- -->
+\begin{align*}
+\lambda e^\nu / (M+1)^\nu < 1 \iff
+M > \lambda^{1/\nu} e - 1.
+\end{align*}
+<!-- -->
+Consider bounding the relative error by a small given number $\epsilon > 0$:
+<!-- -->
+\begin{align*}
+&\frac{\lvert Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \rvert}{Z^{(M)}(\lambda, \nu)}
+\leq \frac{\Delta_M}{Z^{(M)}(\lambda, \nu)}
+< \epsilon.
+\end{align*}
+<!-- -->
+This condition can be expressed on the log-scale using
+<!-- -->
+\begin{align}
+\log \Delta_M - \log Z^{(M)}(\lambda, \nu) < \log \epsilon,
+\label{eqn:adaptive-log-scale}
+\end{align}
+<!-- -->
+where
+<!-- -->
+\begin{align*}
+\log \Delta_M
+= -\frac{\nu}{2} \log(2\pi)
+- \nu \left( M+\frac{3}{2} \right) \log (M+1)
++ (M+1) (\nu + \log \lambda)
+- \log\left(1 - \frac{\lambda e^\nu}{(M+1)^\nu} \right).
+\end{align*}
+<!-- -->
+Therefore, we compute $Z^{(M)}(\lambda, \nu)$ until at least
+$M > \lambda^{1/\nu} e - 1$, increasing $M$ and updating
+$Z^{(M)}(\lambda, \nu)$ until \eqref{eqn:adaptive-log-scale} is satisfied.
+
+The individual terms $\lambda^r / (r!)^\nu$ in the summation may be too large to store at their original scale. Therefore, summation is carried out at the log-scale, wherever possible, using the identity
+<!-- -->
+\begin{align}
+\log(x + y) = \log x + \log(1 + \exp\{ \log y - \log x \});
+\label{eqn:logadd}
+\end{align}
+<!-- -->
+this is especially helpful when $0 < y << x$, as $\log x$ may be kept on the log-scale by the first term of the right-hand side of \eqref{eqn:logadd}, and the standard library function `log1p` may be used with the second term to accurately compute $\log(1 + \epsilon)$ for very small $\epsilon > 0$.
+
+## Density, Generation, CDF, and Quantile Functions
+\label{sec:cmp-dist}
+
+```{r}
+dcmp(0, lambda = 10, nu = 0.9)
+dcmp(0:17, lambda = 10, nu = 0.9, log = TRUE)
+dcmp(c(0, 1, 2), lambda = c(10, 11, 12), nu = c(0.9, 1.0, 1.1), log = TRUE)
+```
+
+```{r}
+rcmp(50, lambda = 10, nu = 0.9)
+```
+
+```{r}
+pcmp(0:17, lambda = 10, nu = 0.9)
+```
+
+```{r}
+qq = seq(0, 1, length.out = 10)
+qcmp(qq, lambda = 10, nu = 0.9)
+```
+
+
+
+## Expected Value and Variance
+
+For expected value and variance, we have
+<!-- -->
+\begin{align*}
+\E(Y) &= \lambda \frac{\partial}{\partial \lambda} \log Z(\lambda, \nu), \\
+\Var(Y) &= \lambda^2 \frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu) + \E(Y)
+\end{align*}
+
+# Zero-Inflated Conway Maxwell Poisson Distribution
+
+Let $S \sim \text{Bernoulli}(p)$ and $T \sim \text{CMP}(\lambda, \nu)$ be independent random variables. Then $Y = (1-S) T$ has Zero-Inflated Conway Maxwell Poisson distribution $\text{ZICMP}(\lambda, \nu, p)$ with density
+%
+\begin{align*}
+f(y \mid \lambda, \nu, p) =  (1 - p) \frac{\lambda^{y}}{(y!)^{\nu} Z(\lambda, \nu)}
++ p \cdot \ind(y = 0).
+\end{align*}
+<!-- -->
+Many of the properties of ZICMP are apparent from its CMP construction; for example
+<!-- -->
+\begin{align*}
+\E(Y) &= (1-p) \E(T), \\
+\Var(Y) &= (1-p) \left\{ \Var(T) + p[\E(T)]^2 \right\}.
+\end{align*}
+<!-- -->
+Like CMP, several interesting special cases are obtained by varying $\nu$. 
+
+a. Taking $\nu = 1$ corresponds to Zero-Inflated Poisson $\text{ZIP}(\lambda, p)$ with density $f(y \mid \lambda, p) = (1 - p) e^{-\lambda} \lambda^{y} / y! + p \cdot \ind(y = 0)$.
+
+a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, $\text{ZICMP}(\lambda, \nu)$ converges to a Zero-Inflated Geometric distribution with density $f(y \mid \lambda, p) = (1 - p) \lambda^y (1 - \lambda)^{1-y} + p \cdot \ind(y = 0)$ for $y = 0, 1, \ldots$.
+
+a. Finally, when $\nu \rightarrow \infty$, $\text{ZICMP}(\lambda, \nu, p)$ converges to a ``Zero-Inflated Bernoulli'' distribution with density 
+<!-- -->
+\begin{math}
+f(y \mid \lambda, p) = (1 - p) \left[ \lambda/(1+\lambda) \right]^y \left[ 1/(1+\lambda) \right]^{1-y} + p \cdot \ind(y = 0).
+\end{math}
+
+In case (c) the $\lambda$ and $p$ parameters are not identifiable, and users may want to avoid ZICMP in data analyses with extreme underdispersion.
+
+# Regression Modeling with CMP and ZICMP
+
+Suppose there are $n$ subjects with count-valued outcomes $y_1, \ldots, y_n$ and covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in
+\mathbb{R}^{d_2}$, and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$. The `COMPoissonReg` package fits Zero-Inflated COM-Poisson regression models of the form
+<!-- -->
+\begin{align*}
+Y_i \indep \text{ZICMP}(\lambda_i, \nu_i, p_i), \quad i = 1, \ldots, n,
+\end{align*}
+<!-- -->
+where $\log \lambda_i = \vec{x}_i^\top \vec{\beta}$, $\log \nu_i = \vec{s}_i^\top \vec{\gamma}$, and $\logit p_i = \vec{w}_i^\top \vec{\zeta}$. Writing $\btheta = (\vec{\beta}, \vec{\gamma}, \vec{\zeta})$, the likelihood is
+<!-- -->
+\begin{align}
+L(\btheta) =
+\prod_{i=1}^n \left[(1 - p_i)
+\frac{\lambda_i^{y_i}}{(y_i!)^{\nu_i} Z(\lambda_i, \nu_i)}
++ p_i \ind(y_i = 0)
+\right].
+\label{eqn:likelihood}
+\end{align}
+
+## CMP Regression
+
+## ZICMP Regression
+
+# References
+
