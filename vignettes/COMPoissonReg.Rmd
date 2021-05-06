@@ -9,11 +9,12 @@ output:
   pdf_document:
     highlight: pygments
     number_sections: true
+    toc: true
     extra_dependencies:
       common: null
       # hyperref: ["colorlinks=true", "citecolor=blue", "linkcolor=blue", "urlcolor=blue"]
       # hyperref: ["linkcolor=blue"]
-date: "Version 0.8.0"
+date: "COMPoissonReg v0.8.0"
 bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{A Vignette for the COMPoissonReg Package}
@@ -77,7 +78,7 @@ Z(\lambda, \nu) &\approx \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\
 <!-- -->
 as an approximation. Otherwise, the series is computed truncating the series to a finite number of terms, which is described next. In either case, computations are kept on the log-scale as much as possible to accommodate numbers with potentially very large magnitudes.
 
-If $\lambda^{-1/\nu} \geq \delta$, we approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. The general approach for this is described in Appendix~B of @ShmueliEtAl2005. Here we consider Stirling's approximation in particular; for an adequately
+If $\lambda^{-1/\nu} \geq \delta$, we approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. The general approach for this is described in Appendix B of @ShmueliEtAl2005. Here we consider Stirling's approximation in particular; for an adequately
 large $M$, Stirling's approximation can be applied to obtain bounds for the remainder with a closed form. @Feller1968 [, Section 2.9] gives the bound
 <!-- -->
 \begin{align*}
@@ -151,6 +152,59 @@ The individual terms $\lambda^r / (r!)^\nu$ in the summation may be too large to
 <!-- -->
 this is especially helpful when $0 < y << x$, as $\log x$ may be kept on the log-scale by the first term of the right-hand side of \eqref{eqn:logadd}, and the standard library function `log1p` may be used with the second term to accurately compute $\log(1 + \epsilon)$ for very small $\epsilon > 0$.
 
+
+The tolerances $\delta$ and $\epsilon$ are specified in `COMPoissonReg` using global options `COMPoissonReg.hybrid.tol` and `COMPoissonReg.truncate.tol` respectively. Furthermore, the maximum value of $M$ is specified by the option `COMPoissonReg.ymax`. This is a safety measure that prevents very large computations unless the user opts to allow them. All options can be accessed using R's `getOption` function, with default values shown.
+
+```{r}
+getOption("COMPoissonReg.hybrid.tol")
+getOption("COMPoissonReg.truncate.tol")
+getOption("COMPoissonReg.ymax")
+```
+
+The `ncmp` function computes the $Z(\lambda, nu)$ and returns its value either on its original scale or the log-scale. The `method` argument specifies how the computation will be carried out. The argument `method = "approx"` corresponds to \ref{eqn:z-approx}, while `method = "trunc"` uses the truncated sum $Z^{(M)}(\lambda, \nu)$, and the default `method = "hybrid"` uses the hybrid strategy.
+
+```{r}
+ncmp(lambda = 1.5, nu = 1.2)
+ncmp(lambda = 1.5, nu = 1.2, log = TRUE)
+ncmp(lambda = 1.5, nu = 1.2, log = TRUE, method = "approx")
+ncmp(lambda = 1.5, nu = 1.2, log = TRUE, method = "trunc")
+```
+
+The function `tcmp` returns the truncation value $M$ obtained from `ncmp` with `method = "trunc"`.
+
+```{r, warning = FALSE}
+tcmp(lambda = 1.5, nu = c(1, 0.5, 0.2, 0.1, 0.05, 0.03))
+```
+
+Note that the default value of `COMPoissonReg.ymax = 1e6` would not be large enough for use with `lambda = 1.5` and `nu = 0.03`. Here, support values with with non-negligible mass may be left out. A warning message about this is also output, but has been suppressed from the vignette.
+
+Let us increase `COMPoissonReg.ymax` for the current session using R's `options` function and try again.
+
+```{r}
+options(COMPoissonReg.ymax = 3e6)
+tcmp(lambda = 1.5, nu = c(1, 0.5, 0.2, 0.1, 0.05, 0.03))
+```
+
+Now that we have a somewhat robust computation for the normalizing constant, let us plot this interesting behavior when $\lambda > 1$ and $\nu$ decreases.
+
+```{r, fig.width = 5, fig.height = 3, fig.align = "center", prompt = FALSE}
+library(ggplot2)
+
+nu_seq = seq(0.03, 1.5, length.out = 20)
+norm1 = ncmp(lambda = 0.5, nu = nu_seq, log = TRUE)
+norm2 = ncmp(lambda = 1.05, nu = nu_seq, log = TRUE)
+norm3 = ncmp(lambda = 1.20, nu = nu_seq, log = TRUE)
+
+ggplot() +
+	geom_point(data = data.frame(x = nu_seq, y = norm1), aes(x = x, y = y), pch = 1) +
+	geom_point(data = data.frame(x = nu_seq, y = norm2), aes(x = x, y = y), pch = 2) +
+	geom_point(data = data.frame(x = nu_seq, y = norm3), aes(x = x, y = y), pch = 3) +
+	xlab("nu") +
+	ylab("log of normalizing constant") +
+	theme_bw()
+```
+We see that `lambda = 1.2` (represented by $+$ symbols) reaches a value of $Z(\lambda, \nu) \approx e^{18.67}$.
+
 ## Density, Generation, CDF, and Quantile Functions
 \label{sec:cmp-dist}
 
@@ -187,7 +241,7 @@ For expected value and variance, we have
 # Zero-Inflated Conway Maxwell Poisson Distribution
 
 Let $S \sim \text{Bernoulli}(p)$ and $T \sim \text{CMP}(\lambda, \nu)$ be independent random variables. Then $Y = (1-S) T$ has Zero-Inflated Conway Maxwell Poisson distribution $\text{ZICMP}(\lambda, \nu, p)$ with density
-%
+<!-- -->
 \begin{align*}
 f(y \mid \lambda, \nu, p) =  (1 - p) \frac{\lambda^{y}}{(y!)^{\nu} Z(\lambda, \nu)}
 + p \cdot \ind(y = 0).

@@ -20,7 +20,6 @@ RoxygenNote: 7.1.1
 Encoding: UTF-8
 Suggests:
     testthat (>= 3.0.0),
-    R.rsp,
     knitr,
     rmarkdown
 VignetteBuilder: knitr

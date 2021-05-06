@@ -8,7 +8,7 @@
 
 
 read -r -d '' SCRIPT << EOF
-require("R.rsp")
+library(knitr)
 devtools::document(roclets = "vignette")
 EOF
 
