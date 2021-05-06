@@ -7,7 +7,7 @@ author: Andrew and ?
 #    extra_dependencies: ["common"]
 output: 
   pdf_document:
-    highlight: pygments
+    highlight: default
     number_sections: true
     toc: true
     extra_dependencies:
@@ -78,7 +78,14 @@ Z(\lambda, \nu) &\approx \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\
 <!-- -->
 as an approximation. Otherwise, the series is computed truncating the series to a finite number of terms, which is described next. In either case, computations are kept on the log-scale as much as possible to accommodate numbers with potentially very large magnitudes.
 
-If $\lambda^{-1/\nu} \geq \delta$, we approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$. The general approach for this is described in Appendix B of @ShmueliEtAl2005. Here we consider Stirling's approximation in particular; for an adequately
+We approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$ if
+<!-- --->
+\begin{align}
+\lambda^{-1/\nu} \geq \delta.
+\label{eqn:can_trunc}
+\end{align}
+<!-- --->
+The general approach for this is described in Appendix B of @ShmueliEtAl2005. Here we consider Stirling's approximation in particular; for an adequately
 large $M$, Stirling's approximation can be applied to obtain bounds for the remainder with a closed form. @Feller1968 [, Section 2.9] gives the bound
 <!-- -->
 \begin{align*}
@@ -172,8 +179,10 @@ ncmp(lambda = 1.5, nu = 1.2, log = TRUE, method = "trunc")
 
 The function `tcmp` returns the truncation value $M$ obtained from `ncmp` with `method = "trunc"`.
 
-```{r, warning = FALSE}
-tcmp(lambda = 1.5, nu = c(1, 0.5, 0.2, 0.1, 0.05, 0.03))
+```{r}
+suppressWarnings(
+	tcmp(lambda = 1.5, nu = c(1, 0.5, 0.2, 0.1, 0.05, 0.03))
+)
 ```
 
 Note that the default value of `COMPoissonReg.ymax = 1e6` would not be large enough for use with `lambda = 1.5` and `nu = 0.03`. Here, support values with with non-negligible mass may be left out. A warning message about this is also output, but has been suppressed from the vignette.
@@ -203,10 +212,12 @@ ggplot() +
 	ylab("log of normalizing constant") +
 	theme_bw()
 ```
-We see that `lambda = 1.2` (represented by $+$ symbols) reaches a value of $Z(\lambda, \nu) \approx e^{18.67}$.
+We see that `lambda = 1.2` (represented by $+$ symbols) reaches a value of $Z(\lambda, \nu) \approx e^{18.67}$ when `nu = 0.03`.
 
 ## Density, Generation, CDF, and Quantile Functions
 \label{sec:cmp-dist}
+
+TBD: need some discussion here...
 
 ```{r}
 dcmp(0, lambda = 10, nu = 0.9)
@@ -231,12 +242,54 @@ qcmp(qq, lambda = 10, nu = 0.9)
 
 ## Expected Value and Variance
 
-For expected value and variance, we have
+For $Y \sim \text{CMP}(\lambda, \nu)$, we can consider computing the expectation and variance of $Y$ in two ways. First, if there is a moderately-sized $M$ where $\{ 0, \ldots, M \}$ contains all but a negligible amount of the mass of $Y$, we can compute the moments using
 <!-- -->
 \begin{align*}
-\E(Y) &= \lambda \frac{\partial}{\partial \lambda} \log Z(\lambda, \nu), \\
-\Var(Y) &= \lambda^2 \frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu) + \E(Y)
+\E(Y) = \sum_{y=0}^M y \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad
+\E(Y^2) = \sum_{y=0}^M y^2 \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad
+\Var(Y) = \E(Y^2) - [\E(Y)]^2.
 \end{align*}
+<!-- -->
+Otherwise, a different approach is taken. Notice that the expected value is related to the first derivative of the log-normalizing constant via
+<!-- -->
+\begin{align*}
+&\frac{\partial}{\partial \lambda} \log Z(\lambda, \nu)
+= \frac{ \frac{\partial}{\partial \lambda} Z(\lambda, \nu) }{ Z(\lambda, \nu) }
+= \frac{1}{Z(\lambda, \nu)} \sum_{y=0}^\infty y \frac{\lambda^{y-1}}{(y!)^\nu} \\
+&\iff \E(Y) = \lambda \frac{\partial}{\partial \lambda} \log Z(\lambda, \nu).
+\end{align*}
+<!-- -->
+Also
+<!-- -->
+\begin{align*}
+&\frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu)
+= \frac{ Z(\lambda, \nu) \frac{\partial^2}{\partial \lambda^2} Z(\lambda, \nu) - [\frac{\partial}{\partial \lambda} Z(\lambda, \nu)]^2}{ Z(\lambda, \nu)^2 }
+= \frac{1}{Z(\lambda, \nu)} \sum_{y=0}^\infty y(y-1) \frac{\lambda^{y-2}}{(y!)^\nu} - \left[ \frac{\E(Y)}{\lambda} \right]^2 \\
+&\iff \lambda^2 \frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu) = \E[Y(Y-1)] - [\E(Y)]^2 = \Var(Y) - \E(Y) \\
+&\iff \Var(Y) = \lambda^2 \frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu) + \E(Y).
+\end{align*}
+<!-- -->
+Therefore, we may use first and second derivatives of $\log Z(\lambda, \nu)$, with respect to $\lambda$, to compute $\E(Y)$ and $\Var(Y)$. To decide whether to use the truncation or the differentiation approaches, we check condition \eqref{eqn:can_trunc}: if it holds, there is a sufficiently small $M$ to use the truncation method.
+
+The `ecmp` and `vcmp` functions implement this computation of the expectation and variance.
+
+```{r}
+ecmp(lambda = 10, nu = 1.2)
+ecmp(lambda = 1.5, nu = 0.5)
+ecmp(lambda = 1.5, nu = 0.05)
+ecmp(lambda = 1.5, nu = 0.05, method = "trunc")
+ecmp(lambda = 1.5, nu = 0.05, method = "approx")
+```
+
+```{r}
+vcmp(lambda = 10, nu = 1.2)
+vcmp(lambda = 1.5, nu = 0.5)
+vcmp(lambda = 1.5, nu = 0.05)
+vcmp(lambda = 1.5, nu = 0.05, method = "trunc")
+vcmp(lambda = 1.5, nu = 0.05, method = "approx")
+```
+
+As with the `ncmp` function, `method = "approx"` explicitly requests the differentiation approach, `method = "trunc"` requests truncation, and the default `method = "hybrid"` uses condition \eqref{eqn:can_trunc} to decide.
 
 # Zero-Inflated Conway Maxwell Poisson Distribution
 
@@ -266,7 +319,7 @@ a. Finally, when $\nu \rightarrow \infty$, $\text{ZICMP}(\lambda, \nu, p)$ conve
 f(y \mid \lambda, p) = (1 - p) \left[ \lambda/(1+\lambda) \right]^y \left[ 1/(1+\lambda) \right]^{1-y} + p \cdot \ind(y = 0).
 \end{math}
 
-In case (c) the $\lambda$ and $p$ parameters are not identifiable, and users may want to avoid ZICMP in data analyses with extreme underdispersion.
+In case (c) the $\lambda$ and $p$ parameters are not identifiable, and users may want to avoid ZICMP in data analyses with extreme underdispersion. @SellersRaim2016 provide more discussion on ZICMP and its use in regression modeling.
 
 # Regression Modeling with CMP and ZICMP
 
@@ -287,6 +340,8 @@ L(\btheta) =
 \right].
 \label{eqn:likelihood}
 \end{align}
+
+TBD: Describe `glm.cmp` here.
 
 ## CMP Regression
 

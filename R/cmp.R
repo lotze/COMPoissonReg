@@ -212,7 +212,6 @@ vcmp = function(lambda, nu, method = "hybrid")
 			# via the global options, if desired.
 			dd = prep$lambda[i]^2 * hessian(ncmp, prep$lambda[i],
 			 	nu = prep$nu[i], log = TRUE)
-			browser()
 			out[i] = dd + ev[i]
 		} else if (method == "trunc" || (method == "hybrid" && !is.approx.valid[i])) {
 			# Compute the expected value by a simple truncated sum
