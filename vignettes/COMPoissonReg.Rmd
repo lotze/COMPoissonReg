@@ -38,22 +38,29 @@ set.seed(1234)
 # Introduction
 \label{sec:intro}
 
+TBD:
+
+- See the manual for a full specification of the public interface.
+
 # Conway Maxwell Poisson Distribution
+\label{sec:cmp}
 
 Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway Maxwell Poisson (CMP) random variable with density
 <!-- -->
 \begin{align*}
-f(y \mid \lambda, \nu) = \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad y = 0, 1, \ldots, \quad
+f(y \mid \lambda, \nu) = \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad y \in \mathbb{N}, \quad
 Z(\lambda, \nu) = \sum_{r=0}^\infty \frac{\lambda^r}{(r!)^\nu},
 \end{align*}
 <!-- -->
-where $\lambda > 0$ and $\nu > 0$. Three notable special cases of $\text{CMP}(\lambda, \nu)$ help to demonstrate its flexibility in capturing dispersion.
+where $\lambda > 0$, $\nu > 0$, and $\mathbb{N}$ represents the nonnegative integers $\{ 0, 1, 2, \ldots\}$. Three notable special cases of $\text{CMP}(\lambda, \nu)$ help to demonstrate its flexibility in capturing dispersion.
 
 a. The case $\nu = 1$ corresponds to $\text{Poisson}(\lambda)$. 
 
-a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, the $\text{CMP}(\lambda, \nu)$ distribution becomes $\text{Geometric}(\lambda)$ with density $f(y \mid \lambda) = \lambda^y (1 - \lambda)^{1-y}$ for $y = 0, 1, \ldots$, which is overdispersed relative to Poisson. 
+a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, the $\text{CMP}(\lambda, \nu)$ distribution becomes $\text{Geometric}(\lambda)$ with density $f(y \mid \lambda) = \lambda^y (1 - \lambda)^{1-y}$ for $y \in \mathbb{N}$, which is overdispersed relative to Poisson. 
 
 a. When $\nu \rightarrow \infty$, $\text{CMP}(\lambda, \nu)$ converges to a $\text{Bernoulli}(\lambda / (1 + \lambda))$ distribution which is underdispersed relative to Poisson.
+
+@ShmueliEtAl2005 discusses some important properties of CMP as a count distribution, and @SellersShmueli2010 demonstrate the use of CMP in regression modeling.
 
 ## Normalizing Constant
 The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the practical use of CMP models and has been a topic of interest in the CMP literature. In general, there is no simple closed form expression for the series $Z(\lambda, \nu)$. Furthermore, its value can change by many orders of magnitude when $\lambda$ and $\nu$ are varied. (TBD: maybe give an overview here or earlier in the intro, and specifics later if they are needed). @ShmueliEtAl2005 give the approximation
@@ -185,9 +192,7 @@ suppressWarnings(
 )
 ```
 
-Note that the default value of `COMPoissonReg.ymax = 1e6` would not be large enough for use with `lambda = 1.5` and `nu = 0.03`. Here, support values with with non-negligible mass may be left out. A warning message about this is also output, but has been suppressed from the vignette.
-
-Let us increase `COMPoissonReg.ymax` for the current session using R's `options` function and try again.
+Note that `tcmp` returns `1e6` for the last `nu` value of ``0.03`` because we have reached the maximum value specified by `COMPoissonReg.ymax = 1e6` before capturing a sufficient proportion of the normalizing constant using \eqref{eqn:adaptive-log-scale}. A warning message about this is also output, but has been suppressed from the vignette. Here, support values with with non-negligible mass may be left out. Therefore, let us increase `COMPoissonReg.ymax` for the current session using R's `options` function and try again.
 
 ```{r}
 options(COMPoissonReg.ymax = 3e6)
@@ -217,7 +222,7 @@ We see that `lambda = 1.2` (represented by $+$ symbols) reaches a value of $Z(\l
 ## Density, Generation, CDF, and Quantile Functions
 \label{sec:cmp-dist}
 
-TBD: need some discussion here...
+The respective functions for CMP density, variate generation, CDF, and quantile functions are `dcmp`, `rcmp`, `pcmp` , and `qcmp`. Their usage is similar to distribution functions provided by the R `stats` package.
 
 ```{r}
 dcmp(0, lambda = 10, nu = 0.9)
@@ -238,9 +243,53 @@ qq = seq(0, 1, length.out = 10)
 qcmp(qq, lambda = 10, nu = 0.9)
 ```
 
+As a quick test, let us ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dcmp`, `pcmp`, and `qcmp`.
 
+```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+library(ggplot2)
+
+n = 100000
+lambda = 0.5
+nu = 0.1
+x = rcmp(n, lambda, nu)
+
+xx = seq(0, max(x))
+qq = seq(0, 1, length.out = 100)
+
+fx = dcmp(xx, lambda, nu)
+px = pcmp(xx, lambda, nu)
+qx = qcmp(qq, lambda, nu)
+
+qx_emp = quantile(x, probs = qq)
+
+ggplot() +
+	geom_bar(data = data.frame(x = x), aes(x = x, y = ..prop..), fill = "NA",
+		col = "black") +
+	geom_point(data = data.frame(x = xx, fx = fx), aes(x, fx)) +
+	ylab("Proportion") +
+	ggtitle("Empirical Density vs. dcmp") +
+	theme_bw()
+
+ggplot() +
+	stat_ecdf(data = data.frame(x = x), aes(x), geom = "step") +
+	geom_point(data = data.frame(x = xx, px = px), aes(x, px)) +
+	ylab("Proportion") +
+	ggtitle("Empirical CDF vs. pcmp") +
+	theme_bw()
+
+ggplot() +
+	geom_point(data = data.frame(x = qq, qx_emp = qx_emp), aes(qq, qx_emp), pch = 1) +
+	geom_point(data = data.frame(x = qq, qx = qx), aes(qq, qx), pch = 3) +
+	xlab("Probability") +
+	ylab("Quantile") +
+	ggtitle("Empirical Quantiles vs. qcmp") +
+	theme_bw()
+```
+
+(TBD: Why does the 1.0 quantile seem to be off?)
 
 ## Expected Value and Variance
+\label{sec:cmp-ev}
 
 For $Y \sim \text{CMP}(\lambda, \nu)$, we can consider computing the expectation and variance of $Y$ in two ways. First, if there is a moderately-sized $M$ where $\{ 0, \ldots, M \}$ contains all but a negligible amount of the mass of $Y$, we can compute the moments using
 <!-- -->
@@ -291,27 +340,31 @@ vcmp(lambda = 1.5, nu = 0.05, method = "approx")
 
 As with the `ncmp` function, `method = "approx"` explicitly requests the differentiation approach, `method = "trunc"` requests truncation, and the default `method = "hybrid"` uses condition \eqref{eqn:can_trunc} to decide.
 
+Provided that an enormously large truncation value $M$ is not required, other moments can be computed using `tcmp` by truncated sums.
+
+```{r}
+M = tcmp(lambda = 1.5, nu = 0.05)
+xx = seq(0, M)
+
+print(M)
+sum(xx^3 * dcmp(xx, lambda, nu))    # E(X^3)
+sum(xx^4 * dcmp(xx, lambda, nu))    # E(X^4)
+```
+
 # Zero-Inflated Conway Maxwell Poisson Distribution
 
 Let $S \sim \text{Bernoulli}(p)$ and $T \sim \text{CMP}(\lambda, \nu)$ be independent random variables. Then $Y = (1-S) T$ has Zero-Inflated Conway Maxwell Poisson distribution $\text{ZICMP}(\lambda, \nu, p)$ with density
 <!-- -->
 \begin{align*}
 f(y \mid \lambda, \nu, p) =  (1 - p) \frac{\lambda^{y}}{(y!)^{\nu} Z(\lambda, \nu)}
-+ p \cdot \ind(y = 0).
-\end{align*}
-<!-- -->
-Many of the properties of ZICMP are apparent from its CMP construction; for example
-<!-- -->
-\begin{align*}
-\E(Y) &= (1-p) \E(T), \\
-\Var(Y) &= (1-p) \left\{ \Var(T) + p[\E(T)]^2 \right\}.
++ p \cdot \ind(y = 0), \quad y \in \mathbb{N}.
 \end{align*}
 <!-- -->
 Like CMP, several interesting special cases are obtained by varying $\nu$. 
 
 a. Taking $\nu = 1$ corresponds to Zero-Inflated Poisson $\text{ZIP}(\lambda, p)$ with density $f(y \mid \lambda, p) = (1 - p) e^{-\lambda} \lambda^{y} / y! + p \cdot \ind(y = 0)$.
 
-a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, $\text{ZICMP}(\lambda, \nu)$ converges to a Zero-Inflated Geometric distribution with density $f(y \mid \lambda, p) = (1 - p) \lambda^y (1 - \lambda)^{1-y} + p \cdot \ind(y = 0)$ for $y = 0, 1, \ldots$.
+a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, $\text{ZICMP}(\lambda, \nu)$ converges to a Zero-Inflated Geometric distribution with density $f(y \mid \lambda, p) = (1 - p) \lambda^y (1 - \lambda)^{1-y} + p \cdot \ind(y = 0)$ for $y \in \mathbb{N}$.
 
 a. Finally, when $\nu \rightarrow \infty$, $\text{ZICMP}(\lambda, \nu, p)$ converges to a ``Zero-Inflated Bernoulli'' distribution with density 
 <!-- -->
@@ -320,6 +373,97 @@ f(y \mid \lambda, p) = (1 - p) \left[ \lambda/(1+\lambda) \right]^y \left[ 1/(1+
 \end{math}
 
 In case (c) the $\lambda$ and $p$ parameters are not identifiable, and users may want to avoid ZICMP in data analyses with extreme underdispersion. @SellersRaim2016 provide more discussion on ZICMP and its use in regression modeling.
+
+## Density, Generation, CDF, and Quantile Functions
+The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. They make use of the CMP implementation described in Section \ref{sec:cmp}. The relationship between the CMP and ZICMP densities and variate generation mechanisms was given earlier in the present section. Furthermore, let $F(x \mid \lambda, \nu)$ and $F^{-}(\phi \mid \lambda, \nu)$ denote the CDF and quantile function of $\text{CMP}(\lambda, \nu)$ and $F(x \mid \lambda, \nu, p)$ and $F^{-}(\phi \mid \lambda, \nu, p)$ denote the CDF and quantile function of $\text{ZICMP}(\lambda, \nu, p)$. We have
+<!-- -->
+\begin{align*}
+F(x \mid \lambda, \nu, p) = (1-p) F(x \mid \lambda, \nu) + p \cdot \ind(x \geq 0)
+\end{align*}
+<!-- -->
+and, for a given $\phi \in [0,1]$,
+<!-- -->
+\begin{align*}
+F^{-1}(\phi \mid \lambda, \nu, p)
+&= \inf\{ x \in \mathbb{N} : F(x \mid \lambda, \nu, p) \geq \phi \} \\
+&= \inf\{ x \in \mathbb{N} : (1-p) F(x \mid \lambda, \nu) + p \cdot \ind(x \geq 0) \geq \phi \} \\ 
+&= \inf\{ x \in \mathbb{N} : F(x \mid \lambda, \nu) \geq (\phi - p) / (1 - p) \} \\
+&= F^{-1}\left( \frac{\phi - p}{1 - p} \mid \lambda, \nu \right)
+\end{align*}
+
+
+dzicmp, rzicmp, pzicmp, and qzicmp functions
+
+```{r}
+print("TBD")
+```
+
+As a quick test, let us ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dzicmp`, `pzicmp`, and `qzicmp`.
+
+```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+library(ggplot2)
+
+n = 100000
+lambda = 0.5
+nu = 0.1
+p = 0.5
+x = rzicmp(n, lambda, nu, p)
+
+xx = seq(0, max(x))
+qq = seq(0, 1, length.out = 100)
+
+fx = dzicmp(xx, lambda, nu, p)
+px = pzicmp(xx, lambda, nu, p)
+qx = qzicmp(qq, lambda, nu, p)
+
+qx_emp = quantile(x, probs = qq)
+
+ggplot() +
+	geom_bar(data = data.frame(x = x), aes(x = x, y = ..prop..), fill = "NA",
+		col = "black") +
+	geom_point(data = data.frame(x = xx, fx = fx), aes(x, fx)) +
+	ylab("Proportion") +
+	ggtitle("Empirical Density vs. dzicmp") +
+	theme_bw()
+
+ggplot() +
+	stat_ecdf(data = data.frame(x = x), aes(x), geom = "step") +
+	geom_point(data = data.frame(x = xx, px = px), aes(x, px)) +
+	ylab("Proportion") +
+	ggtitle("Empirical CDF vs. pzicmp") +
+	theme_bw()
+
+ggplot() +
+	geom_point(data = data.frame(x = qq, qx_emp = qx_emp), aes(qq, qx_emp), pch = 1) +
+	geom_point(data = data.frame(x = qq, qx = qx), aes(qq, qx), pch = 3) +
+	xlab("Probability") +
+	ylab("Quantile") +
+	ggtitle("Empirical Quantiles vs. qzicmp") +
+	theme_bw()
+```
+
+(TBD: `qzicmp` looks like it might be off.)
+
+## Expectation and Variance
+The expected value and variance of $Y \sim \text{ZICMP}(\lambda, \nu, p)$ are apparent from the construction $Y = (1-S) T$ given earlier in this section. Namely,
+<!-- -->
+\begin{align*}
+\E(Y) = (1-p) \E(T)
+\quad \text{and} \quad
+\Var(Y) = (1-p) \left\{ \Var(T) + p[\E(T)]^2 \right\}
+\end{align*}
+<!-- -->
+may be obtained using formulas for iterated conditional expectations and variances. They may be invoked in `COMPoissonReg` using the `ezicmp` and `vzicmp` functions respectively. These make use of the logic described in Section \ref{sec:cmp-ev} to compute $\E(T)$ and $\Var(T)$.
+
+```{r}
+ezicmp(lambda = 1.5, nu = 0.5, p = 0.1)
+ezicmp(lambda = 1.5, nu = 0.5, p = c(0.1, 0.2, 0.5))
+```
+
+```{r}
+vzicmp(lambda = 1.5, nu = 0.5, p = 0.1)
+vzicmp(lambda = 1.5, nu = 0.5, p = c(0.1, 0.2, 0.5))
+```
 
 # Regression Modeling with CMP and ZICMP
 
@@ -346,6 +490,26 @@ TBD: Describe `glm.cmp` here.
 ## CMP Regression
 
 ## ZICMP Regression
+
+# TBD
+
+1. CMP regression
+	a. Regression model
+	a. Recall freight data, its backstory, and a CMP paper where it was used
+	a. Example data analyses with freight data
+		- Mention alternatives to pass data to glm.cmp
+		- Mention default optimizer and how to change
+		- Mention changing default optim.control
+		- Try a few model variants: intercepts only and with covariates.
+		- Mention use of offsets with glm.cmp. Here we should show a little
+		  workflow demonstrating that the offset gets carried through.
+
+1. ZICMP
+	a. Regression model
+	a. Recall couple data, its backstory, and ZICMP paper where it was used
+	a. Example data analyses with couple data
+		- Try a few model variants: intercepts only and with covariates.
+
 
 # References
 

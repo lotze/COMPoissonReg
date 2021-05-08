@@ -1,7 +1,7 @@
 #include "util.h"
 #include <vector>
 
-unsigned int qdiscrete(double q, const Rcpp::NumericVector& cp)
+unsigned int q_discrete(double q, const Rcpp::NumericVector& cp)
 {
 	unsigned int k = cp.size();
 	if (q > cp(k-1)) {

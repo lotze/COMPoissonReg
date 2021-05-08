@@ -23,7 +23,7 @@
 * the log-scale or probability scale, but they are expected to be compatible.
 */
 // [[Rcpp::export]]
-unsigned int qdiscrete(double q, const Rcpp::NumericVector& cp);
+unsigned int q_discrete(double q, const Rcpp::NumericVector& cp);
 
 // Solaris gave errors on CRAN if we do not define this.
 double log(unsigned int x);

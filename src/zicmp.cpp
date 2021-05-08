@@ -111,7 +111,7 @@ Rcpp::NumericVector q_zicmp(const Rcpp::NumericVector& logq, double lambda,
 	unsigned int n = logq.size();
 	Rcpp::NumericVector out(n);
 	for (unsigned int i = 0; i < n; i++) {
-		out(i) = qdiscrete(logq(i), all_lcp);
+		out(i) = q_discrete(logq(i), all_lcp);
 	}
 
 	return out;
