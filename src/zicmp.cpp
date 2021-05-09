@@ -79,7 +79,12 @@ Rcpp::NumericVector q_zicmp(const Rcpp::NumericVector& logq, double lambda,
 	double nu, double p, double hybrid_tol, double truncate_tol, double ymax)
 {
 	// Normalizing constant of CMP (not ZICMP)
-	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol, truncate_tol, ymax);
+	// Since we're using the truncated method below, we'll compute the normcost by
+	// truncation too. We can use the same call to get our upper truncation bound.
+	const std::pair<double, unsigned int>& ret_pair = truncate(lambda, nu,
+		truncate_tol, ymax);
+	double lnormconst = ret_pair.first;
+	unsigned int M = ret_pair.second;
 
 	double logq_max = Rcpp::max(logq);
 	std::vector<double> all_lcp_vec;
@@ -94,7 +99,7 @@ Rcpp::NumericVector q_zicmp(const Rcpp::NumericVector& logq, double lambda,
 	double lcp = lp;
 	all_lcp_vec.push_back(lcp);
 
-	for (unsigned int j = 1; j <= ymax; j++) {
+	for (unsigned int j = 1; j <= M; j++) {
 		// Do summation on the log-scale.
 		// Use the property: log(a + b) = log(a) + log(1 + b/a).
 		lp = j*log(lambda) - nu*lgamma(j+1) + log(1-p) - lnormconst;

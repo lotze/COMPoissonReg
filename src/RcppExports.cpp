@@ -87,15 +87,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// qdiscrete
-unsigned int qdiscrete(double q, const Rcpp::NumericVector& cp);
-RcppExport SEXP _COMPoissonReg_qdiscrete(SEXP qSEXP, SEXP cpSEXP) {
+// q_discrete
+unsigned int q_discrete(double q, const Rcpp::NumericVector& cp);
+RcppExport SEXP _COMPoissonReg_q_discrete(SEXP qSEXP, SEXP cpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type q(qSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type cp(cpSEXP);
-    rcpp_result_gen = Rcpp::wrap(qdiscrete(q, cp));
+    rcpp_result_gen = Rcpp::wrap(q_discrete(q, cp));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -281,7 +281,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_COMPoissonReg_p_cmp", (DL_FUNC) &_COMPoissonReg_p_cmp, 6},
     {"_COMPoissonReg_q_cmp", (DL_FUNC) &_COMPoissonReg_q_cmp, 6},
     {"_COMPoissonReg_r_cmp", (DL_FUNC) &_COMPoissonReg_r_cmp, 6},
-    {"_COMPoissonReg_qdiscrete", (DL_FUNC) &_COMPoissonReg_qdiscrete, 2},
+    {"_COMPoissonReg_q_discrete", (DL_FUNC) &_COMPoissonReg_q_discrete, 2},
     {"_COMPoissonReg_z_prodj", (DL_FUNC) &_COMPoissonReg_z_prodj, 3},
     {"_COMPoissonReg_z_prodj2", (DL_FUNC) &_COMPoissonReg_z_prodj2, 3},
     {"_COMPoissonReg_z_prodjlogj", (DL_FUNC) &_COMPoissonReg_z_prodjlogj, 3},

@@ -63,6 +63,7 @@ a. When $\nu \rightarrow \infty$, $\text{CMP}(\lambda, \nu)$ converges to a $\te
 @ShmueliEtAl2005 discusses some important properties of CMP as a count distribution, and @SellersShmueli2010 demonstrate the use of CMP in regression modeling.
 
 ## Normalizing Constant
+\label{sec:cmp-normconst}
 The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the practical use of CMP models and has been a topic of interest in the CMP literature. In general, there is no simple closed form expression for the series $Z(\lambda, \nu)$. Furthermore, its value can change by many orders of magnitude when $\lambda$ and $\nu$ are varied. (TBD: maybe give an overview here or earlier in the intro, and specifics later if they are needed). @ShmueliEtAl2005 give the approximation
 <!-- -->
 \begin{align}
@@ -187,12 +188,12 @@ ncmp(lambda = 1.5, nu = 1.2, log = TRUE, method = "trunc")
 The function `tcmp` returns the truncation value $M$ obtained from `ncmp` with `method = "trunc"`.
 
 ```{r}
-suppressWarnings(
-	tcmp(lambda = 1.5, nu = c(1, 0.5, 0.2, 0.1, 0.05, 0.03))
-)
+print_warning = function(x) { print(strwrap(x), quote = FALSE) }
+nu_seq = c(1, 0.5, 0.2, 0.1, 0.05, 0.03)
+tryCatch({ tcmp(lambda = 1.5, nu = nu_seq) }, warning = print_warning)
 ```
 
-Note that `tcmp` returns `1e6` for the last `nu` value of ``0.03`` because we have reached the maximum value specified by `COMPoissonReg.ymax = 1e6` before capturing a sufficient proportion of the normalizing constant using \eqref{eqn:adaptive-log-scale}. A warning message about this is also output, but has been suppressed from the vignette. Here, support values with with non-negligible mass may be left out. Therefore, let us increase `COMPoissonReg.ymax` for the current session using R's `options` function and try again.
+Note that `tcmp` returns `1e6` for the last `nu` value of ``0.03`` because we have reached the maximum value specified by `COMPoissonReg.ymax = 1e6` before capturing a sufficient proportion of the normalizing constant using \eqref{eqn:adaptive-log-scale}. Here, support values with with non-negligible mass may be left out. Therefore, let us increase `COMPoissonReg.ymax` for the current session using R's `options` function and try again.
 
 ```{r}
 options(COMPoissonReg.ymax = 3e6)
@@ -243,6 +244,21 @@ qq = seq(0, 1, length.out = 10)
 qcmp(qq, lambda = 10, nu = 0.9)
 ```
 
+At present, all four functions compute the normalizing constant via Section \ref{sec:cmp-normconst}. The density `dcmp` uses the hybrid method, while `rcmp`, `pcmp`, and `qcmp` use the truncation method regardless of condition \eqref{eqn:can_trunc}. Variate generation, CDF, and quantiles are then computed on CMP as if it were a discrete distribution on the sample space $\{ 0, \ldots, M \}$. A warning is emitted in cases where they may not produce reliable results.
+
+```{r}
+print_warning = function(x) { print(strwrap(x), quote = FALSE) }
+tryCatch({ rcmp(1, lambda = 2, nu = 0.01) }, warning = print_warning)
+```
+
+```{r}
+tryCatch({ pcmp(10, lambda = 2, nu = 0.01) }, warning = print_warning)
+```
+
+```{r}
+tryCatch({ qcmp(0.5, lambda = 2, nu = 0.01) }, warning = print_warning)
+```
+
 As a quick test, let us ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dcmp`, `pcmp`, and `qcmp`.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
@@ -286,7 +302,7 @@ ggplot() +
 	theme_bw()
 ```
 
-(TBD: Why does the 1.0 quantile seem to be off?)
+Notice that the empirical and `qcmp` quantiles for probability $1.0$ do not match: this is because the truncation value $M$---which is returned by `qcmp`---is slightly larger than necessary, and none of the `n` draws have attained this value because the probability associated with it is extremely small. Because the support of CMP is $\mathbb{N}$, the actual quantile for probability $1.0$ is $\infty$ which can be expressed with no computation.
 
 ## Expected Value and Variance
 \label{sec:cmp-ev}
@@ -375,7 +391,8 @@ f(y \mid \lambda, p) = (1 - p) \left[ \lambda/(1+\lambda) \right]^y \left[ 1/(1+
 In case (c) the $\lambda$ and $p$ parameters are not identifiable, and users may want to avoid ZICMP in data analyses with extreme underdispersion. @SellersRaim2016 provide more discussion on ZICMP and its use in regression modeling.
 
 ## Density, Generation, CDF, and Quantile Functions
-The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. They make use of the CMP implementation described in Section \ref{sec:cmp}. The relationship between the CMP and ZICMP densities and variate generation mechanisms was given earlier in the present section. Furthermore, let $F(x \mid \lambda, \nu)$ and $F^{-}(\phi \mid \lambda, \nu)$ denote the CDF and quantile function of $\text{CMP}(\lambda, \nu)$ and $F(x \mid \lambda, \nu, p)$ and $F^{-}(\phi \mid \lambda, \nu, p)$ denote the CDF and quantile function of $\text{ZICMP}(\lambda, \nu, p)$. We have
+
+There is a close relationship between the CMP and ZICMP distributions, as we have seen from construction of ZICMP. The relationship between the densities and variate generation mechanisms was given earlier in this section. Furthermore, let $F(x \mid \lambda, \nu)$ and $F^{-}(\phi \mid \lambda, \nu)$ denote the CDF and quantile function of $\text{CMP}(\lambda, \nu)$ and $F(x \mid \lambda, \nu, p)$ and $F^{-}(\phi \mid \lambda, \nu, p)$ denote the CDF and quantile function of $\text{ZICMP}(\lambda, \nu, p)$. We have
 <!-- -->
 \begin{align*}
 F(x \mid \lambda, \nu, p) = (1-p) F(x \mid \lambda, \nu) + p \cdot \ind(x \geq 0)
@@ -391,14 +408,26 @@ F^{-1}(\phi \mid \lambda, \nu, p)
 &= F^{-1}\left( \frac{\phi - p}{1 - p} \mid \lambda, \nu \right)
 \end{align*}
 
+Therefore, the 
 
-dzicmp, rzicmp, pzicmp, and qzicmp functions
+The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. 
+
+
+
+They make use of the CMP implementation described in Section \ref{sec:cmp} such as the criteria to either truncate or approximation the normalizing constant.
+
+Here are some examples showing the `dzicmp`, `rzicmp`, `pzicmp`, and `qzicmp` functions.
 
 ```{r}
-print("TBD")
+qq = seq(0, 1, length.out = 20)
+
+rzicmp(20, lambda = 1.5, nu = 0.2, p = 0.25)
+dzicmp(c(0, 1, 2), lambda = 1.5, nu = 0.2, p = 0.25)
+pzicmp(c(0, 1, 2), lambda = 1.5, nu = 0.2, p = 0.25)
+qzicmp(qq, lambda = 1.5, nu = 0.2, p = 0.25)
 ```
 
-As a quick test, let us ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dzicmp`, `pzicmp`, and `qzicmp`.
+Let us repeat the test from Section \ref{sec:cmp-dist} to ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dzicmp`, `pzicmp`, and `qzicmp`.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
 library(ggplot2)
@@ -442,7 +471,7 @@ ggplot() +
 	theme_bw()
 ```
 
-(TBD: `qzicmp` looks like it might be off.)
+The empirical quantiles match the results of `qzicmp`, except for probability $1.0$ which is quite different. This is a consequence of the truncation method which has been used; see the note in Section \ref{sec:cmp-dist} about `qcmp`, where this also occurs but to a lesser degree.
 
 ## Expectation and Variance
 The expected value and variance of $Y \sim \text{ZICMP}(\lambda, \nu, p)$ are apparent from the construction $Y = (1-S) T$ given earlier in this section. Namely,

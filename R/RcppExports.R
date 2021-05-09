@@ -21,8 +21,8 @@ r_cmp <- function(n, lambda, nu, hybrid_tol, truncate_tol, ymax) {
     .Call(`_COMPoissonReg_r_cmp`, n, lambda, nu, hybrid_tol, truncate_tol, ymax)
 }
 
-qdiscrete <- function(q, cp) {
-    .Call(`_COMPoissonReg_qdiscrete`, q, cp)
+q_discrete <- function(q, cp) {
+    .Call(`_COMPoissonReg_q_discrete`, q, cp)
 }
 
 z_prodj <- function(lambda, nu, max = 100L) {

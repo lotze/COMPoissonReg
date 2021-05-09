@@ -48,9 +48,14 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 	unsigned int n = x.size();
 	Rcpp::NumericVector out(n);
 
-	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol, truncate_tol, ymax);
+	// Since we're using the truncated method below, we'll compute the normcost by
+	// truncation too. We can use the same call to get our upper truncation bound.
+	const std::pair<double, unsigned int>& ret_pair = truncate(lambda, nu,
+		truncate_tol, ymax);
+	double lnormconst = ret_pair.first;
+	unsigned int M = ret_pair.second;
 
-	unsigned int x_max = int(std::min(double(Rcpp::max(x)), ymax));
+	unsigned int x_max = int(std::min(double(Rcpp::max(x)), double(M)));
 
 	for (unsigned int i = 0; i < n; i++) {
 		double lcp = -lnormconst;
@@ -59,6 +64,10 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 			// Use the property: log(a + b) = log(a) + log(1 + b/a).
 			double lp = j*log(lambda) - nu*lgamma(j + 1) - lnormconst;
 			lcp = logadd(lcp, lp);
+
+		 	if (j % 10000 == 0) {
+		 		R_CheckUserInterrupt();
+	 		}
 		}
 		out(i) = lcp;
 	}
@@ -72,25 +81,30 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 Rcpp::NumericVector q_cmp(const Rcpp::NumericVector& logq, double lambda,
 	double nu, double hybrid_tol, double truncate_tol, double ymax)
 {
-	double lnormconst = z_hybrid(lambda, nu, true, hybrid_tol,
-		truncate_tol, ymax);
 	
+	// Since we're using the truncated method below, we'll compute the normcost by
+	// truncation too. We can use the same call to get our upper truncation bound.
+	const std::pair<double, unsigned int>& ret_pair = truncate(lambda, nu,
+		truncate_tol, ymax);
+	double lnormconst = ret_pair.first;
+	unsigned int M = ret_pair.second;
+
 	double logq_max = Rcpp::max(logq);
 	std::vector<double> all_lcp_vec;
 
-	// Compute all of the probabilities we'll need, on the log-scale
-	// Initialize with f(0)
+	// Compute all of the probabilities we'll need, on the log-scale.
+	// Initialize with f(0).
 	double lcp = -lnormconst;
 	all_lcp_vec.push_back(lcp);
 
-	for (unsigned int j = 1; j <= ymax; j++) {
+	for (unsigned int j = 1; j <= M; j++) {
 		// Do summation on the log-scale.
 		// Use the property: log(a + b) = log(a) + log(1 + b/a).
 		double lp = j*log(lambda) - nu*lgamma(j+1) - lnormconst;
 		lcp = logadd(lcp, lp);
 		all_lcp_vec.push_back(lcp);
 
-	 	if (j % 10000 == 0 && j > 0) {
+	 	if (j % 10000 == 0) {
 	 		R_CheckUserInterrupt();
 	 	}
 
@@ -101,14 +115,10 @@ Rcpp::NumericVector q_cmp(const Rcpp::NumericVector& logq, double lambda,
 
 	Rcpp::NumericVector all_lcp(all_lcp_vec.begin(), all_lcp_vec.end());
 
-	// Rcpp::print(all_lcp);
-
 	unsigned int n = logq.size();
 	Rcpp::NumericVector out(n);
 	for (unsigned int i = 0; i < n; i++) {
 		out(i) = q_discrete(logq(i), all_lcp);
-		// Rprintf("Checkpoint 1: We drew %g for q(%d) = %g\n", out(i), i, exp(logq(i)));
-		R_CheckUserInterrupt();
 	}
 
 	return out;
