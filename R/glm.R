@@ -69,6 +69,7 @@ glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	X = model.matrix(formula.lambda, mf)
 	off.x = model.offset(mf)
 	d1 = ncol(X)
+	n = length(y)
 
 	weights = model.weights(mf)
 	if(!is.null(weights)) {
@@ -78,10 +79,15 @@ glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	# Parse formula.nu
 	mf = model.frame(formula.nu, data, ...)
 	S = model.matrix(formula.nu, mf)
+	if (nrow(S) == 0) {
+		# A workaround for the case where there is no context in formula.nu
+		# about how many observations there should be. The only way this
+		# seems possible is when formula.nu = ~1
+		S = model.matrix(y ~ 1)
+	}
 	off.s = model.offset(mf)
 	d2 = ncol(S)
 
-	n = length(y)
 	if (is.null(off.x)) { off.x = rep(0, n) }
 	if (is.null(off.s)) { off.s = rep(0, n) }
 
@@ -117,6 +123,13 @@ glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	if (!is.null(formula.p)) {
 		mf = model.frame(formula.p, data, ...)
 		W = model.matrix(formula.p, mf)
+		if (nrow(W) == 0) {
+			# A workaround for the case where there is no context in formula.nu
+			# about how many observations there should be. The only way this
+			# seems possible is when formula.p = ~1
+			W = model.matrix(y ~ 1)
+		}
+
 		off.w = model.offset(mf)
 		if (is.null(off.w)) { off.w = rep(0, n) }
 		d3 = ncol(W)

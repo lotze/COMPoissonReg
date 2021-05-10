@@ -35,6 +35,8 @@ library(COMPoissonReg)
 set.seed(1234)
 ```
 
+\newpage
+
 # Introduction
 \label{sec:intro}
 
@@ -496,8 +498,26 @@ vzicmp(lambda = 1.5, nu = 0.5, p = c(0.1, 0.2, 0.5))
 
 # Regression Modeling with CMP and ZICMP
 
-Suppose there are $n$ subjects with count-valued outcomes $y_1, \ldots, y_n$ and covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in
-\mathbb{R}^{d_2}$, and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$. The `COMPoissonReg` package fits Zero-Inflated COM-Poisson regression models of the form
+Suppose there are $n$ subjects with outcomes $y_1, \ldots, y_n \in \mathbb{N}$ and covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in
+\mathbb{R}^{d_2}$, and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$. The `COMPoissonReg` package fits both CMP and ZICMP regression models.
+
+The CMP regression model assumes that
+<!-- -->
+\begin{align*}
+Y_i \indep \text{ZICMP}(\lambda_i, \nu_i, p_i), \quad i = 1, \ldots, n,
+\end{align*}
+<!-- -->
+where $\log \lambda_i = \vec{x}_i^\top \vec{\beta}$ and $\log \nu_i = \vec{s}_i^\top \vec{\gamma}$. Writing $\btheta = (\vec{\beta}, \vec{\gamma})$, the likelihood is
+<!-- -->
+\begin{align}
+L(\btheta) =
+\prod_{i=1}^n \left[
+\frac{\lambda_i^{y_i}}{(y_i!)^{\nu_i} Z(\lambda_i, \nu_i)}
+\right].
+\label{eqn:likelihood-cmp}
+\end{align}
+<!-- -->
+The ZICMP regression model assumes that
 <!-- -->
 \begin{align*}
 Y_i \indep \text{ZICMP}(\lambda_i, \nu_i, p_i), \quad i = 1, \ldots, n,
@@ -511,34 +531,190 @@ L(\btheta) =
 \frac{\lambda_i^{y_i}}{(y_i!)^{\nu_i} Z(\lambda_i, \nu_i)}
 + p_i \ind(y_i = 0)
 \right].
-\label{eqn:likelihood}
+\label{eqn:likelihood-zicmp}
 \end{align}
 
-TBD: Describe `glm.cmp` here.
+The `glm.cmp` function is provided to handle both cases.
+
+```{r, eval = FALSE, prompt = FALSE}
+out = glm.cmp(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
+	data = NULL, beta.init = NULL, gamma.init = NULL, zeta.init = NULL, ...)
+```
+
+The interface contains three formulas: `formula.lambda` specifies the regression $\vec{x}_i^\top \vec{\beta}$ used for $\lambda_i$, while `formula.nu` and `formula.p` correspond to $\vec{s}_i^\top \vec{\gamma}$ for $\nu_i$ and $\vec{w}_i^\top \vec{\zeta}$ for $p_i$, respectively. ZICMP regression is fit when `formula.p` is set to something other than its default `NULL` value; otherwise, CMP regression is assumed. The `data` argument accepts the data as an explicit argument. The `beta.init`, `gamma.init`, and `zeta.init` allow initial values to be pass to the optimizer for fitting. See the package manual for details about the `glm.cmp` interface.
+
+`COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\btheta}$ for $\btheta$ under the specified model. Two global options are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
+
+```{r}
+getOption("COMPoissonReg.optim.method")
+getOption("COMPoissonReg.optim.control")
+```
+
+The string `COMPoissonReg.optim.method` is used as the `method` argument of `optim`, while the list `COMPoissonReg.optim.control` is used as the `control` argument. For the latter, note that any entry for `fnscale` is ignored by `COMPoissonReg`.
+
+TBD: Discuss how variance estimates are computed.
+
+We will now illustrate use of the regression tools using two examples whose data are included in the package.
 
 ## CMP Regression
+
+TBD: Recall freight data, its backstory, and a CMP paper where it was used
+TBD: `broken` is the outcome and `transfers` is available as a covariate. Make sure to be specific about calling it $x_i$, etc
+
+
+Let us load and view the dataset.
+
+```{r}
+data(freight)
+print(freight)
+```
+
+Before fitting a CMP regression, let us fit a standard Poisson model $Y_i \indep \text{Poisson}(\lambda_i)$ with $\log \lambda_i = \beta_0 + \beta_1 \text{transfers}_i$.
+
+```{r}
+glm.out = glm(broken ~ transfers, data = freight, family = poisson)
+summary(glm.out)
+```
+
+Next, let us fit a similar CMP regression model with $\log \lambda_i = \beta_0 + \beta_1 \text{transfers}_i$ and $\log \nu_i = \gamma_0$ with an intercept only.
+
+```{r}
+cmp.out = glm.cmp(broken ~ transfers, data = freight)
+print(cmp.out)
+```
+
+We may instead specify $\log \nu_i = \gamma_0 + \gamma_1 \text{transfers}_i$.
+
+```{r}
+cmp2.out = glm.cmp(broken ~ transfers, formula.nu = ~ transfers, data = freight)
+print(cmp2.out)
+```
+
+Model `cmp2.out` provides a slight improvement over `cmp.out` in AIC and BIC, but we will proceed with `cmp.out` in the interest of simplicity.
+
+Let us try a different method in `optim` and increase the trace level to watch the optimization.
+
+```{r}
+options(COMPoissonReg.optim.method = "BFGS")
+options(COMPoissonReg.optim.control = list(maxit = 5, trace = 3, REPORT = 1))
+cmp3.out = glm.cmp(broken ~ transfers, data = freight)
+
+# Go back to default options for the rest of the vignette
+options(COMPoissonReg.optim.method = "L-BFGS-B")
+options(COMPoissonReg.optim.control = list(maxit = 150))
+```
+
+Data from the local environment may be passed to the `glm.cmp` function without explicitly using the `data` argument.
+
+```{r}
+y = freight$broken
+x = freight$transfers
+glm.cmp(y ~ x)
+```
+
+In a count regression model, it may be desirable to include an offset term such as $\log \lambda_i = \vec{x}_i^\top \vec{\beta} + \text{offx}_i$ or $\log \nu_i = \vec{s}_i^\top \vec{\beta} + \text{offs}_i$. An `offset` term may be used in regression formulas to accomplish this.
+
+```{r}
+freight$offx = 13
+freight$offs = 1
+glm.cmp(broken ~ transfers + offset(offx), data = freight)
+glm.cmp(broken ~ transfers + offset(offx), formula.nu = ~1 + offset(offs), data = freight)
+```
+
+Several accessors are provided to extract results from the output object.
+
+```{r}
+coef(cmp.out)  ## Estimates of theta
+nu(cmp.out)    ## Estimates of nu = (nu_1, ..., nu_n)
+vcov(cmp.out)  ## Estimated covariance matrix of theta hat
+sdev(cmp.out)  ## Standard deviations from vcov(...) diagonals
+```
+
+The `predict` function computes $\hat{y}_i = \E(Y_i)$ evaluated at the estimate $\hat{\btheta}$ using the method described in Section \ref{sec:cmp-ev}. Here we request fitted values for the sample used in the fit.
+
+```{r}
+predict(cmp.out)
+```
+
+We can also request fitted values for new covariate values.
+
+```{r, fig.width = 3, fig.height = 3, fig.align = "center"}
+new.data = data.frame(transfers = 0:10)
+y.hat.new = predict(cmp.out, newdata = new.data)
+ggplot() +
+	geom_point(data = new.data, aes(transfers, y.hat.new)) +
+	xlab("Number of transfers") +
+	ylab("Predicted number broken") +
+	theme_bw()
+```
+
+The `residuals` function provides either raw or quantile-based residuals [@DunnSmyth1996]. Raw residuals $y_i - \hat{y}_i$  generally do not work well with traditional regression diagnostics, such as Q-Q plots, in a CMP regression setting. Quantile-based residuals may be preferred for this reason.
+
+```{r}
+res.raw = residuals(cmp.out)
+res.qtl = residuals(cmp.out, type = "quantile")
+```
+
+In this example, with only $n = 10$ observations, it is difficult to see an advantage of either residual type.
+
+```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+y.hat = predict(cmp.out)
+ggplot(data.frame(y = y.hat, res = res.raw)) +
+	geom_point(aes(y, res)) +
+	theme_bw()
+ggplot(data.frame(y = y.hat, res = res.qtl)) +
+	geom_point(aes(y, res)) +
+	theme_bw()
+```
+
+One benefit of raw residuals is that they may be used to compute a mean-squared error.
+
+```{r}
+mean(res.raw^2)
+```
+
+A question that often arises in CMP regression is whether there is a significant amount of over or underdispersion in the data. The function `equitest` is provided to test the hypothesis $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. Output of this test is also shown when printing the `cmp.out` object.
+
+```{r}
+equitest(cmp.out)
+```
+
+The `deviance` function computes the deviance quantities $D_i = -2 [\log L_i(\hat{\btheta}) - \log L_i(\tilde{\btheta}_i)]$ for $i = 1, \ldots, n$, where $L_i(\btheta)$ is the term of the likelihood corresponding to the $i$th observation, $\hat{\btheta}$ is the MLE computed under the full likelihood $L(\btheta) = \prod_{i=1}^n L_i(\btheta)$, and $\tilde{\btheta}_i$ is the maximizer of $L_i(\btheta)$.
+
+```{r}
+deviance(cmp.out)
+```
+
+TBD: where is the CMP version of leverage defined? Is is like the usual leverage in OLS?
+
+```{r}
+leverage(cmp.out)
+```
+
+The `parametric.bootstrap` function carries out a parametric bootstrap with $R$ repetitions. Using the fitted MLE $\hat{\btheta}$, bootstrap samples $\vec{y}^{(r)} = (y_1^{(r)}, \ldots, y_n^{(r)})$ are drawn from likelihood $L(\hat{\btheta})$ for $r = 1, \ldots, R$. Estimate $\hat{\btheta}^{(r)}$ is fitted from bootstrap sample $\vec{y}^{(r)}$. An $R \times (d_1 + d_2 + d_3)$ matrix is returned whose $r$th row is $\hat{\btheta}^{(r)}$.
+
+```{r}
+cmp.boot = parametric.bootstrap(cmp.out, reps = 100)
+head(cmp.boot)
+```
+
+We used $R = `r nrow(cmp.boot)`$ in the display above to keep vignette computations small, but a larger $R$ may be desired in practice. The bootstrap repetitions can be used, for example, to compute 95% confidence intervals for each of the coefficients.
+
+```{r}
+apply(cmp.boot, 2, quantile, c(0.025,0.975))
+```
 
 ## ZICMP Regression
 
 # TBD
 
-1. CMP regression
+1. ZICMP regression
 	a. Regression model
-	a. Recall freight data, its backstory, and a CMP paper where it was used
-	a. Example data analyses with freight data
-		- Mention alternatives to pass data to glm.cmp
-		- Mention default optimizer and how to change
-		- Mention changing default optim.control
-		- Try a few model variants: intercepts only and with covariates.
-		- Mention use of offsets with glm.cmp. Here we should show a little
-		  workflow demonstrating that the offset gets carried through.
-
-1. ZICMP
-	a. Regression model
+	a. Load the couple data from the package
 	a. Recall couple data, its backstory, and ZICMP paper where it was used
 	a. Example data analyses with couple data
 		- Try a few model variants: intercepts only and with covariates.
-
+		- Demonstrate accessor functions for one selected model
 
 # References
 

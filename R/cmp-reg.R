@@ -254,6 +254,7 @@ deviance.cmp = function(object, ...)
 	n = length(y)
 
 	opt.method = getOption("COMPoissonReg.optim.method")
+	opt.control = getOption("COMPoissonReg.optim.control")
 	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
 	truncate.tol = getOption("COMPoissonReg.truncate.tol")
 	ymax = getOption("COMPoissonReg.ymax")
@@ -262,6 +263,9 @@ deviance.cmp = function(object, ...)
 	beta.init = object$beta
 	d1 = length(beta.init)
 	ll.y = numeric(n)
+
+	# Make sure optim is set to use maximization
+	opt.control$fnscale = -1
 
 	for (i in 1:n) {
 		# loglik for single observation
@@ -273,8 +277,7 @@ deviance.cmp = function(object, ...)
 		}
 
 		# Determine the MLEs
-		# Using optim rather than nlm because optim handles -Inf more gracefully, if encountered
-		res = optim(beta.init, logf, method = opt.method, control = list(fnscale = -1))
+		res = optim(beta.init, logf, method = opt.method, control = opt.control)
 		ll.y[i] = res$value
 	}
 
