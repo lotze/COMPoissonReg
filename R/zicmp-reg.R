@@ -197,35 +197,28 @@ equitest.zicmp = function(object, ...)
 	X = object$X
 	S = object$S
 	W = object$W
-	beta.hat = object$beta
-	gamma.hat = object$gamma
-	zeta.hat = object$zeta
+	beta.init = object$beta.init
+	gamma.init = object$gamma.init
+	zeta.init = object$zeta.init
 	off.x = object$off.x
 	off.s = object$off.s
 	off.w = object$off.w
+	ll = object$loglik
+
 	n = length(y)
-	d1 = ncol(X)
 	d2 = ncol(S)
-	d3 = ncol(W)
 
-	fit0.out = fit.zip.reg(y, X, W, beta.init = beta.hat,
-		zeta.init = zeta.hat, off.x = off.x, off.w = off.w)
-	beta0.hat = fit0.out$theta.hat$beta
-	zeta0.hat = fit0.out$theta.hat$zeta
+	# Null model is ZICMP with nu determined by the offset off.s. If off.s happens
+	# to be zeros, this simplifies to a Poisson regression.
+	S0 = matrix(0, n, 0)
+	gamma0 = numeric(0)
+	fit0.out = fit.zicmp.reg(y, X, S0, W, beta.init = beta.init,
+		gamma.init = gamma0, zeta.init = zeta.init, off.x = off.x,
+		off.s = off.s, off.w = off.w)
+	ll0 = fit0.out$loglik
 
-	out = fitted.zicmp.internal(X, S, W, beta.hat, gamma.hat, zeta.hat, off.x, off.s, off.w)
-	out0 = fitted.zicmp.internal(X, S, W, beta0.hat, numeric(d2), zeta0.hat, off.x, off.s, off.w)
-
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
-
-	ll = loglik_zicmp(y, out$lambda, out$nu, out$p, hybrid_tol = hybrid.tol,
-		truncate_tol = truncate.tol, ymax = ymax)
-	ll0 = loglik_zicmp(y, out0$lambda, out0$nu, out0$p, hybrid_tol = hybrid.tol,
-		truncate_tol = truncate.tol, ymax = ymax)
 	X2 = -2 * (ll0 - ll)
-	pvalue = pchisq(X2, df = d3, lower.tail = FALSE)
+	pvalue = pchisq(X2, df = d2, lower.tail = FALSE)
 	list(teststat = X2, pvalue = pvalue)
 }
 

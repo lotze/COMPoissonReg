@@ -8,9 +8,9 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 	n = length(y)
 	qq = d1 + d2 + d3
 
-	if (is.null(beta.init)) { beta.init = rep(0, d1) }
-	if (is.null(gamma.init)) { gamma.init = rep(0, d2) }
-	if (is.null(zeta.init)) { zeta.init = rep(0, d3) }
+	if (is.null(beta.init)) { beta.init = numeric(d1) }
+	if (is.null(gamma.init)) { gamma.init = numeric(d2) }
+	if (is.null(zeta.init)) { zeta.init = numeric(d3) }
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d2 == length(gamma.init))
 	stopifnot(d3 == length(zeta.init))
@@ -23,9 +23,9 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 
 	tx = function(par) {
 		list(
-			beta = par[1:d1],
-			gamma = par[1:d2 + d1],
-			zeta = par[1:d3 + d1 + d2]
+			beta = par[seq_len(d1)],
+			gamma = par[seq_len(d2) + d1],
+			zeta = par[seq_len(d3) + d1 + d2]
 		)
 	}
 
@@ -41,11 +41,7 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 	res = optim(par.init, loglik, method = optim.method,
 		control = optim.control, hessian = TRUE)
 
-	theta.hat = list(
-		beta = res$par[1:d1],
-		gamma = res$par[1:d2 + d1],
-		zeta = res$par[1:d3 + d1 + d2]
-	)
+	theta.hat = tx(res$par)
 	names(theta.hat$beta) = sprintf("X:%s", colnames(X))
 	names(theta.hat$gamma) = sprintf("S:%s", colnames(S))
 	names(theta.hat$zeta) = sprintf("W:%s", colnames(W))
@@ -60,7 +56,8 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
-		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
+		elapsed.sec = elapsed.sec, loglik = loglik, n = n,
+		optim.method = optim.method, optim.control = optim.control)
 	return(res)
 }
 
@@ -73,8 +70,8 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 	n = length(y)
 	qq = d1 + d2
 
-	if (is.null(beta.init)) { beta.init = rep(0, d1) }
-	if (is.null(gamma.init)) { gamma.init = rep(0, d2) }
+	if (is.null(beta.init)) { beta.init = numeric(d1) }
+	if (is.null(gamma.init)) { gamma.init = numeric(d2) }
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d2 == length(gamma.init))
 
@@ -86,8 +83,8 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 
 	tx = function(par) {
 		list(
-			beta = par[1:d1],
-			gamma = par[1:d2 + d1]
+			beta = par[seq_len(d1)],
+			gamma = par[seq_len(d2) + d1]
 		)
 	}
 
@@ -103,10 +100,7 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 	res = optim(par.init, loglik, method = optim.method,
 		control = optim.control, hessian = TRUE)
 
-	theta.hat = list(
-		beta = res$par[1:d1],
-		gamma = res$par[1:d2 + d1]
-	)
+	theta.hat = tx(res$par)
 	names(theta.hat$beta) = sprintf("X:%s", colnames(X))
 	names(theta.hat$gamma) = sprintf("S:%s", colnames(S))
 
@@ -120,7 +114,8 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
-		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
+		elapsed.sec = elapsed.sec, loglik = loglik, n = n,
+		optim.method = optim.method, optim.control = optim.control)
 	return(res)
 }
 
@@ -133,8 +128,8 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 	n = length(y)
 	qq = d1 + d3
 
-	if (is.null(beta.init)) { beta.init = rep(0, d1) }
-	if (is.null(zeta.init)) { zeta.init = rep(0, d3) }
+	if (is.null(beta.init)) { beta.init = numeric(d1) }
+	if (is.null(zeta.init)) { zeta.init = numeric(d3) }
 	stopifnot(d1 == length(beta.init))
 	stopifnot(d3 == length(zeta.init))
 
@@ -143,8 +138,8 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 
 	tx = function(par) {
 		list(
-			beta = par[1:d1],
-			zeta = par[1:d3 + d1]
+			beta = par[seq_len(d1)],
+			zeta = par[seq_len(d3) + d1]
 		)
 	}
 
@@ -163,10 +158,7 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 	res = optim(par.init, loglik, method = optim.method,
 		control = optim.control, hessian = TRUE)
 
-	theta.hat = list(
-		beta = res$par[1:d1],
-		zeta = res$par[1:d3 + d1]
-	)
+	theta.hat = tx(res$par)
 
 	H = res$hessian
 	colnames(H) = rownames(H) = c(
@@ -177,7 +169,8 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
-		elapsed.sec = elapsed.sec, loglik = loglik, n = n)
+		elapsed.sec = elapsed.sec, loglik = loglik, n = n,
+		optim.method = optim.method, optim.control = optim.control)
 	return(res)
 }
 

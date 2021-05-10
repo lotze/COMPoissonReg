@@ -621,6 +621,17 @@ glm.cmp(broken ~ transfers + offset(offx), data = freight)
 glm.cmp(broken ~ transfers + offset(offx), formula.nu = ~1 + offset(offs), data = freight)
 ```
 
+For users who wish to bypass the formula interface and prepare the design matrices manually, a "raw" interface is also provided to the regression functionality.
+
+```{r}
+y = freight$broken
+X = model.matrix(~ transfers, data = freight)
+S = model.matrix(~ 1, data = freight)
+off.x = rep(13, nrow(freight))
+off.s = rep(1, nrow(freight))
+glm.cmp.raw(y, X, S, off.x = off.x, off.s = off.s)
+```
+
 Several accessors are provided to extract results from the output object.
 
 ```{r}

@@ -175,25 +175,26 @@ equitest.cmp = function(object, ...)
 		return(object$equitest)
 	}
 
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
-	ymax = getOption("COMPoissonReg.ymax")
-
 	y = object$y
+	X = object$X
+	beta.init = object$beta.init
+	off.x = object$off.x
+	off.s = object$off.s
+	ll = object$loglik
+
 	n = length(y)
-	d1 = ncol(object$X)
 	d2 = ncol(object$S)
 
-	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
-		object$off.x, object$off.s)
-	out0 = fitted.cmp.internal(object$X, object$S, object$beta.glm,
-		gamma = numeric(d2), object$off.x, object$off.s)
-	ll = loglik_cmp(y, out$lambda, out$nu, hybrid_tol = hybrid.tol,
-		truncate_tol = truncate.tol, ymax = ymax)
-	ll0 = loglik_cmp(y, out0$lambda, nu = out0$nu, hybrid_tol = hybrid.tol,
-		truncate_tol = truncate.tol, ymax = ymax)
+	# Null model is CMP with nu determined by the offset off.s. If off.s happens
+	# to be zeros, this simplifies to a Poisson regression.
+	S0 = matrix(0, n, 0)
+	gamma0 = numeric(0)
+	fit0.out = fit.cmp.reg(y, X, S = S0, beta.init = beta.init,
+		gamma.init = gamma0, off.x = off.x, off.s = off.s)
+	ll0 = fit0.out$loglik
+
 	teststat = -2 * (ll0 - ll)
-	pvalue = pchisq(teststat, df = 1, lower.tail = FALSE)
+	pvalue = pchisq(teststat, df = d2, lower.tail = FALSE)
 	list(teststat = teststat, pvalue = pvalue)
 }
 
