@@ -117,7 +117,7 @@ print.zicmp = function(x, ...)
 	}
 	printf("--\n")
 	printf("Chi-squared test for equidispersion\n")
-	printf("X^2 = %0.4f, df = 1, ", tt$teststat)
+	printf("X^2 = %0.4f, df = %d, ", tt$teststat, tt$df)
 	printf("p-value = %0.4e\n", tt$pvalue)
 	printf("--\n")
 	printf("Elapsed: %s   ", format.difftime(s$elapsed.sec))
@@ -219,7 +219,7 @@ equitest.zicmp = function(object, ...)
 
 	X2 = -2 * (ll0 - ll)
 	pvalue = pchisq(X2, df = d2, lower.tail = FALSE)
-	list(teststat = X2, pvalue = pvalue)
+	list(teststat = X2, pvalue = pvalue, df = d2)
 }
 
 #' @name glm.cmp, ZICMP support

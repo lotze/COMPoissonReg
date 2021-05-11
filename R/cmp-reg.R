@@ -99,7 +99,7 @@ print.cmp = function(x, ...)
 	}
 	printf("--\n")
 	printf("Chi-squared test for equidispersion\n")
-	printf("X^2 = %0.4f, df = 1, ", tt$teststat)
+	printf("X^2 = %0.4f, df = %d, ", tt$teststat, tt$df)
 	printf("p-value = %0.4e\n", tt$pvalue)
 	printf("--\n")
 	printf("Elapsed: %s   ", format.difftime(s$elapsed.sec))
@@ -195,7 +195,7 @@ equitest.cmp = function(object, ...)
 
 	teststat = -2 * (ll0 - ll)
 	pvalue = pchisq(teststat, df = d2, lower.tail = FALSE)
-	list(teststat = teststat, pvalue = pvalue)
+	list(teststat = teststat, pvalue = pvalue, df = d2)
 }
 
 #' @name glm.cmp, CMP support

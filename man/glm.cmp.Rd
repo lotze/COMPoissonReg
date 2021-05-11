@@ -2,20 +2,8 @@
 % Please edit documentation in R/glm.R
 \name{glm.cmp}
 \alias{glm.cmp}
-\alias{glm.cmp.orig}
 \title{COM-Poisson and Zero-Inflated COM-Poisson Regression}
 \usage{
-glm.cmp.orig(
-  formula.lambda,
-  formula.nu = ~1,
-  formula.p = NULL,
-  data = NULL,
-  beta.init = NULL,
-  gamma.init = NULL,
-  zeta.init = NULL,
-  ...
-)
-
 glm.cmp(
   formula.lambda,
   formula.nu = ~1,
