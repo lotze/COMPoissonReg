@@ -43,6 +43,10 @@ set.seed(1234)
 TBD:
 
 - See the manual for a full specification of the public interface.
+- We use `R` [@Rcore]
+- We use `ggplot2` [@Wickham2016]
+- We use `Rcpp` [@Eddelbuettel2013]
+- We use `numDeriv` [@numDeriv]
 
 # Conway Maxwell Poisson Distribution
 \label{sec:cmp}
@@ -250,6 +254,9 @@ At present, all four functions compute the normalizing constant via Section \ref
 
 ```{r}
 print_warning = function(x) { print(strwrap(x), quote = FALSE) }
+```
+
+```{r}
 tryCatch({ rcmp(1, lambda = 2, nu = 0.01) }, warning = print_warning)
 ```
 
@@ -338,7 +345,7 @@ Also
 <!-- -->
 Therefore, we may use first and second derivatives of $\log Z(\lambda, \nu)$, with respect to $\lambda$, to compute $\E(Y)$ and $\Var(Y)$. To decide whether to use the truncation or the differentiation approaches, we check condition \eqref{eqn:can_trunc}: if it holds, there is a sufficiently small $M$ to use the truncation method.
 
-The `ecmp` and `vcmp` functions implement this computation of the expectation and variance.
+The `ecmp` and `vcmp` functions implement this computation of the expectation and variance, respectively.
 
 ```{r}
 ecmp(lambda = 10, nu = 1.2)
@@ -533,8 +540,8 @@ L(\btheta) =
 \right].
 \label{eqn:likelihood-zicmp}
 \end{align}
-
-The `glm.cmp` function is provided to handle both cases.
+<!-- -->
+We will write $d = d_1 + d_2 + d_3$ for the total dimension of $\btheta$. The `glm.cmp` function is provided to handle both cases.
 
 ```{r, eval = FALSE, prompt = FALSE}
 out = glm.cmp(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
@@ -570,21 +577,42 @@ data(freight)
 print(freight)
 ```
 
-Before fitting a CMP regression, let us fit a standard Poisson model $Y_i \indep \text{Poisson}(\lambda_i)$ with $\log \lambda_i = \beta_0 + \beta_1 \cdot \text{transfers}_i$.
+Before fitting a CMP regression, let us fit a standard Poisson model $Y_i \indep \text{Poisson}(\lambda_i)$ with 
+<!-- -->
+\begin{align*}
+\log \lambda_i = \beta_0 + \beta_1 \cdot \text{transfers}_i.
+\end{align*}
+<!-- -->
+This can be carried out with the standard `glm` function.
 
 ```{r}
 glm.out = glm(broken ~ transfers, data = freight, family = poisson)
 summary(glm.out)
 ```
 
-Next, let us fit a similar CMP regression model with $\log \lambda_i = \beta_0 + \beta_1 \cdot \text{transfers}_i$ and $\log \nu_i = \gamma_0$ with an intercept only.
+Next, let us fit a similar CMP regression model with
+<!-- -->
+\begin{align*}
+&\log \lambda_i = \beta_0 + \beta_1 \cdot \text{transfers}_i, \\
+&\log \nu_i = \gamma_0,
+\end{align*}
+<!-- -->
+using only an intercept for $\nu_i$.
 
 ```{r}
 cmp.out = glm.cmp(broken ~ transfers, data = freight)
 print(cmp.out)
 ```
 
-This is a good improvement in AIC over the Poisson model. We may also consider $\log \nu_i = \gamma_0 + \gamma_1 \cdot \text{transfers}_i$.
+Notice that the coefficients used in the $\lambda_i$ formula are prefixed with an `X:` label, while an `S:` label is used for coefficients of the $\nu_i$ formula. Similarly to the `glm` output, the output of `glm.cmp` displays several quantities for each coefficient $\theta_j$ for $j = 1, \ldots, d$: a point estimate $\hat{\theta}_j$, an associated standard error $\widehat{\text{SE}}(\hat{\theta}_j)$, a z-value $z_j = \hat{\theta}_j / \widehat{\text{SE}}(\hat{\theta}_j)$, and a p-value $2\Phi(-|z_j|)$ for the test $H_0: \theta_j = 0$ versus $H_0: \theta_j \neq 0$. Here, $\Phi$ is the CDF of the standard normal distribution. Because an intercept-only formula was specified for $\nu_i$, an estimate and associated standard error are displayed for $\hat{\nu} = \exp(\hat{\gamma})$ which does not vary with $i$. Here we see evidence of underdispersion with $\hat{\nu} > 1$. A test for equidispersion is displayed to determine whether there is a significant amount of over or underdispersion in the data. In particular, a likelihood ratio test is used to decide whether $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. The test statistic is displayed along with the degrees of freedom and associated p-value. Here we have fairly strong evidence to reject the null hypthesis of equidispersion.
+
+The CMP model shows a good improvement in AIC over the Poisson model. We may alternatively fit
+<!-- -->
+\begin{align*}
+\log \nu_i = \gamma_0 + \gamma_1 \cdot \text{transfers}_i.
+\end{align*}
+<!-- -->
+using the following call to `glm.cmp`.
 
 ```{r}
 cmp2.out = glm.cmp(broken ~ transfers, formula.nu = ~ transfers, data = freight)
@@ -614,7 +642,14 @@ x = freight$transfers
 glm.cmp(y ~ x)
 ```
 
-In a count regression model, it may be desirable to include an offset term such as $\log \lambda_i = \vec{x}_i^\top \vec{\beta} + \text{offx}_i$ or $\log \nu_i = \vec{s}_i^\top \vec{\beta} + \text{offs}_i$. An `offset` term may be used in regression formulas to accomplish this.
+In a count regression model, it may be desirable to include offset terms such as
+<!-- -->
+\begin{align*}
+&\log \lambda_i = \vec{x}_i^\top \vec{\beta} + \text{offx}_i,
+&\log \nu_i = \vec{s}_i^\top \vec{\beta} + \text{offs}_i.
+\end{align*}
+<!-- -->
+An `offset` term may be used in regression formulas to accomplish this.
 
 ```{r}
 freight$offx = 13
@@ -668,15 +703,27 @@ res.raw = residuals(cmp.out)
 res.qtl = residuals(cmp.out, type = "quantile")
 ```
 
-In this example, with only $n = 10$ observations, it is difficult to see an advantage of either residual type.
+In this example, with only $n = 10$ observations, it is difficult to see an advantage of either residual type. Here we plot fitted values versus both sets of residuals and Q-Q plots of both residuals.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
 y.hat = predict(cmp.out)
 ggplot(data.frame(y = y.hat, res = res.raw)) +
 	geom_point(aes(y, res)) +
+	ggtitle("Fitted Values vs Raw Residuals") +
 	theme_bw()
 ggplot(data.frame(y = y.hat, res = res.qtl)) +
 	geom_point(aes(y, res)) +
+	ggtitle("Fitted Values vs Quantile Residuals") +
+	theme_bw()
+ggplot(data.frame(res = res.raw), aes(sample = res)) +
+	stat_qq() +
+	stat_qq_line() +
+	ggtitle("Q-Q Plot of Raw Residuals") +
+	theme_bw()
+ggplot(data.frame(res = res.qtl), aes(sample = res)) +
+	stat_qq() +
+	stat_qq_line() +
+	ggtitle("Q-Q Plot of Quantile Residuals") +
 	theme_bw()
 ```
 
@@ -686,7 +733,7 @@ One benefit of raw residuals is that they may be used to compute a mean-squared 
 mean(res.raw^2)
 ```
 
-A question that often arises in CMP regression is whether there is a significant amount of over or underdispersion in the data. The function `equitest` is provided to test the hypothesis $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. Output of this test is also shown when printing the `cmp.out` object.
+To access the results of the equidispersion test shown in the output of `cmp.out`, we may use the `equitest` accessor function.
 
 ```{r}
 equitest(cmp.out)
@@ -729,14 +776,28 @@ data(couple)
 head(couple)
 ```
 
-As a preliminary model, let us first fit a standard Poisson model $Y_i \indep \text{Poisson}(\lambda_i)$ with $\log \lambda_i = \beta_0 + \beta_1 \cdot \text{EDUCATION}_i + \beta_2 \cdot \text{ANXIETY}_i$.
+As a preliminary model, let us first fit a standard Poisson model $Y_i \indep \text{Poisson}(\lambda_i)$ with
+<!-- -->
+\begin{align*}
+\log \lambda_i = \beta_0 + \beta_1 \cdot \text{EDUCATION}_i + \beta_2 \cdot \text{ANXIETY}_i.
+\end{align*}
+<!-- -->
+We may use the standard `glm` function.
 
 ```{r}
 glm.out = glm(UPB ~ EDUCATION + ANXIETY, data = couple, family = poisson)
 summary(glm.out)
 ```
 
-Now consider a ZICMP regression with $\log \lambda_i = \beta_0 + \beta_1 \cdot \text{EDUCATION}_i + \beta_2 \cdot \text{ANXIETY}_i$, $\log \nu_i = \gamma_0$, and $\logit p_i = \zeta_0 + \zeta_1 \cdot \text{EDUCATION}_i + \zeta_2 \cdot \text{ANXIETY}_i$.
+Now consider a ZICMP regression with
+<!-- -->
+\begin{align*}
+&\log \lambda_i = \beta_0 + \beta_1 \cdot \text{EDUCATION}_i + \beta_2 \cdot \text{ANXIETY}_i, \\
+&\log \nu_i = \gamma_0, \\
+&\logit p_i = \zeta_0 + \zeta_1 \cdot \text{EDUCATION}_i + \zeta_2 \cdot \text{ANXIETY}_i.
+\end{align*}
+<!-- -->
+We use the `glm.cmp` function as follows.
 
 ```{r}
 zicmp.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
@@ -752,7 +813,13 @@ The AIC of the ZICMP model is drastically smaller than the Poisson model, indica
 options(COMPoissonReg.optim.method = "BFGS")
 ```
 
-Let us consider changing the regression on $\nu_i$ to $\log \nu_i = \gamma_0 + \gamma_1 \cdot \text{EDUCATION}_i + \gamma_2 \cdot \text{ANXIETY}_i$ as well.
+Let us consider changing the regression on $\nu_i$ to
+<!-- -->
+\begin{align*}
+\log \nu_i = \gamma_0 + \gamma_1 \cdot \text{EDUCATION}_i + \gamma_2 \cdot \text{ANXIETY}_i
+\end{align*}
+<!-- -->
+as well.
 
 ```{r}
 zicmp1.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
@@ -793,9 +860,21 @@ res.raw = residuals(zicmp.out, type = "raw")
 res.qtl = residuals(zicmp.out, type = "quantile")
 ggplot(data.frame(y = y.hat, res = res.raw)) +
 	geom_point(aes(y, res)) +
+	ggtitle("Fitted Values vs Raw Residuals") +
 	theme_bw()
 ggplot(data.frame(y = y.hat, res = res.qtl)) +
 	geom_point(aes(y, res)) +
+	ggtitle("Fitted Values vs Quantile Residuals") +
+	theme_bw()
+ggplot(data.frame(res = res.raw), aes(sample = res)) +
+	stat_qq() +
+	stat_qq_line() +
+	ggtitle("Q-Q Plot of Raw Residuals") +
+	theme_bw()
+ggplot(data.frame(res = res.qtl), aes(sample = res)) +
+	stat_qq() +
+	stat_qq_line() +
+	ggtitle("Q-Q Plot of Quantile Residuals") +
 	theme_bw()
 ```
 
