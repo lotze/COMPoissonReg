@@ -32,7 +32,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, include = FALSE}
 library(COMPoissonReg)
-set.seed(1234)
+set.seed(1235)
 ```
 
 \newpage
@@ -43,10 +43,9 @@ set.seed(1234)
 TBD:
 
 - See the manual for a full specification of the public interface.
-- We use `R` [@Rcore]
-- We use `ggplot2` [@Wickham2016]
-- We use `Rcpp` [@Eddelbuettel2013]
-- We use `numDeriv` [@numDeriv]
+- The package uses `R` [@Rcore] (of course), `Rcpp` [@Eddelbuettel2013], and `numDeriv` [@numDeriv].
+- We use `ggplot2` [@Wickham2016] here in the vignette, but not within the package.
+- We could cite other CMP-related packages, like @combayes, @multicmp, @CompGLM, @compoisson, @cmpreg, @FungEtAl2020, and @SASProcCountreg2018.
 
 # Conway Maxwell Poisson Distribution
 \label{sec:cmp}
@@ -70,15 +69,15 @@ a. When $\nu \rightarrow \infty$, $\text{CMP}(\lambda, \nu)$ converges to a $\te
 
 ## Normalizing Constant
 \label{sec:cmp-normconst}
-The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the practical use of CMP models and has been a topic of interest in the CMP literature. In general, there is no simple closed form expression for the series $Z(\lambda, \nu)$. Furthermore, its value can change by many orders of magnitude when $\lambda$ and $\nu$ are varied. (TBD: maybe give an overview here or earlier in the intro, and specifics later if they are needed). @ShmueliEtAl2005 give the approximation
+The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the practical use of CMP models and has been a topic of interest in the CMP literature. In general, there is no simple closed form expression for the series $Z(\lambda, \nu)$. @ShmueliEtAl2005 give the approximation
 <!-- -->
 \begin{align}
 Z(\lambda, \nu) &= \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} }
-\left\{ 1 + O(\lambda^{-1/\nu}) \right\},
+\left\{ 1 + O(\lambda^{-1/\nu}) \right\}.
 \label{eqn:approx}
 \end{align}
 <!-- -->
-which has been refined further in subsequent literature mentioned in Section \ref{sec:intro}. The first term in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes when $\lambda > 1$ as $\nu \rightarrow 0$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
+Approximations have been further studied and refined in subsequent literature; see for example @GillispieGreen2015, @DalyGaunt2016, and @GauntEtAl2019. The first term in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes as $\nu \rightarrow 0$ when $\lambda > 1$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
 
 In practice, the `COMPoissonReg` package does not place constraints on $\lambda$ and $\nu$, except to ensure that they are positive, so that their values are driven by the data or the user's selection. A hybrid strategy motivated by \eqref{eqn:approx} is taken by `COMPoissonReg`. Given a small tolerance $\delta > 0$, if $\lambda^{-1/\nu} < \delta$, the first term of \eqref{eqn:approx} dominates the second term, and we take
 <!-- -->
@@ -278,7 +277,7 @@ lambda = 0.5
 nu = 0.1
 x = rcmp(n, lambda, nu)
 
-xx = seq(0, max(x))
+xx = seq(-1, max(x))  ## Include -1 to make sure it gets probability zero
 qq = seq(0, 1, length.out = 100)
 
 fx = dcmp(xx, lambda, nu)
@@ -447,7 +446,7 @@ nu = 0.1
 p = 0.5
 x = rzicmp(n, lambda, nu, p)
 
-xx = seq(0, max(x))
+xx = seq(-1, max(x))  ## Include -1 to make sure it gets probability zero
 qq = seq(0, 1, length.out = 100)
 
 fx = dzicmp(xx, lambda, nu, p)
@@ -559,16 +558,14 @@ getOption("COMPoissonReg.optim.control")
 
 The string `COMPoissonReg.optim.method` is used as the `method` argument of `optim`, while the list `COMPoissonReg.optim.control` is used as the `control` argument. For the latter, note that any entry for `fnscale` is ignored by `COMPoissonReg`.
 
-TBD: Discuss how variance estimates are computed.
+The covariance of $\hat{\btheta}$ is estimated by $\hat{\vec{V}}(\btheta) = -[\vec{H}(\hat{\btheta})]^{-1}$, where $\vec{H}(\btheta) = \frac{\partial^2}{\partial \btheta \partial \btheta^\top} \log L(\btheta)$ is the Hessian of the log-likelihood computed by `optim`. The standard error for coefficient $\theta_j$ in $\btheta$ is then obtained as the square root of the $j$th diagonal of $\hat{\vec{V}}(\btheta)$.
 
-We will now illustrate use of the regression tools using two examples whose data are included in the package. Note that these demonstrations are not intended to be complete regression analyses.
+We will now illustrate use of the regression tools using two examples whose data are included in the package. Note that these demonstrations are not intended to be complete regression analyses, and results may be slightly different than previously published analyses due to differences in the computations.
 
 ## CMP Regression
 \label{sec:cmp-reg}
 
-TBD: Recall freight data, its backstory, and a CMP paper where it was used
-TBD: `broken` is the outcome and `transfers` is available as a covariate. Make sure to be specific about calling it $x_i$, etc
-
+The `freight` dataset [@KutnerEtAl2003] was analyzed using CMP regression and found to exhibit underdispersion by @SellersShmueli2010. The data describe $n = 10$ instances where 1,000 ampules were transported via air shipment. The variable `broken` is the outcome of interest, and describes the number of broken ampules in each shipment. The covariate `transfers` describes the number of times the carton was transferred from one aircraft to another during the shipment.
 
 Let us load and view the dataset.
 
@@ -696,38 +693,61 @@ ggplot() +
 	theme_bw()
 ```
 
-The `residuals` function provides either raw or quantile-based residuals [@DunnSmyth1996]. Raw residuals $y_i - \hat{y}_i$  generally do not work well with traditional regression diagnostics, such as Q-Q plots, in a CMP regression setting. Quantile-based residuals may be preferred for this reason.
+The `leverage` function computes the diagonal entries of a "hat" matrix which can be formulated in CMP regression. These can be used to diagnose influential observations. For details, see Section 3.6 of @SellersShmueli2010.
+
+```{r}
+leverage(cmp.out)
+```
+
+The `residuals` function provides either raw or quantile-based residuals [@DunnSmyth1996]. Raw residuals $y_i - \hat{y}_i$  generally do not work well with traditional regression diagnostics, such as Q-Q plots, in a CMP regression setting. Quantile-based residuals often produce interpretable diagnostics; however, a random element is used in the computation of quantile residuals for discrete distributions. This aids interpretability but gives slightly different residual values each time they are computed. See @DunnSmyth1996 for details.
 
 ```{r}
 res.raw = residuals(cmp.out)
 res.qtl = residuals(cmp.out, type = "quantile")
 ```
 
-In this example, with only $n = 10$ observations, it is difficult to see an advantage of either residual type. Here we plot fitted values versus both sets of residuals and Q-Q plots of both residuals.
+Pearson residuals may be preferred over raw residuals for diagnostics; these can be obtained by standardizing raw residuals using leverage values and variance estimates. (TBD: Kim may want to check this).
 
-```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
-y.hat = predict(cmp.out)
-ggplot(data.frame(y = y.hat, res = res.raw)) +
-	geom_point(aes(y, res)) +
-	ggtitle("Fitted Values vs Raw Residuals") +
-	theme_bw()
-ggplot(data.frame(y = y.hat, res = res.qtl)) +
-	geom_point(aes(y, res)) +
-	ggtitle("Fitted Values vs Quantile Residuals") +
-	theme_bw()
-ggplot(data.frame(res = res.raw), aes(sample = res)) +
-	stat_qq() +
-	stat_qq_line() +
-	ggtitle("Q-Q Plot of Raw Residuals") +
-	theme_bw()
-ggplot(data.frame(res = res.qtl), aes(sample = res)) +
-	stat_qq() +
-	stat_qq_line() +
-	ggtitle("Q-Q Plot of Quantile Residuals") +
-	theme_bw()
+```{r}
+# TBD: Need a nice way to retrieve lambda, nu, etc. How about a fitted function? It could take a "what" argument and return ecmp, lambda, nu, or p
+# TBD: Maybe get rid of nu? Or keep it for legacy?
+lambda.hat = exp(cmp.out$X %*% cmp.out$beta)
+vv = vcmp(lambda.hat, nu(cmp.out))
+hh = leverage(cmp.out)
+res.pearson = res.raw / sqrt(vv*(1-hh))
 ```
 
-One benefit of raw residuals is that they may be used to compute a mean-squared error.
+Here we plot fitted values versus both sets of residuals and Q-Q plots of both residuals.
+
+```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+plot.fit.res = function(y.hat, res) {
+	ggplot(data.frame(y = y.hat, res = res)) +
+		geom_point(aes(y, res)) +
+		xlab("Fitted") +
+		ylab("Residual") +
+		theme_bw()
+}
+
+plot.qq.res = function(res) {
+	ggplot(data.frame(res = res), aes(sample = res)) +
+		stat_qq() +
+		stat_qq_line() +
+		theme_bw()
+}
+
+y.hat = predict(cmp.out)
+
+plot.fit.res(y.hat, res.raw) + ggtitle("Fitted vs Raw Residuals")
+plot.qq.res(res.raw) + ggtitle("Q-Q Plot of Raw Residuals")
+
+plot.fit.res(y.hat, res.pearson) + ggtitle("Fitted vs Pearson Residuals")
+plot.qq.res(res.pearson) + ggtitle("Q-Q Plot of Pearson Residuals")
+
+plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted vs Quantile Residuals")
+plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
+```
+
+In this example, with only `r nrow(freight)` observations, it is difficult to see an advantage of using quantile residuals; the benefit will be more apparent in Section \ref{sec:zicmp-reg}. One benefit of raw residuals is that they may be used to compute a mean-squared error.
 
 ```{r}
 mean(res.raw^2)
@@ -745,12 +765,6 @@ The `deviance` function computes the deviance quantities $D_i = -2 [\log L_i(\ha
 deviance(cmp.out)
 ```
 
-TBD: where is the CMP version of leverage defined? Is is like the usual leverage in OLS?
-
-```{r}
-leverage(cmp.out)
-```
-
 The `parametric.bootstrap` function carries out a parametric bootstrap with $R$ repetitions. Using the fitted MLE $\hat{\btheta}$, bootstrap samples $\vec{y}^{(r)} = (y_1^{(r)}, \ldots, y_n^{(r)})$ are drawn from likelihood $L(\hat{\btheta})$ for $r = 1, \ldots, R$. Estimate $\hat{\btheta}^{(r)}$ is fitted from bootstrap sample $\vec{y}^{(r)}$. An $R \times (d_1 + d_2 + d_3)$ matrix is returned whose $r$th row is $\hat{\btheta}^{(r)}$.
 
 ```{r}
@@ -765,9 +779,9 @@ apply(cmp.boot, 2, quantile, c(0.025,0.975))
 ```
 
 ## ZICMP Regression
+\label{sec:zicmp-reg}
 
-TBD: Recall couple data, its backstory, and ZICMP paper where it was used
-TBD: `broken` is the outcome and `transfers` is available as a covariate. Make sure to be specific about calling it $x_i$, etc
+The `couple` dataset [@LoeysEtAl2012] was analyzed with ZICMP regression in @SellersRaim2016 and found to exhibit overdispersion. The data concern the separation trajectories of $n = 387$ couples. The variable `UPB` records the number of unwanted pursuit behavior perpetrations and is considered the outcome of interest. Included covariates are the binary variable `EDUCATION`, which is 1 if at least a bachelor's degree was attained, and a continuous variable `ANXIETY` which measures anxious attachment. A zero-inflated count model is considered for this data because 246 of the 387 records have an outcome of `UPB = 0`.
 
 First let us load and view the first few records in the dataset.
 
@@ -853,29 +867,32 @@ y.hat = predict(zicmp.out)  ## Fitted values based on the expectation
 equitest(zicmp.out)         ## Likelihood ratio test for H_0: gamma = 0
 ```
 
-In this example, with `r nrow(couple)` observations, we can see the benefit of using the quantile-based residuals for diagnostic plots.
+In this example, we can see the benefit of using quantile residuals for diagnostic plots.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+plot.fit.res = function(y.hat, res) {
+	ggplot(data.frame(y = y.hat, res = res)) +
+		geom_point(aes(y, res)) +
+		xlab("Fitted") +
+		ylab("Residual") +
+		theme_bw()
+}
+
+plot.qq.res = function(res) {
+	ggplot(data.frame(res = res), aes(sample = res)) +
+		stat_qq() +
+		stat_qq_line() +
+		theme_bw()
+}
+
 res.raw = residuals(zicmp.out, type = "raw")
 res.qtl = residuals(zicmp.out, type = "quantile")
-ggplot(data.frame(y = y.hat, res = res.raw)) +
-	geom_point(aes(y, res)) +
-	ggtitle("Fitted Values vs Raw Residuals") +
-	theme_bw()
-ggplot(data.frame(y = y.hat, res = res.qtl)) +
-	geom_point(aes(y, res)) +
-	ggtitle("Fitted Values vs Quantile Residuals") +
-	theme_bw()
-ggplot(data.frame(res = res.raw), aes(sample = res)) +
-	stat_qq() +
-	stat_qq_line() +
-	ggtitle("Q-Q Plot of Raw Residuals") +
-	theme_bw()
-ggplot(data.frame(res = res.qtl), aes(sample = res)) +
-	stat_qq() +
-	stat_qq_line() +
-	ggtitle("Q-Q Plot of Quantile Residuals") +
-	theme_bw()
+
+plot.fit.res(y.hat, res.raw) + ggtitle("Fitted vs Raw Residuals")
+plot.qq.res(res.raw) + ggtitle("Q-Q Plot of Raw Residuals")
+
+plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted vs Quantile Residuals")
+plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
 ```
 
 Here is an example of computing fitted values to new covariate data.

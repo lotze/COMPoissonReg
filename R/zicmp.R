@@ -55,7 +55,7 @@ rzicmp = function(n, lambda, nu, p)
 #' @export
 pzicmp = function(x, lambda, nu, p)
 {
-	n = length(q)
+	n = length(x)
 	prep = prep.zicmp(n, lambda, nu, p)
 	prep$p*(x >= 0) + (1-prep$p)*pcmp(x, prep$lambda, prep$nu)
 }

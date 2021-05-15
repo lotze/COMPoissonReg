@@ -47,6 +47,7 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 {
 	unsigned int n = x.size();
 	Rcpp::NumericVector out(n);
+	out.fill(R_NegInf);
 
 	// Since we're using the truncated method below, we'll compute the normcost by
 	// truncation too. We can use the same call to get our upper truncation bound.
@@ -58,6 +59,13 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 	unsigned int x_max = int(std::min(double(Rcpp::max(x)), double(M)));
 
 	for (unsigned int i = 0; i < n; i++) {
+		if (x(i) < 0) {
+			// Handle the case x(i) < 0 separately. If we wanted to include it
+			// below, we may need to take special care in logadd to make sure
+			// -Inf isn't the left operand.
+			continue;
+		}
+
 		double lcp = -lnormconst;
 		for (unsigned int j = 1; j <= x(i) && j <= x_max; j++) {
 			// Do summation on the log-scale.

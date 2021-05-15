@@ -280,10 +280,10 @@ residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 {
 	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
 		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
-	y.hat = ezicmp(out$lambda, out$nu, out$p)
 
 	type = match.arg(type)
 	if (type == "raw") {
+		y.hat = ezicmp(out$lambda, out$nu, out$p)
 		res = object$y - y.hat
 	} else if (type == "quantile") {
 		res = rqres.zicmp(object$y, out$lambda, out$nu, out$p)

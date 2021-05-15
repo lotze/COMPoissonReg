@@ -301,11 +301,12 @@ deviance.cmp = function(object, ...)
 #' @export
 residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 {
-	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma, object$off.x, object$off.s)
-	y.hat = ecmp(out$lambda, out$nu)
+	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
+		object$off.x, object$off.s)
 
 	type = match.arg(type)
 	if (type == "raw") {
+		y.hat = ecmp(out$lambda, out$nu)
 		res = object$y - y.hat
 	} else if (type == "quantile") {
 		res = rqres.cmp(object$y, lambda = out$lambda, nu = out$nu)
