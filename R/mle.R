@@ -36,6 +36,9 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init, off.x, of
 		loglik_zicmp(y, out$lambda, out$nu, out$p, hybrid.tol, truncate.tol, ymax)
 	}
 
+	if (!is.null(optim.control$fnscale)) {
+		warning("COMPoissonReg.optim.control$fnscale disregarded and taken as -1")
+	}
 	optim.control$fnscale = -1
 	par.init = c(beta.init, gamma.init, zeta.init)
 	res = optim(par.init, loglik, method = optim.method,
@@ -94,6 +97,9 @@ fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s)
 		loglik_cmp(y, out$lambda, out$nu, hybrid.tol, truncate.tol, ymax)
 	}
 
+	if (!is.null(optim.control$fnscale)) {
+		warning("COMPoissonReg.optim.control$fnscale disregarded and taken as -1")
+	}
 	optim.control$fnscale = -1
 	par.init = c(beta.init, gamma.init)
 
@@ -153,6 +159,9 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 			(1-u)*(y*log(lambda) - lambda - lgamma(y+1)))
 	}
 
+	if (!is.null(optim.control$fnscale)) {
+		warning("COMPoissonReg.optim.control$fnscale disregarded and taken as -1")
+	}
 	optim.control$fnscale = -1
 	par.init = c(beta.init, zeta.init)
 	res = optim(par.init, loglik, method = optim.method,
@@ -173,4 +182,3 @@ fit.zip.reg = function(y, X, W, beta.init, zeta.init, off.x, off.w)
 		optim.method = optim.method, optim.control = optim.control)
 	return(res)
 }
-

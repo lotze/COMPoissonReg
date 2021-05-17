@@ -41,7 +41,8 @@ set.seed(1235)
 \label{sec:intro}
 
 TBD:
-
+- @ShmueliEtAl2005 discuss some important properties of CMP as a count distribution, and @SellersShmueli2010 demonstrate the use of CMP in regression modeling.
+- @SellersRaim2016 provide more discussion on ZICMP and its use in regression modeling.
 - See the manual for a full specification of the public interface.
 - The package uses `R` [@Rcore] (of course), `Rcpp` [@Eddelbuettel2013], and `numDeriv` [@numDeriv].
 - We use `ggplot2` [@Wickham2016] here in the vignette, but not within the package.
@@ -57,15 +58,13 @@ f(y \mid \lambda, \nu) = \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad y \in
 Z(\lambda, \nu) = \sum_{r=0}^\infty \frac{\lambda^r}{(r!)^\nu},
 \end{align*}
 <!-- -->
-where $\lambda > 0$, $\nu > 0$, and $\mathbb{N}$ represents the nonnegative integers $\{ 0, 1, 2, \ldots\}$. Three notable special cases of $\text{CMP}(\lambda, \nu)$ help to demonstrate its flexibility in capturing dispersion.
+where $\lambda > 0$, $\nu > 0$, and $\mathbb{N}$ represents the nonnegative integers $\{ 0, 1, 2, \ldots\}$. Three notable special cases of $\text{CMP}(\lambda, \nu)$ help to demonstrate its flexibility in count modeling.
 
 a. The case $\nu = 1$ corresponds to $\text{Poisson}(\lambda)$. 
 
 a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, the $\text{CMP}(\lambda, \nu)$ distribution becomes $\text{Geometric}(\lambda)$ with density $f(y \mid \lambda) = \lambda^y (1 - \lambda)^{1-y}$ for $y \in \mathbb{N}$, which is overdispersed relative to Poisson. 
 
 a. When $\nu \rightarrow \infty$, $\text{CMP}(\lambda, \nu)$ converges to a $\text{Bernoulli}(\lambda / (1 + \lambda))$ distribution which is underdispersed relative to Poisson.
-
-@ShmueliEtAl2005 discusses some important properties of CMP as a count distribution, and @SellersShmueli2010 demonstrate the use of CMP in regression modeling.
 
 ## Normalizing Constant
 \label{sec:cmp-normconst}
@@ -79,7 +78,16 @@ Z(\lambda, \nu) &= \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2
 <!-- -->
 Approximations have been further studied and refined in subsequent literature; see for example @GillispieGreen2015, @DalyGaunt2016, and @GauntEtAl2019. The first term in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes as $\nu \rightarrow 0$ when $\lambda > 1$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
 
-In practice, the `COMPoissonReg` package does not place constraints on $\lambda$ and $\nu$, except to ensure that they are positive, so that their values are driven by the data or the user's selection. A hybrid strategy motivated by \eqref{eqn:approx} is taken by `COMPoissonReg`. Given a small tolerance $\delta > 0$, if $\lambda^{-1/\nu} < \delta$, the first term of \eqref{eqn:approx} dominates the second term, and we take
+In practice, the `COMPoissonReg` package does not place constraints on $\lambda$ and $\nu$, except to ensure that they are positive, so that their values are driven by the data or the user's selection. A hybrid strategy motivated by \eqref{eqn:approx} is taken by `COMPoissonReg`. 
+
+To compute $Z(\lambda, \nu)$, suppose we are given a small tolerance $\delta > 0$. If 
+<!-- --->
+\begin{align}
+\lambda^{-1/\nu} < \delta,
+\label{eqn:can_approx}
+\end{align}
+<!-- --->
+the first term of \eqref{eqn:approx} dominates the second term, and we take
 <!-- -->
 \begin{align}
 Z(\lambda, \nu) &\approx \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} } \nonumber \\
@@ -89,30 +97,22 @@ Z(\lambda, \nu) &\approx \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\
 \label{eqn:z-approx}
 \end{align}
 <!-- -->
-as an approximation. Otherwise, the series is computed truncating the series to a finite number of terms, which is described next. In either case, computations are kept on the log-scale as much as possible to accommodate numbers with potentially very large magnitudes.
+as an approximation. Otherwise, the series is computed truncating the series to a finite number of terms, which is described next. In either case, computations are kept on the log-scale as much as possible to accommodate numbers with potentially very large and very small magnitudes.
 
-We approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$ if
-<!-- --->
-\begin{align}
-\lambda^{-1/\nu} \geq \delta.
-\label{eqn:can_trunc}
-\end{align}
-<!-- --->
-The general approach for this is described in Appendix B of @ShmueliEtAl2005. Here we consider Stirling's approximation in particular; for an adequately
-large $M$, Stirling's approximation can be applied to obtain bounds for the remainder with a closed form. @Feller1968 [, Section 2.9] gives the bound
+We approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$ if condition \eqref{eqn:can_approx} fails. The general approach for this is described in Appendix B of @ShmueliEtAl2005. For an adequately large $M$, Stirling's approximation can be applied to obtain bounds for the remainder with a closed form. @Feller1968 [, Section 2.9] gives the bound
 <!-- -->
 \begin{align*}
 \sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n + 1)} < n! <
 \sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n)}.
 \end{align*}
 <!-- -->
-(This form is stated at <https://en.wikipedia.org/wiki/Stirling\%27s_approximation>.) Now we can obtain bounds which will be convenient in the following calculations.
+Now we can obtain bounds
 <!-- -->
 \begin{align*}
-\sqrt{2\pi} n^{n + 1/2} e^{-n} \leq n! \leq e n^{n + 1/2} e^{-n}
+\sqrt{2\pi} n^{n + 1/2} e^{-n} \leq n! \leq e n^{n + 1/2} e^{-n},
 \end{align*}
 <!-- -->
-by noting that $e^{1 / (12n + 1)} \geq 1$ for $n \geq 1$ and $\sqrt{2\pi} e^{1 / (12n)} \leq e$ for $n \geq 2$. We may then bound the truncation error for $Z^{(M)}(\lambda, \nu)$ using
+which will be convenient in the following calculations, by noting that $e^{1 / (12n + 1)} \geq 1$ for $n \geq 1$ and $\sqrt{2\pi} e^{1 / (12n)} \leq e$ for $n \geq 2$. (These bounds are stated at <https://en.wikipedia.org/wiki/Stirling\%27s_approximation>, last accessed May 17, 2021.) We may then bound the truncation error for $Z^{(M)}(\lambda, \nu)$ using
 <!-- -->
 \begin{align}
 \lvert Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \rvert &= Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \nonumber \\
@@ -125,24 +125,23 @@ by noting that $e^{1 / (12n + 1)} \geq 1$ for $n \geq 1$ and $\sqrt{2\pi} e^{1 /
 &=: \Delta_M, \nonumber
 \end{align}
 <!-- -->
-assuming that $|\lambda e^\nu / (M+1)^\nu| < 1$ for convergence of the
-geometric series in \eqref{eqn:geom}. To ensure this we choose $M$ at least
-large enough so that
+assuming that $|\lambda e^\nu / (M+1)^\nu| < 1$ so that the geometric series in \eqref{eqn:geom} converges. To ensure this convergence we choose $M$ at least large enough so that
 <!-- -->
 \begin{align*}
 \lambda e^\nu / (M+1)^\nu < 1 \iff
 M > \lambda^{1/\nu} e - 1.
 \end{align*}
 <!-- -->
-Consider bounding the relative error by a small given number $\epsilon > 0$:
+For a small given number $\epsilon > 0$, we may consider bounding the relative error by
 <!-- -->
-\begin{align*}
+\begin{align}
 &\frac{\lvert Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \rvert}{Z^{(M)}(\lambda, \nu)}
 \leq \frac{\Delta_M}{Z^{(M)}(\lambda, \nu)}
 < \epsilon.
-\end{align*}
+\label{eqn:rel_error_bound}
+\end{align}
 <!-- -->
-This condition can be expressed on the log-scale using
+The second inequality of \eqref{eqn:rel_error_bound} can be expressed on the log-scale using
 <!-- -->
 \begin{align}
 \log \Delta_M - \log Z^{(M)}(\lambda, \nu) < \log \epsilon,
@@ -159,9 +158,34 @@ where
 - \log\left(1 - \frac{\lambda e^\nu}{(M+1)^\nu} \right).
 \end{align*}
 <!-- -->
-Therefore, we compute $Z^{(M)}(\lambda, \nu)$ until at least
-$M > \lambda^{1/\nu} e - 1$, increasing $M$ and updating
-$Z^{(M)}(\lambda, \nu)$ until \eqref{eqn:adaptive-log-scale} is satisfied.
+Therefore, we compute $Z^{(M)}(\lambda, \nu)$ until at least $M > \lambda^{1/\nu} e - 1$, increasing $M$ and updating $Z^{(M)}(\lambda, \nu)$ until \eqref{eqn:adaptive-log-scale} is satisfied. This is summarized as Algorithm~\ref{alg:normconst-trunc}.
+
+\begin{algorithm}
+\caption{Compute the CMP normalizing constant using truncation approach.}
+\label{alg:normconst-trunc}
+\hspace*{\algorithmicindent}\textbf{Input}: $\lambda$ a positive number. \\
+\hspace*{\algorithmicindent}\textbf{Input}: $\nu$ a positive number. \\
+\hspace*{\algorithmicindent}\textbf{Input}: $\epsilon$ a positive number. \\
+\hspace*{\algorithmicindent}\textbf{Input}: $y_\text{max}$ an upper limit for $M$
+\begin{algorithmic}[1]
+\Function{Truncated-$Z$}{$\lambda, \nu, \epsilon, y_\text{max}$}
+<!-- -->
+\State $M = 0$, $Z^{(0)} = 1$
+<!-- -->
+\While{$M \leq \lambda^{1/\nu} e - 1$ and $M \leq y_\text{max}$}
+\State $Z^{(M+1)} \leftarrow Z^{(M)} + \lambda^{M} / (M!)^\nu$
+\State $M \leftarrow M + 1$
+\EndWhile
+<!-- -->
+\While{$\log \Delta_M - \log Z^{(M)} \geq \log \epsilon$ and $M \leq y_\text{max}$}
+\State $Z^{(M+1)} \leftarrow Z^{(M)} + \lambda^{M} / (M!)^\nu$
+\State $M \leftarrow M + 1$
+\EndWhile
+<!-- -->
+\State \Return $\{ Z^{(M)}, M \}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 
 The individual terms $\lambda^r / (r!)^\nu$ in the summation may be too large to store at their original scale. Therefore, summation is carried out at the log-scale, wherever possible, using the identity
 <!-- -->
@@ -170,10 +194,9 @@ The individual terms $\lambda^r / (r!)^\nu$ in the summation may be too large to
 \label{eqn:logadd}
 \end{align}
 <!-- -->
-this is especially helpful when $0 < y << x$, as $\log x$ may be kept on the log-scale by the first term of the right-hand side of \eqref{eqn:logadd}, and the standard library function `log1p` may be used with the second term to accurately compute $\log(1 + \epsilon)$ for very small $\epsilon > 0$.
+this is especially helpful when $0 < y << x$, as $\log x$ may be kept on the log-scale by the first term of the right-hand side of \eqref{eqn:logadd}, and the standard library function `log1p` may be used with the second term to accurately compute $\log(1 + \phi)$ for very small $\phi > 0$.
 
-
-The tolerances $\delta$ and $\epsilon$ are specified in `COMPoissonReg` using global options `COMPoissonReg.hybrid.tol` and `COMPoissonReg.truncate.tol` respectively. Furthermore, the maximum value of $M$ is specified by the option `COMPoissonReg.ymax`. This is a safety measure that prevents very large computations unless the user opts to allow them. All options can be accessed using R's `getOption` function, with default values shown.
+The tolerances $\delta$ and $\epsilon$ are specified in `COMPoissonReg` using global options `COMPoissonReg.hybrid.tol` and `COMPoissonReg.truncate.tol` respectively. Furthermore, an upper limit $y_\text{max}$ for $M$ is specified by the option `COMPoissonReg.ymax`. This is a safety measure that prevents very large computations unless the user opts to allow them. All options can be accessed using R's `getOption` function, with default values shown.
 
 ```{r}
 getOption("COMPoissonReg.hybrid.tol")
@@ -181,7 +204,7 @@ getOption("COMPoissonReg.truncate.tol")
 getOption("COMPoissonReg.ymax")
 ```
 
-The `ncmp` function computes the $Z(\lambda, nu)$ and returns its value either on its original scale or the log-scale. The `method` argument specifies how the computation will be carried out. The argument `method = "approx"` corresponds to \ref{eqn:z-approx}, while `method = "trunc"` uses the truncated sum $Z^{(M)}(\lambda, \nu)$, and the default `method = "hybrid"` uses the hybrid strategy.
+The `ncmp` function computes $Z(\lambda, \nu)$ and returns its value either on the original scale or the log-scale. The `method` argument specifies how the computation will be carried out. The argument `method = "approx"` corresponds to \eqref{eqn:z-approx}, while `method = "trunc"` uses the truncated sum $Z^{(M)}(\lambda, \nu)$, and the default `method = "hybrid"` uses the hybrid strategy.
 
 ```{r}
 ncmp(lambda = 1.5, nu = 1.2)
@@ -198,14 +221,14 @@ nu_seq = c(1, 0.5, 0.2, 0.1, 0.05, 0.03)
 tryCatch({ tcmp(lambda = 1.5, nu = nu_seq) }, warning = print_warning)
 ```
 
-Note that `tcmp` returns `1e6` for the last `nu` value of ``0.03`` because we have reached the maximum value specified by `COMPoissonReg.ymax = 1e6` before capturing a sufficient proportion of the normalizing constant using \eqref{eqn:adaptive-log-scale}. Here, support values with with non-negligible mass may be left out. Therefore, let us increase `COMPoissonReg.ymax` for the current session using R's `options` function and try again.
+Note that `tcmp` returns `1e6` for the last `nu` value of `r max(nu_seq)` because Algorithm~\ref{alg:normconst-trunc} has reached `COMPoissonReg.ymax = 1e6` before capturing a sufficient proportion of the normalizing constant using \eqref{eqn:adaptive-log-scale}. Here, it is likely that support values with non-negligible mass are being left out. To avoid this problem, let us increase `COMPoissonReg.ymax` for the current session using R's `options` function.
 
 ```{r}
 options(COMPoissonReg.ymax = 3e6)
 tcmp(lambda = 1.5, nu = c(1, 0.5, 0.2, 0.1, 0.05, 0.03))
 ```
 
-Now that we have a somewhat robust computation for the normalizing constant, let us plot this interesting behavior when $\lambda > 1$ and $\nu$ decreases.
+Now that we have a somewhat robust computation for the normalizing constant, let us create a plot of the interesting behavior when $\lambda > 1$ and $\nu$ decreases.
 
 ```{r, fig.width = 5, fig.height = 3, fig.align = "center", prompt = FALSE}
 library(ggplot2)
@@ -223,7 +246,7 @@ ggplot() +
 	ylab("log of normalizing constant") +
 	theme_bw()
 ```
-We see that `lambda = 1.2` (represented by $+$ symbols) reaches a value of $Z(\lambda, \nu) \approx e^{18.67}$ when `nu = 0.03`.
+We see that with $\lambda = 1.2$ (represented by `+` symbols) a value of $Z(\lambda, `r round(nu_seq[1], 4)`) \approx e^{`r round(norm3[1], 2)`}$ is obtained, which is an extremely large jump from the next value in the series $Z(\lambda, `r round(nu_seq[2], 4)`) \approx e^{`r round(norm3[2], 2)`}$.
 
 ## Density, Generation, CDF, and Quantile Functions
 \label{sec:cmp-dist}
@@ -249,25 +272,13 @@ qq = seq(0, 1, length.out = 10)
 qcmp(qq, lambda = 10, nu = 0.9)
 ```
 
-At present, all four functions compute the normalizing constant via Section \ref{sec:cmp-normconst}. The density `dcmp` uses the hybrid method, while `rcmp`, `pcmp`, and `qcmp` use the truncation method regardless of condition \eqref{eqn:can_trunc}. Variate generation, CDF, and quantiles are then computed on CMP as if it were a discrete distribution on the sample space $\{ 0, \ldots, M \}$. A warning is emitted in cases where they may not produce reliable results.
-
-```{r}
-print_warning = function(x) { print(strwrap(x), quote = FALSE) }
-```
+The CMP distribution functions compute the normalizing constant via Section \ref{sec:cmp-normconst}. The density `dcmp` uses the hybrid method, while `rcmp`, `pcmp`, and `qcmp` use the truncation method regardless of condition \eqref{eqn:can_approx}. Variate generation, CDF, and quantiles are then computed on CMP as if it were a discrete distribution on the sample space $\{ 0, \ldots, M \}$. As with `tcmp` and `ncmp`, a warning is emitted in cases where they may not produce reliable results.
 
 ```{r}
 tryCatch({ rcmp(1, lambda = 2, nu = 0.01) }, warning = print_warning)
 ```
 
-```{r}
-tryCatch({ pcmp(10, lambda = 2, nu = 0.01) }, warning = print_warning)
-```
-
-```{r}
-tryCatch({ qcmp(0.5, lambda = 2, nu = 0.01) }, warning = print_warning)
-```
-
-As a quick test, let us ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dcmp`, `pcmp`, and `qcmp`.
+As a sanity check, let us ensure that the empirical density values, cumulative probabilities, and quantiles of draws from `rcmp` align with respective results computed via `dcmp`, `pcmp`, and `qcmp`.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
 library(ggplot2)
@@ -310,12 +321,12 @@ ggplot() +
 	theme_bw()
 ```
 
-Notice that the empirical and `qcmp` quantiles for probability $1.0$ do not match: this is because the truncation value $M$---which is returned by `qcmp`---is slightly larger than necessary, and none of the `n` draws have attained this value because the probability associated with it is extremely small. Because the support of CMP is $\mathbb{N}$, the actual quantile for probability $1.0$ is $\infty$ which can be expressed with no computation.
+Notice that the empirical and `qcmp` quantiles for probability $1.0$ do not match: this is because the truncation value $M$---which will be returned by `qcmp` in this setting---is slightly larger than necessary, yet none of the `n` draws have attained this value because the probability associated with it is extremely small. Because the support of CMP is $\mathbb{N}$, the actual quantile for probability $1.0$ is $\infty$ which can be expressed with no computation.
 
 ## Expected Value and Variance
 \label{sec:cmp-ev}
 
-For $Y \sim \text{CMP}(\lambda, \nu)$, we can consider computing the expectation and variance of $Y$ in two ways. First, if there is a moderately-sized $M$ where $\{ 0, \ldots, M \}$ contains all but a negligible amount of the mass of $Y$, we can compute the moments using
+For $Y \sim \text{CMP}(\lambda, \nu)$, we can consider computing the expectation and variance of $Y$ in two ways. First, if there is a moderately-sized $M$ where $\{ 0, \ldots, M \}$ contains all but a negligible amount of the mass of $Y$, we can compute the moments using truncated summations
 <!-- -->
 \begin{align*}
 \E(Y) = \sum_{y=0}^M y \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad
@@ -332,7 +343,7 @@ Otherwise, a different approach is taken. Notice that the expected value is rela
 &\iff \E(Y) = \lambda \frac{\partial}{\partial \lambda} \log Z(\lambda, \nu).
 \end{align*}
 <!-- -->
-Also
+Also, for the second derivative,
 <!-- -->
 \begin{align*}
 &\frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu)
@@ -342,7 +353,7 @@ Also
 &\iff \Var(Y) = \lambda^2 \frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu) + \E(Y).
 \end{align*}
 <!-- -->
-Therefore, we may use first and second derivatives of $\log Z(\lambda, \nu)$, with respect to $\lambda$, to compute $\E(Y)$ and $\Var(Y)$. To decide whether to use the truncation or the differentiation approaches, we check condition \eqref{eqn:can_trunc}: if it holds, there is a sufficiently small $M$ to use the truncation method.
+Therefore, we may use first and second derivatives of $\log Z(\lambda, \nu)$, with respect to $\lambda$, to compute $\E(Y)$ and $\Var(Y)$. To decide whether to use truncation or differentiation approach, we check condition \eqref{eqn:can_approx}: if it does not hold, there is a sufficiently small $M$ to use the truncation method.
 
 The `ecmp` and `vcmp` functions implement this computation of the expectation and variance, respectively.
 
@@ -362,15 +373,14 @@ vcmp(lambda = 1.5, nu = 0.05, method = "trunc")
 vcmp(lambda = 1.5, nu = 0.05, method = "approx")
 ```
 
-As with the `ncmp` function, `method = "approx"` explicitly requests the differentiation approach, `method = "trunc"` requests truncation, and the default `method = "hybrid"` uses condition \eqref{eqn:can_trunc} to decide.
+As with the `ncmp` function, `method = "approx"` explicitly requests the differentiation approach, `method = "trunc"` requests truncation, and the default `method = "hybrid"` uses condition \eqref{eqn:can_approx} to decide.
 
-Provided that an enormously large truncation value $M$ is not required, other moments can be computed using `tcmp` by truncated sums.
+Provided that an enormously large truncation value $M$ is not required, we may compute other moments by truncated sums using `tcmp`.
 
 ```{r}
 M = tcmp(lambda = 1.5, nu = 0.05)
-xx = seq(0, M)
-
 print(M)
+xx = seq(0, M)
 sum(xx^3 * dcmp(xx, lambda, nu))    # E(X^3)
 sum(xx^4 * dcmp(xx, lambda, nu))    # E(X^4)
 ```
@@ -390,52 +400,43 @@ a. Taking $\nu = 1$ corresponds to Zero-Inflated Poisson $\text{ZIP}(\lambda, p)
 
 a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, $\text{ZICMP}(\lambda, \nu)$ converges to a Zero-Inflated Geometric distribution with density $f(y \mid \lambda, p) = (1 - p) \lambda^y (1 - \lambda)^{1-y} + p \cdot \ind(y = 0)$ for $y \in \mathbb{N}$.
 
-a. Finally, when $\nu \rightarrow \infty$, $\text{ZICMP}(\lambda, \nu, p)$ converges to a ``Zero-Inflated Bernoulli'' distribution with density 
+a. Finally, when $\nu \rightarrow \infty$, $\text{ZICMP}(\lambda, \nu, p)$ converges to a "Zero-Inflated Bernoulli" distribution with density 
 <!-- -->
 \begin{math}
 f(y \mid \lambda, p) = (1 - p) \left[ \lambda/(1+\lambda) \right]^y \left[ 1/(1+\lambda) \right]^{1-y} + p \cdot \ind(y = 0).
 \end{math}
-
-In case (c) the $\lambda$ and $p$ parameters are not identifiable, and users may want to avoid ZICMP in data analyses with extreme underdispersion. @SellersRaim2016 provide more discussion on ZICMP and its use in regression modeling.
+<!-- -->
+Here the $\lambda$ and $p$ parameters are not individually identifiable. Therefore, users may want to avoid zero-inflation in CMP data analyses with extreme underdispersion.
 
 ## Density, Generation, CDF, and Quantile Functions
 
-There is a close relationship between the CMP and ZICMP distributions, as we have seen from construction of ZICMP. The relationship between the densities and variate generation mechanisms was given earlier in this section. Furthermore, let $F(x \mid \lambda, \nu)$ and $F^{-}(\phi \mid \lambda, \nu)$ denote the CDF and quantile function of $\text{CMP}(\lambda, \nu)$ and $F(x \mid \lambda, \nu, p)$ and $F^{-}(\phi \mid \lambda, \nu, p)$ denote the CDF and quantile function of $\text{ZICMP}(\lambda, \nu, p)$. We have
+There is a close relationship between the CMP and ZICMP distributions, as we have seen from construction of ZICMP. The relationship between the densities and variate generation mechanisms was given earlier in this section. Denote $F(x \mid \lambda, \nu)$ and $F(x \mid \lambda, \nu, p)$ as the CDFs of $\text{CMP}(\lambda, \nu)$ and $\text{ZICMP}(\lambda, \nu, p)$, respectively. We have
 <!-- -->
 \begin{align*}
-F(x \mid \lambda, \nu, p) = (1-p) F(x \mid \lambda, \nu) + p \cdot \ind(x \geq 0)
+F(x \mid \lambda, \nu, p) = (1-p) F(x \mid \lambda, \nu) + p \cdot \ind(x \geq 0).
 \end{align*}
 <!-- -->
-and, for a given $\phi \in [0,1]$,
+For a given probability $\phi \in [0,1]$, the associated CMP and ZICMP quantile functions can related via
 <!-- -->
 \begin{align*}
-F^{-1}(\phi \mid \lambda, \nu, p)
+F^{-}(\phi \mid \lambda, \nu, p)
 &= \inf\{ x \in \mathbb{N} : F(x \mid \lambda, \nu, p) \geq \phi \} \\
 &= \inf\{ x \in \mathbb{N} : (1-p) F(x \mid \lambda, \nu) + p \cdot \ind(x \geq 0) \geq \phi \} \\ 
 &= \inf\{ x \in \mathbb{N} : F(x \mid \lambda, \nu) \geq (\phi - p) / (1 - p) \} \\
-&= F^{-1}\left( \frac{\phi - p}{1 - p} \mid \lambda, \nu \right)
+&= F^{-}\left( \frac{\phi - p}{1 - p} \mid \lambda, \nu \right).
 \end{align*}
 
-Therefore, the 
-
-The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. 
-
-
-
-They make use of the CMP implementation described in Section \ref{sec:cmp} such as the criteria to either truncate or approximation the normalizing constant.
-
-Here are some examples showing the `dzicmp`, `rzicmp`, `pzicmp`, and `qzicmp` functions.
+The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. They make use of the CMP implementation described in Section \ref{sec:cmp} such as the criteria to either truncate or approximation the normalizing constant.
 
 ```{r}
 qq = seq(0, 1, length.out = 20)
-
 rzicmp(20, lambda = 1.5, nu = 0.2, p = 0.25)
 dzicmp(c(0, 1, 2), lambda = 1.5, nu = 0.2, p = 0.25)
 pzicmp(c(0, 1, 2), lambda = 1.5, nu = 0.2, p = 0.25)
 qzicmp(qq, lambda = 1.5, nu = 0.2, p = 0.25)
 ```
 
-Let us repeat the test from Section \ref{sec:cmp-dist} to ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dzicmp`, `pzicmp`, and `qzicmp`.
+Let us repeat the sanity check from Section \ref{sec:cmp-dist} to ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dzicmp`, `pzicmp`, and `qzicmp`.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
 library(ggplot2)
@@ -479,7 +480,7 @@ ggplot() +
 	theme_bw()
 ```
 
-The empirical quantiles match the results of `qzicmp`, except for probability $1.0$ which is quite different. This is a consequence of the truncation method which has been used; see the note in Section \ref{sec:cmp-dist} about `qcmp`, where this also occurs but to a lesser degree.
+As with `qcmp`, the empirical quantiles align with `qzicmp` except for probability $1.0$. This is again a consequence of the truncation method which has been used, as discussed in Section \ref{sec:cmp-dist}.
 
 ## Expectation and Variance
 The expected value and variance of $Y \sim \text{ZICMP}(\lambda, \nu, p)$ are apparent from the construction $Y = (1-S) T$ given earlier in this section. Namely,
@@ -490,7 +491,7 @@ The expected value and variance of $Y \sim \text{ZICMP}(\lambda, \nu, p)$ are ap
 \Var(Y) = (1-p) \left\{ \Var(T) + p[\E(T)]^2 \right\}
 \end{align*}
 <!-- -->
-may be obtained using formulas for iterated conditional expectations and variances. They may be invoked in `COMPoissonReg` using the `ezicmp` and `vzicmp` functions respectively. These make use of the logic described in Section \ref{sec:cmp-ev} to compute $\E(T)$ and $\Var(T)$.
+may be obtained using formulas for iterated conditional expectations and variances. They may be evaluated in `COMPoissonReg` using the `ezicmp` and `vzicmp` functions respectively. These functions make use of the logic described in Section \ref{sec:cmp-ev} to compute $\E(T)$ and $\Var(T)$.
 
 ```{r}
 ezicmp(lambda = 1.5, nu = 0.5, p = 0.1)
@@ -510,7 +511,7 @@ Suppose there are $n$ subjects with outcomes $y_1, \ldots, y_n \in \mathbb{N}$ a
 The CMP regression model assumes that
 <!-- -->
 \begin{align*}
-Y_i \indep \text{ZICMP}(\lambda_i, \nu_i, p_i), \quad i = 1, \ldots, n,
+Y_i \indep \text{CMP}(\lambda_i, \nu_i), \quad i = 1, \ldots, n,
 \end{align*}
 <!-- -->
 where $\log \lambda_i = \vec{x}_i^\top \vec{\beta}$ and $\log \nu_i = \vec{s}_i^\top \vec{\gamma}$. Writing $\btheta = (\vec{\beta}, \vec{\gamma})$, the likelihood is
@@ -540,14 +541,14 @@ L(\btheta) =
 \label{eqn:likelihood-zicmp}
 \end{align}
 <!-- -->
-We will write $d = d_1 + d_2 + d_3$ for the total dimension of $\btheta$. The `glm.cmp` function is provided to handle both cases.
+We will write $d = d_1 + d_2 + d_3$ for the total dimension of $\btheta$. The $n \times d_1$ design matrix whose rows consist of $\vec{x}_i$ will be denoted $\vec{X}$. Similarly, we will write $\vec{S}$ and $\vec{W}$ as the $n \times d_2$ and $n \times d_3$ design matrices constructed from $\vec{s}_i$ and $\vec{w}_i$, respectively. The `glm.cmp` function is provided to handle both cases.
 
 ```{r, eval = FALSE, prompt = FALSE}
 out = glm.cmp(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	data = NULL, beta.init = NULL, gamma.init = NULL, zeta.init = NULL, ...)
 ```
 
-The interface contains three formulas: `formula.lambda` specifies the regression $\vec{x}_i^\top \vec{\beta}$ used for $\lambda_i$, while `formula.nu` and `formula.p` correspond to $\vec{s}_i^\top \vec{\gamma}$ for $\nu_i$ and $\vec{w}_i^\top \vec{\zeta}$ for $p_i$, respectively. ZICMP regression is fit when `formula.p` is set to something other than its default `NULL` value; otherwise, CMP regression is assumed. The `data` argument accepts the data as an explicit argument. The `beta.init`, `gamma.init`, and `zeta.init` allow initial values to be pass to the optimizer for fitting. See the package manual for details about the `glm.cmp` interface.
+The interface contains three formulas: `formula.lambda` specifies the regression $\vec{x}_i^\top \vec{\beta}$ used for $\lambda_i$, while `formula.nu` and `formula.p` correspond to $\vec{s}_i^\top \vec{\gamma}$ for $\nu_i$ and $\vec{w}_i^\top \vec{\zeta}$ for $p_i$, respectively. ZICMP regression is utilized when `formula.p` is set to something other than its default `NULL` value; otherwise, CMP regression is assumed. The `data` argument is used to pass a `data.frame` explicitly rather than having the data be read from the local environment. The `beta.init`, `gamma.init`, and `zeta.init` allow initial values to be passed to the optimizer for fitting. See the package manual for details about the `glm.cmp` interface.
 
 `COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\btheta}$ for $\btheta$ under the specified model. Two global options are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
 
@@ -556,16 +557,16 @@ getOption("COMPoissonReg.optim.method")
 getOption("COMPoissonReg.optim.control")
 ```
 
-The string `COMPoissonReg.optim.method` is used as the `method` argument of `optim`, while the list `COMPoissonReg.optim.control` is used as the `control` argument. For the latter, note that any entry for `fnscale` is ignored by `COMPoissonReg`.
+The option `COMPoissonReg.optim.method` is a string which is passed as the `method` argument to `optim`, while `COMPoissonReg.optim.control` is a list passed as the `control` argument. For the latter, note that if an entry is given for `fnscale`, it will be ignored and overwritten internally by `COMPoissonReg`.
 
-The covariance of $\hat{\btheta}$ is estimated by $\hat{\vec{V}}(\btheta) = -[\vec{H}(\hat{\btheta})]^{-1}$, where $\vec{H}(\btheta) = \frac{\partial^2}{\partial \btheta \partial \btheta^\top} \log L(\btheta)$ is the Hessian of the log-likelihood computed by `optim`. The standard error for coefficient $\theta_j$ in $\btheta$ is then obtained as the square root of the $j$th diagonal of $\hat{\vec{V}}(\btheta)$.
+The covariance of $\hat{\btheta}$ is estimated by $\hat{\vec{V}}(\hat{\btheta}) = -[\vec{H}(\hat{\btheta})]^{-1}$, where $\vec{H}(\btheta) = \partial^2 \log L(\btheta) / [\partial \btheta \partial \btheta^\top]$ is the Hessian of the log-likelihood computed by `optim`. The standard error for coefficient $\theta_j$ in $\btheta$ is then obtained as the square root of the $j$th diagonal of $\hat{\vec{V}}(\hat{\btheta})$.
 
 We will now illustrate use of the regression tools using two examples whose data are included in the package. Note that these demonstrations are not intended to be complete regression analyses, and results may be slightly different than previously published analyses due to differences in the computations.
 
 ## CMP Regression
 \label{sec:cmp-reg}
 
-The `freight` dataset [@KutnerEtAl2003] was analyzed using CMP regression and found to exhibit underdispersion by @SellersShmueli2010. The data describe $n = 10$ instances where 1,000 ampules were transported via air shipment. The variable `broken` is the outcome of interest, and describes the number of broken ampules in each shipment. The covariate `transfers` describes the number of times the carton was transferred from one aircraft to another during the shipment.
+The `freight` dataset [@KutnerEtAl2003] was analyzed using CMP regression and found to exhibit underdispersion by @SellersShmueli2010. The data describe $n = 10$ instances where 1,000 ampules were transported via air shipment. The outcome of interest is the variable `broken` which and describes the number of broken ampules in each shipment. The covariate `transfers` describes the number of times the carton was transferred from one aircraft to another during the shipment.
 
 Let us load and view the dataset.
 
@@ -574,7 +575,7 @@ data(freight)
 print(freight)
 ```
 
-Before fitting a CMP regression, let us fit a standard Poisson model $Y_i \indep \text{Poisson}(\lambda_i)$ with 
+Before fitting a CMP regression, let us fit a Poisson regression model $Y_i \indep \text{Poisson}(\lambda_i)$ with 
 <!-- -->
 \begin{align*}
 \log \lambda_i = \beta_0 + \beta_1 \cdot \text{transfers}_i.
@@ -601,7 +602,7 @@ cmp.out = glm.cmp(broken ~ transfers, data = freight)
 print(cmp.out)
 ```
 
-Notice that the coefficients used in the $\lambda_i$ formula are prefixed with an `X:` label, while an `S:` label is used for coefficients of the $\nu_i$ formula. Similarly to the `glm` output, the output of `glm.cmp` displays several quantities for each coefficient $\theta_j$ for $j = 1, \ldots, d$: a point estimate $\hat{\theta}_j$, an associated standard error $\widehat{\text{SE}}(\hat{\theta}_j)$, a z-value $z_j = \hat{\theta}_j / \widehat{\text{SE}}(\hat{\theta}_j)$, and a p-value $2\Phi(-|z_j|)$ for the test $H_0: \theta_j = 0$ versus $H_0: \theta_j \neq 0$. Here, $\Phi$ is the CDF of the standard normal distribution. Because an intercept-only formula was specified for $\nu_i$, an estimate and associated standard error are displayed for $\hat{\nu} = \exp(\hat{\gamma})$ which does not vary with $i$. Here we see evidence of underdispersion with $\hat{\nu} > 1$. A test for equidispersion is displayed to determine whether there is a significant amount of over or underdispersion in the data. In particular, a likelihood ratio test is used to decide whether $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. The test statistic is displayed along with the degrees of freedom and associated p-value. Here we have fairly strong evidence to reject the null hypthesis of equidispersion.
+Notice that the coefficients used in the $\lambda_i$ formula are prefixed with an `X:` label, while an `S:` label is used for coefficients of the $\nu_i$ formula. Similarly to the `glm` output, the output of `glm.cmp` displays several quantities for each coefficient $\theta_j$, $j = 1, \ldots, d$: a point estimate $\hat{\theta}_j$, an associated standard error $\widehat{\text{SE}}(\hat{\theta}_j)$, a z-value $z_j = \hat{\theta}_j / \widehat{\text{SE}}(\hat{\theta}_j)$, and a p-value $2\Phi(-|z_j|)$ for the test $H_0: \theta_j = 0$ versus $H_1: \theta_j \neq 0$. Here, $\Phi$ is the CDF of the standard normal distribution. Because an intercept-only formula was specified for $\nu_i$, $\hat{\nu} = \exp(\hat{\gamma})$ does not vary with $i$ and its estimate and associated standard error are added to the display. Here we see evidence of underdispersion with $\hat{\nu} > 1$. A test for equidispersion is displayed to determine whether there is a significant amount of over or underdispersion in the data. In particular, a likelihood ratio test is used to decide whether $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. The test statistic is displayed along with the degrees of freedom and associated p-value. Here we have fairly strong evidence to reject the null hypthesis of equidispersion.
 
 The CMP model shows a good improvement in AIC over the Poisson model. We may alternatively fit
 <!-- -->
@@ -616,11 +617,12 @@ cmp2.out = glm.cmp(broken ~ transfers, formula.nu = ~ transfers, data = freight)
 print(cmp2.out)
 ```
 
-Model `cmp2.out` provides a slight improvement over `cmp.out` in AIC and BIC, but we will proceed with `cmp.out` in the interest of simplicity.
+Model `cmp2.out` provides a slight improvement over `cmp.out` in AIC and BIC, but we may prefer `cmp.out` in the interest of simplicity.
 
-Let us increase the trace level to watch the optimization.
+To gain some insight into the optimization, we may wish to increase the trace level, which can be done as follows.
 
 ```{r}
+optim.control.old = getOption("COMPoissonReg.optim.control")
 options(COMPoissonReg.optim.control = list(maxit = 5, trace = 3, REPORT = 1))
 cmp3.out = glm.cmp(broken ~ transfers, data = freight)
 ```
@@ -628,12 +630,12 @@ cmp3.out = glm.cmp(broken ~ transfers, data = freight)
 We will return to the default options before we proceed.
 
 ```{r}
-options(COMPoissonReg.optim.control = list(maxit = 150))
+options(COMPoissonReg.optim.control = optim.control.old)
 ```
 
 Data from the local environment may be passed to the `glm.cmp` function without explicitly using the `data` argument.
 
-```{r}
+```{r, results = 'hide'}
 y = freight$broken
 x = freight$transfers
 glm.cmp(y ~ x)
@@ -642,22 +644,22 @@ glm.cmp(y ~ x)
 In a count regression model, it may be desirable to include offset terms such as
 <!-- -->
 \begin{align*}
-&\log \lambda_i = \vec{x}_i^\top \vec{\beta} + \text{offx}_i,
-&\log \nu_i = \vec{s}_i^\top \vec{\beta} + \text{offs}_i.
+\log \lambda_i = \vec{x}_i^\top \vec{\beta} + \text{offx}_i, \quad
+\log \nu_i = \vec{s}_i^\top \vec{\beta} + \text{offs}_i.
 \end{align*}
 <!-- -->
-An `offset` term may be used in regression formulas to accomplish this.
+An `offset` term may be used in the formula interface to accomplish this.
 
-```{r}
+```{r, results = 'hide'}
 freight$offx = 13
 freight$offs = 1
 glm.cmp(broken ~ transfers + offset(offx), data = freight)
 glm.cmp(broken ~ transfers + offset(offx), formula.nu = ~1 + offset(offs), data = freight)
 ```
 
-For users who wish to bypass the formula interface and prepare the design matrices manually, a "raw" interface is also provided to the regression functionality.
+For users who wish to bypass the formula interface and prepare the $\vec{X}$ and $\vec{S}$ design matrices manually, a "raw" interface to the regression functionality is also provided.
 
-```{r}
+```{r, results = 'hide'}
 y = freight$broken
 X = model.matrix(~ transfers, data = freight)
 S = model.matrix(~ 1, data = freight)
@@ -669,19 +671,24 @@ glm.cmp.raw(y, X, S, off.x = off.x, off.s = off.s)
 Several accessors are provided to extract results from the output object.
 
 ```{r}
-coef(cmp.out)  ## Estimates of theta
-nu(cmp.out)    ## Estimates of nu = (nu_1, ..., nu_n)
-vcov(cmp.out)  ## Estimated covariance matrix of theta hat
-sdev(cmp.out)  ## Standard deviations from vcov(...) diagonals
+logLik(cmp.out)               ## Log-likelihood evaluated at MLE.
+AIC(cmp.out)                  ## AIC evaluated at MLE.
+BIC(cmp.out)                  ## BIC evaluated at MLE.
+coef(cmp.out)                 ## Estimates of theta as a flat vector
+coef(cmp.out, type = "list")  ## Estimates of theta as a named list
+vcov(cmp.out)                 ## Estimated covariance matrix of theta hat
+sdev(cmp.out)                 ## Standard deviations from vcov(...) diagonals
+sdev(cmp.out, type = "list")  ## Standard deviations as a named list
 ```
 
-The `predict` function computes $\hat{y}_i = \E(Y_i)$ evaluated at the estimate $\hat{\btheta}$ using the method described in Section \ref{sec:cmp-ev}. Here we request fitted values for the sample used in the fit.
+The `predict` function computes several useful quantities evaluated at the estimate $\hat{\btheta}$. The argument `type = "response"` (the default value) produces estimates of the response $\hat{y}_i = \E(Y_i)$ for $i = 1, \ldots, n$ using the method described in Section \ref{sec:cmp-ev}. The argument `type = "link"` produces a `data.frame` with columns for the linked parameters $\lambda_i$ and $\nu_i$.
 
 ```{r}
 predict(cmp.out)
+predict(cmp.out, type = "link")
 ```
 
-We can also request fitted values for new covariate values.
+We can also use `predict` on new covariate values.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center"}
 new.data = data.frame(transfers = 0:10)
@@ -691,6 +698,7 @@ ggplot() +
 	xlab("Number of transfers") +
 	ylab("Predicted number broken") +
 	theme_bw()
+predict(cmp.out, newdata = new.data, type = "link")
 ```
 
 The `leverage` function computes the diagonal entries of a "hat" matrix which can be formulated in CMP regression. These can be used to diagnose influential observations. For details, see Section 3.6 of @SellersShmueli2010.
@@ -699,7 +707,7 @@ The `leverage` function computes the diagonal entries of a "hat" matrix which ca
 leverage(cmp.out)
 ```
 
-The `residuals` function provides either raw or quantile-based residuals [@DunnSmyth1996]. Raw residuals $y_i - \hat{y}_i$  generally do not work well with traditional regression diagnostics, such as Q-Q plots, in a CMP regression setting. Quantile-based residuals often produce interpretable diagnostics; however, a random element is used in the computation of quantile residuals for discrete distributions. This aids interpretability but gives slightly different residual values each time they are computed. See @DunnSmyth1996 for details.
+The `residuals` function provides either raw or quantile-based residuals [@DunnSmyth1996]. In a CMP regression setting, raw residuals $y_i - \hat{y}_i$  generally do not work well with traditional regression diagnostics, such as Q-Q plots. Quantile-based residuals often produce interpretable diagnostics; however, a random element is used in the computation of quantile residuals for discrete distributions. This aids interpretability but gives slightly different residual values each time they are computed. See @DunnSmyth1996 for details.
 
 ```{r}
 res.raw = residuals(cmp.out)
@@ -709,15 +717,13 @@ res.qtl = residuals(cmp.out, type = "quantile")
 Pearson residuals may be preferred over raw residuals for diagnostics; these can be obtained by standardizing raw residuals using leverage values and variance estimates. (TBD: Kim may want to check this).
 
 ```{r}
-# TBD: Need a nice way to retrieve lambda, nu, etc. How about a fitted function? It could take a "what" argument and return ecmp, lambda, nu, or p
-# TBD: Maybe get rid of nu? Or keep it for legacy?
-lambda.hat = exp(cmp.out$X %*% cmp.out$beta)
-vv = vcmp(lambda.hat, nu(cmp.out))
+link.hat = predict(cmp.out, type = "link")
+vv = vcmp(link.hat$lambda, link.hat$nu)
 hh = leverage(cmp.out)
 res.pearson = res.raw / sqrt(vv*(1-hh))
 ```
 
-Here we plot fitted values versus both sets of residuals and Q-Q plots of both residuals.
+For each type of residual---raw, Pearson, and quantile---we now plot fitted values versus residuals and Q-Q plots.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
 plot.fit.res = function(y.hat, res) {
@@ -765,14 +771,14 @@ The `deviance` function computes the deviance quantities $D_i = -2 [\log L_i(\ha
 deviance(cmp.out)
 ```
 
-The `parametric.bootstrap` function carries out a parametric bootstrap with $R$ repetitions. Using the fitted MLE $\hat{\btheta}$, bootstrap samples $\vec{y}^{(r)} = (y_1^{(r)}, \ldots, y_n^{(r)})$ are drawn from likelihood $L(\hat{\btheta})$ for $r = 1, \ldots, R$. Estimate $\hat{\btheta}^{(r)}$ is fitted from bootstrap sample $\vec{y}^{(r)}$. An $R \times (d_1 + d_2 + d_3)$ matrix is returned whose $r$th row is $\hat{\btheta}^{(r)}$.
+The `parametric.bootstrap` function carries out a parametric bootstrap with $R$ repetitions. Using the fitted MLE $\hat{\btheta}$, bootstrap samples $\vec{y}^{(r)} = (y_1^{(r)}, \ldots, y_n^{(r)})$ are drawn from likelihood $L(\hat{\btheta})$ for $r = 1, \ldots, R$. Estimate $\hat{\btheta}^{(r)}$ is fitted from bootstrap sample $\vec{y}^{(r)}$. An $R \times d$ matrix is returned whose $r$th row is $\hat{\btheta}^{(r)}$.
 
 ```{r}
 cmp.boot = parametric.bootstrap(cmp.out, reps = 100)
 head(cmp.boot)
 ```
 
-We used $R = `r nrow(cmp.boot)`$ in the display above to keep vignette computations small, but a larger $R$ may be desired in practice. The bootstrap repetitions can be used, for example, to compute 95% confidence intervals for each of the coefficients.
+We used $R = `r nrow(cmp.boot)`$ in the display above to keep vignette computations small, but a larger number may be desired in practice. Bootstrap repetitions can be used, for example, to compute 95% confidence intervals for each of the coefficients.
 
 ```{r}
 apply(cmp.boot, 2, quantile, c(0.025,0.975))
@@ -783,14 +789,14 @@ apply(cmp.boot, 2, quantile, c(0.025,0.975))
 
 The `couple` dataset [@LoeysEtAl2012] was analyzed with ZICMP regression in @SellersRaim2016 and found to exhibit overdispersion. The data concern the separation trajectories of $n = 387$ couples. The variable `UPB` records the number of unwanted pursuit behavior perpetrations and is considered the outcome of interest. Included covariates are the binary variable `EDUCATION`, which is 1 if at least a bachelor's degree was attained, and a continuous variable `ANXIETY` which measures anxious attachment. A zero-inflated count model is considered for this data because 246 of the 387 records have an outcome of `UPB = 0`.
 
-First let us load and view the first few records in the dataset.
+Let us load and view the first few records in the dataset.
 
 ```{r}
 data(couple)
 head(couple)
 ```
 
-As a preliminary model, let us first fit a standard Poisson model $Y_i \indep \text{Poisson}(\lambda_i)$ with
+As a preliminary model, let us fit a standard Poisson model $Y_i \indep \text{Poisson}(\lambda_i)$ with
 <!-- -->
 \begin{align*}
 \log \lambda_i = \beta_0 + \beta_1 \cdot \text{EDUCATION}_i + \beta_2 \cdot \text{ANXIETY}_i.
@@ -820,6 +826,8 @@ zicmp.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
  	data = couple)
 print(zicmp.out)
 ```
+
+There are now three sets of coefficients reported in the output: the `X:`, `S:`, and `W:` prefixes label estimates for the $\lambda_i$, $\nu_i$, and $p_i$ formulas respectively.
 
 The AIC of the ZICMP model is drastically smaller than the Poisson model, indicating a greatly improved fit. The estimate for $\gamma_0$ is a large negative number, which can sometimes lead to issues with infinite values when using the `L-BFGS-B` optimization method. Let us switch to `BFGS` for the remainder of this example.
 
@@ -852,22 +860,35 @@ y = couple$UPB
 X = model.matrix(~ EDUCATION + ANXIETY, data = couple)
 S = model.matrix(~ 1, data = couple)
 W = model.matrix(~ EDUCATION + ANXIETY, data = couple)
-glm.zicmp.raw(y, X, S, W, beta.init = zicmp.out$beta,
-	gamma.init = zicmp.out$gamma, zeta.init = zicmp.out$zeta)
+link.init = coef(zicmp.out, type = "list")  # Initial values from previous fit
+glm.zicmp.raw(y, X, S, W, beta.init = link.init$beta,
+	gamma.init = link.init$gamma, zeta.init = link.init$zeta)
 ```
 
-
+Here are several of the accessors provided to extract model outputs.
 
 ```{r}
-coef(zicmp.out)             ## Estimates of theta
-head(nu(zicmp.out))         ## Estimates of nu = (nu_1, ..., nu_n)
-vcov(zicmp.out)             ## Estimated covariance matrix of theta hat
-sdev(zicmp.out)             ## Standard deviations from vcov(...) diagonals
-y.hat = predict(zicmp.out)  ## Fitted values based on the expectation
-equitest(zicmp.out)         ## Likelihood ratio test for H_0: gamma = 0
+logLik(zicmp.out)               ## Log-likelihood evaluated at MLE.
+AIC(zicmp.out)                  ## AIC evaluated at MLE.
+BIC(zicmp.out)                  ## BIC evaluated at MLE.
+coef(zicmp.out)                 ## Estimates of theta as a flat vector
+coef(zicmp.out, type = "list")  ## Estimates of theta as a named list
+vcov(zicmp.out)                 ## Estimated covariance matrix of theta hat
+sdev(zicmp.out)                 ## Standard deviations from vcov(...) diagonals
+sdev(zicmp.out, type = "list")  ## Standard deviations as a named list
+equitest(zicmp.out)             ## Likelihood ratio test for H_0: gamma = 0
 ```
 
-In this example, we can see the benefit of using quantile residuals for diagnostic plots.
+The `predict` function behaves similarly as in CMP regression; however, the `link` type here also includes a column with the estimated $p_i$.
+
+```{r}
+y.hat = predict(zicmp.out)  ## Fitted values based on ecmp
+link.hat = predict(zicmp.out, type = "link")
+head(y.hat)
+head(link.hat)
+```
+
+In this example, we can see the benefit of using quantile residuals rather than raw residuals for diagnostic plots.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
 plot.fit.res = function(y.hat, res) {

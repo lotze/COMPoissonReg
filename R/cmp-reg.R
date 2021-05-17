@@ -4,10 +4,28 @@
 #' @param x object of type \code{cmp}.
 #' @param k Penalty per parameter to be used in AIC calculation.
 #' @param newdata New covariates to be used for prediction.
-#' @param type Type of residual to be computed.
+#' @param type Specifies quantity to be computed. See details.
 #' @param reps Number of bootstrap repetitions.
 #' @param report.period Report progress every \code{report.period} iterations.
 #' @param ... other arguments, such as \code{subset} and \code{na.action}.
+#' 
+#' @details
+#' The function \code{residuals} returns raw residuals when
+#' \code{type = "raw"}  and quantile residuals when
+#' \code{type = "quantile"}.
+#' 
+#' The function \code{predict} returns expected values of the outcomes,
+#' eveluated at the computed estimates, when \code{type = "response"}. When
+#' \code{type = "link"}, a \code{data.frame} is instead returned with
+#' columns corresponding to estimates of \code{lambda} and \code{nu}.
+#' 
+#' The function \code{coef} returns a vector of coefficient estimates in
+#' the form \code{c(beta, gamma)} when \code{type = "vector"}. When
+#' \code{type = "list"}, the estimates are returned as a list with named
+#' elements \code{beta} and \code{gamma}.
+#' 
+#' The \code{type} argument behaves the same for the \code{sdev} function
+#' as it does for \code{coef}.
 #' 
 #' @name glm.cmp, CMP support
 NULL
@@ -32,8 +50,11 @@ summary.cmp = function(object, ...)
 		z.value = round(z.val, 4),
 		p.value = sprintf("%0.4g", p.val)
 	)
-	rownames(DF) = c(sprintf("X:%s", colnames(object$X)),
-		sprintf("S:%s", colnames(object$S)))
+	colnames(DF) = c("Estimate", "SE", "z-value", "p-value")
+	rownames(DF) = c(
+		sprintf("X:%s", colnames(object$X)),
+		sprintf("S:%s", colnames(object$S))
+	)
 
 	# If X, S, or W are intercept only, compute results for non-regression parameters
 	DF.lambda = NULL
@@ -88,7 +109,7 @@ fitted.cmp.internal = function(X, S, beta, gamma, off.x, off.s)
 print.cmp = function(x, ...)
 {
 	printf("CMP coefficients\n")
-	s = summary.cmp(x)
+	s = summary(x)
 	tt = equitest(x)
 	print(s$DF)
 
@@ -138,25 +159,38 @@ BIC.cmp = function(object, ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-coef.cmp = function(object, ...)
+coef.cmp = function(object, type = c("vector", "list"), ...)
 {
-	c(object$beta, object$gamma)
+	switch(match.arg(type),
+		vector = c(object$beta, object$gamma),
+		list = list(beta = object$beta, gamma = object$gamma)
+	)
 }
 
 #' @name glm.cmp, CMP support
 #' @export
 nu.cmp = function(object, ...)
 {
-	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
-		object$off.x, object$off.s)
-	out$nu
+	# This function is deprecated - use predict instead
+	.Deprecated("predict(object, type = \"link\")")
+	link = predict(object, type = "link")
+	link$nu
 }
 
 #' @name glm.cmp, CMP support
 #' @export
-sdev.cmp = function(object, ...)
+sdev.cmp = function(object, type = c("vector", "list"), ...)
 {
-	sqrt(diag(vcov(object)))
+	out = sqrt(diag(vcov(object)))
+	d1 = ncol(object$X)
+	d2 = ncol(object$S)
+	idx1 = seq_len(d1)
+	idx2 = seq_len(d2) + d1
+
+	switch(match.arg(type),
+		vector = out,
+		list = list(beta = out[idx1], gamma = out[idx2])
+	)
 }
 
 #' @name glm.cmp, CMP support
@@ -292,7 +326,7 @@ deviance.cmp = function(object, ...)
 	}
 
 	dev = -2*(ll.mu - ll.y)
-	lev = leverage.cmp(object)
+	lev = leverage(object)
 	cmpdev = dev / sqrt(1 - lev)
 	return(cmpdev)
 }
@@ -319,15 +353,16 @@ residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-predict.cmp = function(object, newdata = NULL, ...)
+predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...)
 {
 	if (is.null(newdata)) {
+		# If newdata is NULL, reuse data for model fit
 		X = object$X
 		S = object$S
 		off.x = object$off.x
 		off.s = object$off.s
 	} else {
-		# Only attempt to process newdata as a data.frame
+		# Attempt to process newdata as a data.frame
 		newdata = as.data.frame(newdata)
 
 		# If the response was not included in newdata, add a column with zeros
@@ -353,8 +388,11 @@ predict.cmp = function(object, newdata = NULL, ...)
 		}
 	}
 
-	out = fitted.cmp.internal(X, S, object$beta, object$gamma, off.x, off.s)
-	ecmp(out$lambda, out$nu)
+	link = fitted.cmp.internal(X, S, object$beta, object$gamma, off.x, off.s)
+	switch(match.arg(type),
+		response = ecmp(link$lambda, link$nu),
+		link = data.frame(lambda = link$lambda, nu = link$nu)
+	)
 }
 
 #' @name glm.cmp, CMP support

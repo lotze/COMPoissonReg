@@ -28,11 +28,11 @@
 
 \method{BIC}{cmp}(object, ...)
 
-\method{coef}{cmp}(object, ...)
+\method{coef}{cmp}(object, type = c("vector", "list"), ...)
 
 \method{nu}{cmp}(object, ...)
 
-\method{sdev}{cmp}(object, ...)
+\method{sdev}{cmp}(object, type = c("vector", "list"), ...)
 
 \method{vcov}{cmp}(object, ...)
 
@@ -42,7 +42,7 @@
 
 \method{residuals}{cmp}(object, type = c("raw", "quantile"), ...)
 
-\method{predict}{cmp}(object, newdata = NULL, ...)
+\method{predict}{cmp}(object, newdata = NULL, type = c("response", "link"), ...)
 
 \method{parametric.bootstrap}{cmp}(object, reps = 1000, report.period = reps + 1, ...)
 }
@@ -55,7 +55,7 @@
 
 \item{k}{Penalty per parameter to be used in AIC calculation.}
 
-\item{type}{Type of residual to be computed.}
+\item{type}{Specifies quantity to be computed. See details.}
 
 \item{newdata}{New covariates to be used for prediction.}
 
@@ -65,4 +65,22 @@
 }
 \description{
 Supporting Functions for COM-Poisson Regression
+}
+\details{
+The function \code{residuals} returns raw residuals when
+\code{type = "raw"}  and quantile residuals when
+\code{type = "quantile"}.
+
+The function \code{predict} returns expected values of the outcomes,
+eveluated at the computed estimates, when \code{type = "response"}. When
+\code{type = "link"}, a \code{data.frame} is instead returned with
+columns corresponding to estimates of \code{lambda} and \code{nu}.
+
+The function \code{coef} returns a vector of coefficient estimates in
+the form \code{c(beta, gamma)} when \code{type = "vector"}. When
+\code{type = "list"}, the estimates are returned as a list with named
+elements \code{beta} and \code{gamma}.
+
+The \code{type} argument behaves the same for the \code{sdev} function
+as it does for \code{coef}.
 }

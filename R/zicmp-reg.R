@@ -4,10 +4,29 @@
 #' @param x object of type \code{zicmp}.
 #' @param k Penalty per parameter to be used in AIC calculation.
 #' @param newdata New covariates to be used for prediction.
-#' @param type Type of residual to be computed.
+#' @param type Specifies quantity to be computed. See details.
 #' @param reps Number of bootstrap repetitions.
 #' @param report.period Report progress every \code{report.period} iterations.
 #' @param ... other arguments, such as \code{subset} and \code{na.action}.
+#' 
+#' @details
+#' The function \code{residuals} returns raw residuals when
+#' \code{type = "raw"}  and quantile residuals when
+#' \code{type = "quantile"}.
+#' 
+#' The function \code{predict} returns expected values of the outcomes,
+#' eveluated at the computed estimates, when \code{type = "response"}. When
+#' \code{type = "link"}, a \code{data.frame} is instead returned with
+#' columns corresponding to estimates of \code{lambda}, \code{nu}, and
+#' \code{p}.
+#' 
+#' The function \code{coef} returns a vector of coefficient estimates in
+#' the form \code{c(beta, gamma, zeta)} when \code{type = "vector"}. When
+#' \code{type = "list"}, the estimates are returned as a list with named
+#' elements \code{beta} and \code{gamma}, and \code{zeta}.
+#' 
+#' The \code{type} argument behaves the same for the \code{sdev} function
+#' as it does for \code{coef}.
 #' 
 #' @name glm.cmp, ZICMP support
 NULL
@@ -34,6 +53,7 @@ summary.zicmp = function(object, ...)
 		z.value = round(z.val, 4),
 		p.value = sprintf("%0.4g", p.val)
 	)
+	colnames(DF) = c("Estimate", "SE", "z-value", "p-value")
 	rownames(DF) = c(
 		sprintf("X:%s", colnames(object$X)),
 		sprintf("S:%s", colnames(object$S)),
@@ -156,25 +176,43 @@ BIC.zicmp = function(object, ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-coef.zicmp = function(object, ...)
+coef.zicmp = function(object, type = c("vector", "list"), ...)
 {
-	c(object$beta, object$gamma, object$zeta)
+	switch(match.arg(type),
+		vector = c(object$beta, object$gamma, object$zeta),
+		list = list(beta = object$beta, gamma = object$gamma,
+			zeta = object$zeta)
+	)
 }
 
 #' @name glm.cmp, ZICMP support
 #' @export
 nu.zicmp = function(object, ...)
 {
-	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
-		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
-	out$nu
+	# This function is deprecated - use predict instead
+	.Deprecated("predict(object, type = \"link\")")
+	link = predict(object, type = "link")
+	link$nu
 }
 
 #' @name glm.cmp, ZICMP support
 #' @export
-sdev.zicmp = function(object, ...)
+sdev.zicmp = function(object, type = c("vector", "list"), ...)
 {
 	sqrt(diag(vcov(object)))
+
+	out = sqrt(diag(vcov(object)))
+	d1 = ncol(object$X)
+	d2 = ncol(object$S)
+	d3 = ncol(object$W)
+	idx1 = seq_len(d1)
+	idx2 = seq_len(d2) + d1
+	idx3 = seq_len(d3) + d1 + d2
+
+	switch(match.arg(type),
+		vector = out,
+		list = list(beta = out[idx1], gamma = out[idx2], zeta = out[idx3])
+	)
 }
 
 #' @name glm.cmp, ZICMP support
@@ -220,13 +258,6 @@ equitest.zicmp = function(object, ...)
 	X2 = -2 * (ll0 - ll)
 	pvalue = pchisq(X2, df = d2, lower.tail = FALSE)
 	list(teststat = X2, pvalue = pvalue, df = d2)
-}
-
-#' @name glm.cmp, ZICMP support
-#' @export
-leverage.zicmp = function(object, ...)
-{
-	stop("This function is not yet implemented")
 }
 
 #' @name glm.cmp, ZICMP support
@@ -296,9 +327,10 @@ residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-predict.zicmp = function(object, newdata = NULL, ...)
+predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), ...)
 {
 	if (is.null(newdata)) {
+		# If newdata is NULL, reuse data for model fit
 		X = object$X
 		S = object$S
 		W = object$W
@@ -306,7 +338,7 @@ predict.zicmp = function(object, newdata = NULL, ...)
 		off.s = object$off.s
 		off.w = object$off.w
 	} else {
-		# Only attempt to process newdata as a data.frame
+		# Attempt to process newdata as a data.frame
 		newdata = as.data.frame(newdata)
 
 		# If the response was not included in newdata, add a column with zeros
@@ -336,9 +368,12 @@ predict.zicmp = function(object, newdata = NULL, ...)
 		}
 	}
 
-	out = fitted.zicmp.internal(X, S, W, object$beta,
+	link = fitted.zicmp.internal(X, S, W, object$beta,
 		object$gamma, object$zeta, off.x, off.s, off.w)
-	ezicmp(out$lambda, out$nu, out$p)
+	switch(match.arg(type),
+		response = ezicmp(link$lambda, link$nu, link$p),
+		link = data.frame(lambda = link$lambda, nu = link$nu, p = link$p)
+	)
 }
 
 #' @name glm.cmp, ZICMP support

@@ -49,6 +49,7 @@ leverage = function(object, ...)
 
 #' Estimate for dispersion parameter
 #' 
+#' (Deprecated)
 #' A generic function for the dispersion parameter estimate from the results
 #' of various model fitting functions. The function invokes particular methods
 #' which depend on the class of the first argument.
@@ -64,6 +65,8 @@ leverage = function(object, ...)
 #' the documentation of the particular methods for details of what is
 #' produced by that method.
 #' 
+#' @rdname COMPoissonReg-deprecated
+#' @seealso predict
 #' @name nu
 #' @export
 nu = function(object, ...)

@@ -11,7 +11,6 @@
 \alias{nu.zicmp}
 \alias{sdev.zicmp}
 \alias{vcov.zicmp}
-\alias{leverage.zicmp}
 \alias{deviance.zicmp}
 \alias{residuals.zicmp}
 \alias{predict.zicmp}
@@ -28,21 +27,19 @@
 
 \method{BIC}{zicmp}(object, ...)
 
-\method{coef}{zicmp}(object, ...)
+\method{coef}{zicmp}(object, type = c("vector", "list"), ...)
 
 \method{nu}{zicmp}(object, ...)
 
-\method{sdev}{zicmp}(object, ...)
+\method{sdev}{zicmp}(object, type = c("vector", "list"), ...)
 
 \method{vcov}{zicmp}(object, ...)
-
-\method{leverage}{zicmp}(object, ...)
 
 \method{deviance}{zicmp}(object, ...)
 
 \method{residuals}{zicmp}(object, type = c("raw", "quantile"), ...)
 
-\method{predict}{zicmp}(object, newdata = NULL, ...)
+\method{predict}{zicmp}(object, newdata = NULL, type = c("response", "link"), ...)
 
 \method{parametric.bootstrap}{zicmp}(object, reps = 1000, report.period = reps + 1, ...)
 }
@@ -55,7 +52,7 @@
 
 \item{k}{Penalty per parameter to be used in AIC calculation.}
 
-\item{type}{Type of residual to be computed.}
+\item{type}{Specifies quantity to be computed. See details.}
 
 \item{newdata}{New covariates to be used for prediction.}
 
@@ -65,4 +62,23 @@
 }
 \description{
 Supporting Functions for ZICMP Regression
+}
+\details{
+The function \code{residuals} returns raw residuals when
+\code{type = "raw"}  and quantile residuals when
+\code{type = "quantile"}.
+
+The function \code{predict} returns expected values of the outcomes,
+eveluated at the computed estimates, when \code{type = "response"}. When
+\code{type = "link"}, a \code{data.frame} is instead returned with
+columns corresponding to estimates of \code{lambda}, \code{nu}, and
+\code{p}.
+
+The function \code{coef} returns a vector of coefficient estimates in
+the form \code{c(beta, gamma, zeta)} when \code{type = "vector"}. When
+\code{type = "list"}, the estimates are returned as a list with named
+elements \code{beta} and \code{gamma}, and \code{zeta}.
+
+The \code{type} argument behaves the same for the \code{sdev} function
+as it does for \code{coef}.
 }
