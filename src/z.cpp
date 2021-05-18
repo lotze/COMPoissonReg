@@ -36,15 +36,23 @@ std::pair<double, unsigned int> truncate(double lambda, double nu, double tol,
 	 	}
 	}
 
-	if (y == ymax) {
+	if (std::isinf(diff)) {
 		char msg[512];
 		sprintf(msg,
-			"Absolute relative error exp(%g) obtained when CMP(%g, %g) was "
-			"truncated to %g. This was larger than tolerance %g. "
-			"Consider changing the following options: "
-			"COMPoissonReg.ymax, COMPoissonReg.hybrid_tol, and "
-			"COMPoissonReg.truncate_tol",
-			diff, lambda, nu, tol, ymax);
+			"Terms of normalizing constant CMP(%g, %g) could not be bounded by "
+			"a geometric series when y <= %g. Consider changing the options "
+			"COMPoissonReg.ymax, COMPoissonReg.hybrid.tol, and "
+			"COMPoissonReg.truncate.tol",
+			lambda, nu, ymax);
+		Rf_warning(msg);
+	} else if (diff > log_tol) {
+		char msg[512];
+		sprintf(msg,
+			"Absolute relative error %g was larger than tolerance %g with "
+			"CMP(%g, %g) truncated to %g. Consider changing the options "
+			"COMPoissonReg.ymax, COMPoissonReg.hybrid.tol, and "
+			"COMPoissonReg.truncate.tol",
+			exp(diff), tol, lambda, nu, ymax);
 		Rf_warning(msg);
 	}
 

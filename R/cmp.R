@@ -128,6 +128,23 @@ qcmp = function(q, lambda, nu, log.p = FALSE)
 
 	if (log.p) { lq = q } else { lq = log(q) }
 
+	# We do this check here instead of in the C++ code, because we only want
+	# a warning if quantiles were explicitly requested. (Not draws via rcmp,
+	# for example).
+	idx_warn = which(lq > log1p(-truncate.tol))
+	if (length(idx_warn) > 0) {
+		msg = sprintf(paste(
+			"At least one requested quantile was very close to 1 In",
+			"particular, %d of the given probabilities were greater than",
+			"1 - truncate_tol = exp(%g), where truncate_tol = %g.",
+			"Associated results may be a consequence of truncation and not",
+			"actual quantiles. Consider changing the options",
+			"COMPoissonReg.ymax and COMPoissonReg.truncate.tol or reducing",
+			"logq"),
+			length(idx_warn), log1p(-truncate.tol), truncate.tol)
+		warning(msg)
+	}
+
 	if (prep$type == "iid") {
 		# Independent and identically distributed case
 		out = q_cmp(lq, prep$lambda, prep$nu, hybrid_tol = hybrid.tol,

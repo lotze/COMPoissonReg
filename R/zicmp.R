@@ -72,6 +72,24 @@ qzicmp = function(q, lambda, nu, p, log.p = FALSE)
 	truncate.tol = getOption("COMPoissonReg.truncate.tol")
 
 	if (log.p) { lq = q } else { lq = log(q) }
+
+	# As in qcmp, check if any requested quantiles are too close to 1. Note
+	# that the criteria here depends on p, so we do not include it in the
+	# message.
+	idx_warn = which(lq > log((1 - truncate.tol)*(1 - prep$p) + prep$p))
+	if (length(idx_warn) > 0) {
+		msg = sprintf(paste(
+			"At least one requested quantile was very close to 1 In",
+			"particular, %d of the given probabilities were greater than",
+			"(1 - truncate.tol) * (1-p) + p, where truncate_tol = %g.",
+			"Associated results may be a consequence of truncation and not",
+			"actual quantiles. Consider changing the options",
+			"COMPoissonReg.ymax and COMPoissonReg.truncate.tol or reducing",
+			"logq"),
+			length(idx_warn), truncate.tol)
+		warning(msg)
+	}
+
 	q_zicmp(lq, prep$lambda, prep$nu, prep$p, hybrid_tol = hybrid.tol,
 		truncate_tol = truncate.tol, ymax = ymax)
 }

@@ -89,7 +89,6 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 Rcpp::NumericVector q_cmp(const Rcpp::NumericVector& logq, double lambda,
 	double nu, double hybrid_tol, double truncate_tol, double ymax)
 {
-	
 	// Since we're using the truncated method below, we'll compute the normcost by
 	// truncation too. We can use the same call to get our upper truncation bound.
 	const std::pair<double, unsigned int>& ret_pair = truncate(lambda, nu,
