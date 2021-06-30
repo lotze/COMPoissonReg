@@ -2,32 +2,22 @@
 % Please edit documentation in R/glm.R
 \name{glm.cmp-raw}
 \alias{glm.cmp-raw}
+\alias{get.fixed}
+\alias{get.init}
+\alias{get.offset}
 \alias{glm.cmp.raw}
 \alias{glm.zicmp.raw}
 \title{Raw Interface to COM-Poisson and Zero-Inflated COM-Poisson Regression}
 \usage{
-glm.cmp.raw(
-  y,
-  X,
-  S,
-  off.x = NULL,
-  off.s = NULL,
-  beta.init = NULL,
-  gamma.init = NULL
-)
+get.fixed(beta = integer(0), gamma = integer(0), zeta = integer(0))
 
-glm.zicmp.raw(
-  y,
-  X,
-  S,
-  W,
-  off.x = NULL,
-  off.s = NULL,
-  off.w = NULL,
-  beta.init = NULL,
-  gamma.init = NULL,
-  zeta.init = NULL
-)
+get.init(beta, gamma, zeta)
+
+get.offset(x, s, w)
+
+glm.cmp.raw(y, X, S, off = NULL, init = NULL, fixed = NULL)
+
+glm.zicmp.raw(y, X, S, W, off = NULL, init = NULL, fixed = NULL)
 }
 \arguments{
 \item{y}{A vector of counts which represent the response .}
@@ -36,10 +26,15 @@ glm.zicmp.raw(
 
 \item{S}{Design matrix for the `nu` regression.}
 
+\item{W}{Design matrix for the `p` regression.}
+
 \item{off.x}{Offset term for the `lambda` regression. If \code{NULL}, offsets
 are taken to be zeros.}
 
 \item{off.s}{Offset term for the `nu` regression. If \code{NULL}, offsets
+are taken to be zeros.}
+
+\item{off.w}{Offset term for the `p` regression. If \code{NULL}, offsets
 are taken to be zeros.}
 
 \item{beta.init}{Initial value for `beta`. If \code{NULL}, initial value
@@ -47,11 +42,6 @@ is taken to be a vector of zeros.}
 
 \item{gamma.init}{Initial value for `gamma`. If \code{NULL}, initial value
 is taken to be a vector of zeros.}
-
-\item{W}{Design matrix for the `p` regression.}
-
-\item{off.w}{Offset term for the `p` regression. If \code{NULL}, offsets
-are taken to be zeros.}
 
 \item{zeta.init}{Initial value for `zeta`. If \code{NULL}, initial value
 is taken to be a vector of zeros.}

@@ -9,9 +9,8 @@ glm.cmp(
   formula.nu = ~1,
   formula.p = NULL,
   data = NULL,
-  beta.init = NULL,
-  gamma.init = NULL,
-  zeta.init = NULL,
+  init = NULL,
+  fixed = NULL,
   ...
 )
 }
@@ -28,13 +27,13 @@ default, is taken to be only an intercept.}
 \item{data}{An optional data.frame with variables to be used with regression
 formulas. Variables not found here are read from the envionment.}
 
+\item{...}{other arguments, such as \code{subset} and \code{na.action}.}
+
 \item{beta.init}{initial values for regression coefficients of \code{lambda}.}
 
 \item{gamma.init}{initial values for regression coefficients of \code{nu}.}
 
 \item{zeta.init}{initial values for regression coefficients of \code{p}.}
-
-\item{...}{other arguments, such as \code{subset} and \code{na.action}.}
 }
 \value{
 \code{glm.cmp} produces an object of either class 'cmp' or 'zicmp', depending

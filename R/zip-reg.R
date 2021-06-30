@@ -5,3 +5,4 @@ fitted.zip.internal = function(X, W, beta, zeta, off.x, off.w)
 		p = as.numeric(plogis(W %*% zeta + off.w))
 	)
 }
+

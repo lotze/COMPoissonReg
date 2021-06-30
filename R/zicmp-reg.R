@@ -39,10 +39,30 @@ summary.zicmp = function(object, ...)
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
 	d3 = ncol(object$W)
+	qq = d1 + d2 + d3
+
+	# We need the indices of the fixed coefficients and the ones included in
+	# optimization.
+	fixed.beta = object$fixed.beta
+	fixed.gamma = object$fixed.gamma
+	fixed.zeta = object$fixed.zeta
+	unfixed.beta = object$unfixed.beta
+	unfixed.gamma = object$unfixed.gamma
+	unfixed.zeta = object$unfixed.zeta
+	idx.par1 = seq_along(unfixed.beta)
+	idx.par2 = seq_along(unfixed.gamma) + length(unfixed.beta)
+	idx.par3 = seq_along(unfixed.zeta) + length(unfixed.beta) +  length(unfixed.gamma)
 
 	V = vcov(object)
 	est = coef(object)
-	se = sdev(object)
+
+	# In the vector of SEs, include an NA entry if the variable was fixed
+	# This NA will propagate to the corresponding z-value and p-value as well.
+	se = rep(NA, qq)
+	se[unfixed.beta] = sdev(object)[idx.par1]
+	se[unfixed.gamma + d1] = sdev(object)[idx.par2]
+	se[unfixed.zeta + d1 + d2] = sdev(object)[idx.par3]
+
 	z.val = est / se
 	p.val = 2*pnorm(-abs(z.val))
 	qq = length(est)
@@ -66,11 +86,18 @@ summary.zicmp = function(object, ...)
 	DF.nu = NULL
 	DF.p = NULL
 
+	# In each block below, make sure to consider only the non-fixed variables
+	# for the Jacobian and Hessian. If one of the intercepts was fixed, it should
+	# result in an SE of zero.
+	
 	if (is.intercept.only(object$X) && is.zero.matrix(object$off.x)) {
-		est = exp(object$beta)
-		J = c(exp(object$beta), rep(0, d2), rep(0, d3))
-		se = sqrt(t(J) %*% V %*% J)
-
+		if (length(fixed.beta) > 0) {
+			se = 0
+		} else {
+			J = c(exp(object$beta), numeric(length(idx.par2)), numeric(length(idx.par3)))
+			se = sqrt(t(J) %*% V %*% J)
+		}
+		est = exp(object$beta)		
 		DF.lambda = data.frame(
 			Estimate = round(est, 4),
 			SE = round(se, 4)
@@ -79,10 +106,13 @@ summary.zicmp = function(object, ...)
 	}
 
 	if (is.intercept.only(object$S) && is.zero.matrix(object$off.s)) {
+		if (length(fixed.gamma) > 0) {
+			se = 0
+		} else {
+			J = c(numeric(length(idx.par1)), exp(object$gamma), numeric(rep(length(idx.par3))))
+			se = sqrt(t(J) %*% V %*% J)
+		}
 		est = exp(object$gamma)
-		J = c(rep(0, d1), exp(object$gamma), rep(0, d3))
-		se = sqrt(t(J) %*% V %*% J)
-
 		DF.nu = data.frame(
 			Estimate = round(est, 4),
 			SE = round(se, 4)		)
@@ -90,10 +120,13 @@ summary.zicmp = function(object, ...)
 	}
 
 	if (is.intercept.only(object$W) && is.zero.matrix(object$off.w)) {
+		if (length(fixed.zeta) > 0) {
+			se = 0
+		} else {
+			J = c(numeric(length(idx.par1)), numeric(length(idx.par2)), dlogis(object$zeta))
+			se = sqrt(t(J) %*% V %*% J)
+		}
 		est = plogis(object$zeta)
-		J = c(rep(0, d1), rep(0, d2), dlogis(object$zeta))
-		se = sqrt(t(J) %*% V %*% J)
-
 		DF.p = data.frame(
 			Estimate = round(est, 4),
 			SE = round(se, 4)
@@ -106,8 +139,9 @@ summary.zicmp = function(object, ...)
 		loglik = logLik(object),
 		aic = AIC(object),
 		bic = BIC(object),
-		opt.method = object$opt.method,
-		opt.res = object$opt.res,
+		optim.method = object$optim.method,
+		opt.message = object$opt.res$message,
+		opt.convergence = object$opt.res$convergence,
 		elapsed.sec = object$elapsed.sec
 	)
 }
@@ -135,20 +169,26 @@ print.zicmp = function(x, ...)
 		printf("Transformed intercept-only parameters\n")
 		print(rbind(s$DF.lambda, s$DF.nu, s$DF.p))
 	}
-	printf("--\n")
-	printf("Chi-squared test for equidispersion\n")
-	printf("X^2 = %0.4f, df = %d, ", tt$teststat, tt$df)
-	printf("p-value = %0.4e\n", tt$pvalue)
+	if (is.character(tt)) {
+		printf("--\n")
+		cat(paste(tt, collapse = "\n"))
+		printf("\n")
+	} else {
+		printf("--\n")
+		printf("Chi-squared test for equidispersion\n")
+		printf("X^2 = %0.4f, df = %d, ", tt$teststat, tt$df)
+		printf("p-value = %0.4e\n", tt$pvalue)
+	}
 	printf("--\n")
 	printf("Elapsed: %s   ", format.difftime(s$elapsed.sec))
 	printf("Sample size: %d   ", s$n)
-	printf("SEs via Hessian\n")
+	printf("%s interface\n", x$interface)
 	printf("LogLik: %0.4f   ", s$loglik)
 	printf("AIC: %0.4f   ", s$aic)
 	printf("BIC: %0.4f   ", s$bic)
 	printf("\n")
-	printf("Optimization Method: %s   ", s$opt.method)
-	printf("Converged status: %d   ", s$opt.convergence)
+	printf("Optimization Method: %s   ", s$optim.method)
+	printf("Converged status: %d\n", s$opt.convergence)
 	printf("Message: %s\n", s$opt.message)
 }
 
@@ -199,20 +239,33 @@ nu.zicmp = function(object, ...)
 #' @export
 sdev.zicmp = function(object, type = c("vector", "list"), ...)
 {
-	sqrt(diag(vcov(object)))
-
-	out = sqrt(diag(vcov(object)))
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
 	d3 = ncol(object$W)
-	idx1 = seq_len(d1)
-	idx2 = seq_len(d2) + d1
-	idx3 = seq_len(d3) + d1 + d2
+	unfixed.beta = sort(setdiff(seq_len(d1), object$fixed.beta))
+	unfixed.gamma = sort(setdiff(seq_len(d2), object$fixed.gamma))
+	unfixed.zeta = sort(setdiff(seq_len(d3), object$fixed.zeta))
+	idx.par1 = seq_along(object$unfixed.beta)
+	idx.par2 = seq_along(object$unfixed.gamma) + length(object$unfixed.beta)
+	idx.par3 = seq_along(object$unfixed.zeta) + length(object$unfixed.beta) +  length(object$unfixed.gamma)
 
-	switch(match.arg(type),
-		vector = out,
-		list = list(beta = out[idx1], gamma = out[idx2], zeta = out[idx3])
-	)
+	sd.hat = sqrt(diag(vcov(object)))
+
+	if (match.arg(type) == "vector") {
+		out = sd.hat
+	} else if (match.arg(type) == "list") {
+		sd.beta = rep(NA, d1)
+		sd.gamma = rep(NA, d2)
+		sd.zeta = rep(NA, d3)
+		sd.beta[unfixed.beta] = sd.hat[idx.par1]
+		sd.gamma[unfixed.gamma] = sd.hat[idx.par2]
+		sd.zeta[unfixed.zeta] = sd.hat[idx.par3]
+		out = list(beta = sd.beta, gamma = sd.gamma, zeta = sd.zeta)
+	} else {
+		stop("Unrecognized type")
+	}
+
+	return(out)
 }
 
 #' @name glm.cmp, ZICMP support
@@ -236,12 +289,23 @@ equitest.zicmp = function(object, ...)
 	S = object$S
 	W = object$W
 	beta.init = object$beta.init
-	gamma.init = object$gamma.init
 	zeta.init = object$zeta.init
 	off.x = object$off.x
 	off.s = object$off.s
 	off.w = object$off.w
+	fixed.beta = object$fixed.beta
+	fixed.gamma = object$fixed.gamma
+	fixed.zeta = object$fixed.zeta
 	ll = object$loglik
+
+	# If any elements of gamma have been fixed, an "equidispersion" test no
+	# longer makes sense. Unless the values were fixed at zeroes. But let's
+	# avoid this this complication.
+	if (length(fixed.gamma) > 0) {
+		msg = c("Chi-squared test for equidispersion not run",
+			"(Some elements of gamma were fixed)")
+		return(msg)
+	}
 
 	n = length(y)
 	d2 = ncol(S)
@@ -252,7 +316,8 @@ equitest.zicmp = function(object, ...)
 	gamma0 = numeric(0)
 	fit0.out = fit.zicmp.reg(y, X, S0, W, beta.init = beta.init,
 		gamma.init = gamma0, zeta.init = zeta.init, off.x = off.x,
-		off.s = off.s, off.w = off.w)
+		off.s = off.s, off.w = off.w, fixed.beta = fixed.beta,
+		fixed.gamma = fixed.gamma, fixed.zeta = fixed.zeta)
 	ll0 = fit0.out$loglik
 
 	X2 = -2 * (ll0 - ll)
@@ -327,6 +392,15 @@ residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
+get.zicmp.newdata = function(X, S, W, off.x = NULL, off.s = NULL, off.w = NULL)
+{
+	out = list(X = X, S = S, W = W, off.x = off.x, off.s = off.s, off.w = off.w)
+	class(out) = "zicmp.newdata"
+	return(out)
+}
+
+#' @name glm.cmp, ZICMP support
+#' @export
 predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), ...)
 {
 	if (is.null(newdata)) {
@@ -337,8 +411,9 @@ predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), .
 		off.x = object$off.x
 		off.s = object$off.s
 		off.w = object$off.w
-	} else {
-		# Attempt to process newdata as a data.frame
+	} else if (object$interface == "formula") {
+		# If the model was fit with the formula interface, attempt to process
+		# newdata as a data.frame
 		newdata = as.data.frame(newdata)
 
 		# If the response was not included in newdata, add a column with zeros
@@ -366,6 +441,23 @@ predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), .
 		if(!is.null(weights)) {
 			stop("weights argument is currently not supported")
 		}
+	} else if (object$interface == "raw") {
+		# If the model was fit with the raw interface, attempt to process
+		# newdata as a list
+		stopifnot(class(newdata) == "zicmp.newdata")
+		X = newdata$X
+		S = newdata$S
+		W = newdata$W
+		off.x = newdata$off.x
+		off.s = newdata$off.s
+		off.w = newdata$off.w
+
+		n.new = nrow(X)
+		if (is.null(off.x)) { off.x = rep(0, n.new) }
+		if (is.null(off.s)) { off.s = rep(0, n.new) }
+		if (is.null(off.w)) { off.w = rep(0, n.new) }
+	} else {
+		stop("Don't recognize value of interface")
 	}
 
 	link = fitted.zicmp.internal(X, S, W, object$beta,
@@ -403,7 +495,9 @@ parametric.bootstrap.zicmp = function(object, reps = 1000, report.period = reps+
 		tryCatch({
 			fit.boot = fit.zicmp.reg(y.boot, object$X, object$S, object$W,
 				object$beta.init, object$gamma.init, object$zeta.init,
-				off.x = object$off.x, off.s = object$off.s, off.w = object$off.w)
+				off.x = object$off.x, off.s = object$off.s, off.w = object$off.w,
+				fixed.beta = object$fixed.beta, fixed.gamma = object$fixed.gamma,
+				fixed.zeta = object$fixed.zeta)
 			theta.boot[r,] = unlist(fit.boot$theta.hat)
 		},
 		error = function(e) {

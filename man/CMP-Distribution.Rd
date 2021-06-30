@@ -47,14 +47,14 @@ tcmp(lambda, nu)
 }
 \value{
 \describe{
-\item{dcmp}{gives the density,}
-\item{pcmp}{gives the cumulative probability,}
-\item{qcmp}{gives the quantile function,}
+\item{dcmp}{the density,}
+\item{pcmp}{the cumulative probability,}
+\item{qcmp}{the quantile function,}
 \item{rcmp}{generates random values,}
-\item{ecmp}{gives the expected value,}
-\item{vcmp}{gives the variance,}
-\item{ncmp}{gives the value of the normalizing constant, and}
-\item{tcmp}{gives the upper value to which we would truncate (see details).}
+\item{ecmp}{the expected value,}
+\item{vcmp}{the variance,}
+\item{ncmp}{the value of the normalizing constant, and}
+\item{tcmp}{the upper value to which we would truncate (see details).}
 }
 }
 \description{

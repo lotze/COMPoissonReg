@@ -37,10 +37,26 @@ summary.cmp = function(object, ...)
 	n = nrow(object$X)
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
+	qq = d1 + d2
+
+	# We need the indices of the fixed coefficients and the ones included in
+	# optimization.
+	fixed.beta = object$fixed.beta
+	fixed.gamma = object$fixed.gamma
+	unfixed.beta = object$unfixed.beta
+	unfixed.gamma = object$unfixed.gamma
+	idx.par1 = seq_along(unfixed.beta)
+	idx.par2 = seq_along(unfixed.gamma) + length(unfixed.beta)
 
 	V = vcov(object)
 	est = coef(object)
-	se = sdev(object)
+
+	# In the vector of SEs, include an NA entry if the variable was fixed
+	# This NA will propagate to the corresponding z-value and p-value as well.
+	se = rep(NA, qq)
+	se[unfixed.beta] = sdev(object)[idx.par1]
+	se[unfixed.gamma + d1] = sdev(object)[idx.par2]
+
 	z.val = est / se
 	p.val = 2*pnorm(-abs(z.val))
 
@@ -60,11 +76,18 @@ summary.cmp = function(object, ...)
 	DF.lambda = NULL
 	DF.nu = NULL
 
-	if (is.intercept.only(object$X) && is.zero.matrix(object$off.x)) {
-		est = exp(object$beta)
-		J = c(exp(object$beta), rep(0, d2))
-		se = sqrt(t(J) %*% V %*% J)
+	# In each block below, make sure to consider only the non-fixed variables
+	# for the Jacobian and Hessian. If one of the intercepts was fixed, it should
+	# result in an SE of zero.
 
+	if (is.intercept.only(object$X) && is.zero.matrix(object$off.x)) {
+		if (length(fixed.beta) > 0) {
+			se = 0
+		} else {
+			J = c(exp(object$beta), numeric(length(idx.par2)))
+			se = sqrt(t(J) %*% V %*% J)
+		}
+		est = exp(object$beta)
 		DF.lambda = data.frame(
 			Estimate = round(est, 4),
 			SE = round(se, 4)
@@ -73,10 +96,13 @@ summary.cmp = function(object, ...)
 	}
 
 	if (is.intercept.only(object$S) && is.zero.matrix(object$off.s)) {
+		if (length(fixed.gamma) > 0) {
+			se = 0
+		} else {
+			J = c(numeric(length(idx.par1)), exp(object$gamma))
+			se = sqrt(t(J) %*% V %*% J)
+		}
 		est = exp(object$gamma)
-		J = c(rep(0, d1), exp(object$gamma))
-		se = sqrt(t(J) %*% V %*% J)
-
 		DF.nu = data.frame(
 			Estimate = round(est, 4),
 			SE = round(se, 4)
@@ -89,7 +115,7 @@ summary.cmp = function(object, ...)
 		loglik = logLik(object),
 		aic = AIC(object),
 		bic = BIC(object),
-		opt.method = object$opt.method,
+		optim.method = object$optim.method,
 		opt.message = object$opt.res$message,
 		opt.convergence = object$opt.res$convergence,
 		elapsed.sec = object$elapsed.sec
@@ -118,19 +144,25 @@ print.cmp = function(x, ...)
 		printf("Transformed intercept-only parameters\n")
 		print(rbind(s$DF.lambda, s$DF.nu))
 	}
-	printf("--\n")
-	printf("Chi-squared test for equidispersion\n")
-	printf("X^2 = %0.4f, df = %d, ", tt$teststat, tt$df)
-	printf("p-value = %0.4e\n", tt$pvalue)
+	if (is.character(tt)) {
+		printf("--\n")
+		cat(paste(tt, collapse = "\n"))
+		printf("\n")
+	} else {
+		printf("--\n")
+		printf("Chi-squared test for equidispersion\n")
+		printf("X^2 = %0.4f, df = %d, ", tt$teststat, tt$df)
+		printf("p-value = %0.4e\n", tt$pvalue)
+	}
 	printf("--\n")
 	printf("Elapsed: %s   ", format.difftime(s$elapsed.sec))
 	printf("Sample size: %d   ", s$n)
-	printf("SEs via Hessian\n")
+	printf("%s interface\n", x$interface)
 	printf("LogLik: %0.4f   ", s$loglik)
 	printf("AIC: %0.4f   ", s$aic)
 	printf("BIC: %0.4f   ", s$bic)
 	printf("\n")
-	printf("Optimization Method: %s   ", s$opt.method)
+	printf("Optimization Method: %s   ", s$optim.method)
 	printf("Converged status: %d\n", s$opt.convergence)
 	printf("Message: %s\n", s$opt.message)
 }
@@ -181,16 +213,28 @@ nu.cmp = function(object, ...)
 #' @export
 sdev.cmp = function(object, type = c("vector", "list"), ...)
 {
-	out = sqrt(diag(vcov(object)))
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
-	idx1 = seq_len(d1)
-	idx2 = seq_len(d2) + d1
+	unfixed.beta = sort(setdiff(seq_len(d1), object$fixed.beta))
+	unfixed.gamma = sort(setdiff(seq_len(d2), object$fixed.gamma))
+	idx.par1 = seq_along(object$unfixed.beta)
+	idx.par2 = seq_along(object$unfixed.gamma) + length(object$unfixed.beta)
 
-	switch(match.arg(type),
-		vector = out,
-		list = list(beta = out[idx1], gamma = out[idx2])
-	)
+	sd.hat = sqrt(diag(vcov(object)))
+
+	if (match.arg(type) == "vector") {
+		out = sd.hat
+	} else if (match.arg(type) == "list") {
+		sd.beta = rep(NA, d1)
+		sd.gamma = rep(NA, d2)
+		sd.beta[unfixed.beta] = sd.hat[idx.par1]
+		sd.gamma[unfixed.gamma] = sd.hat[idx.par2]
+		out = list(beta = sd.beta, gamma = sd.gamma)
+	} else {
+		stop("Unrecognized type")
+	}
+
+	return(out)
 }
 
 #' @name glm.cmp, CMP support
@@ -211,20 +255,33 @@ equitest.cmp = function(object, ...)
 
 	y = object$y
 	X = object$X
+	S = object$S
 	beta.init = object$beta.init
 	off.x = object$off.x
 	off.s = object$off.s
+	fixed.beta = object$fixed.beta
+	fixed.gamma = object$fixed.gamma
 	ll = object$loglik
 
+	# If any elements of gamma have been fixed, an "equidispersion" test no
+	# longer makes sense. Unless the values were fixed at zeroes. But let's
+	# avoid this this complication.
+	if (length(fixed.gamma) > 0) {
+		msg = c("Chi-squared test for equidispersion not run",
+			"(Some elements of gamma were fixed)")
+		return(msg)
+	}
+
 	n = length(y)
-	d2 = ncol(object$S)
+	d2 = ncol(S)
 
 	# Null model is CMP with nu determined by the offset off.s. If off.s happens
 	# to be zeros, this simplifies to a Poisson regression.
 	S0 = matrix(0, n, 0)
 	gamma0 = numeric(0)
 	fit0.out = fit.cmp.reg(y, X, S = S0, beta.init = beta.init,
-		gamma.init = gamma0, off.x = off.x, off.s = off.s)
+		gamma.init = gamma0, off.x = off.x, off.s = off.s,
+		fixed.beta = fixed.beta, fixed.gamma = fixed.gamma)
 	ll0 = fit0.out$loglik
 
 	teststat = -2 * (ll0 - ll)
@@ -351,6 +408,15 @@ residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 	return(as.numeric(res))
 }
 
+#' @name glm.cmp, ZICMP support
+#' @export
+get.cmp.newdata = function(X, S, off.x = NULL, off.s = NULL)
+{
+	out = list(X = X, S = S, off.x = off.x, off.s = off.s)
+	class(out) = "cmp.newdata"
+	return(out)
+}
+
 #' @name glm.cmp, CMP support
 #' @export
 predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...)
@@ -361,8 +427,9 @@ predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...
 		S = object$S
 		off.x = object$off.x
 		off.s = object$off.s
-	} else {
-		# Attempt to process newdata as a data.frame
+	} else if (object$interface == "formula") {
+		# If the model was fit with the formula interface, attempt to process
+		# newdata as a data.frame
 		newdata = as.data.frame(newdata)
 
 		# If the response was not included in newdata, add a column with zeros
@@ -386,6 +453,20 @@ predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...
 		if (!is.null(weights)) {
 			stop("weights argument is currently not supported")
 		}
+	} else if (object$interface == "raw") {
+		# If the model was fit with the raw interface, attempt to process
+		# newdata as a list
+		stopifnot(class(newdata) == "cmp.newdata")
+		X = newdata$X
+		S = newdata$S
+		off.x = newdata$off.x
+		off.s = newdata$off.s
+
+		n.new = nrow(X)
+		if (is.null(off.x)) { off.x = rep(0, n.new) }
+		if (is.null(off.s)) { off.s = rep(0, n.new) }
+	} else {
+		stop("Don't recognize value of interface")
 	}
 
 	link = fitted.cmp.internal(X, S, object$beta, object$gamma, off.x, off.s)
@@ -420,7 +501,8 @@ parametric.bootstrap.cmp = function(object, reps = 1000, report.period = reps+1,
 		tryCatch({
 			res = fit.cmp.reg(y = y.boot, X = object$X, S = object$S,
 				beta.init = object$beta.glm, gamma.init = object$gamma,
-				off.x = object$off.x, off.s = object$off.s)
+				off.x = object$off.x, off.s = object$off.s,
+				fixed.beta = object$fixed.beta, fixed.gamma = object$fixed.gamma)
 			boot.out[r,] = unlist(res$theta.hat)
 		}, error = function(e) {
 			# Do nothing now; emit a warning later

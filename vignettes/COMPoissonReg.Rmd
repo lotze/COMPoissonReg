@@ -1,10 +1,6 @@
 ---
 title: "A Vignette for the COMPoissonReg Package"
 author: Andrew and ?
-#output:
-#  html_vignette:
-#    number_sections: true
-#    extra_dependencies: ["common"]
 output: 
   pdf_document:
     highlight: default
@@ -12,8 +8,6 @@ output:
     toc: true
     extra_dependencies:
       common: null
-      # hyperref: ["colorlinks=true", "citecolor=blue", "linkcolor=blue", "urlcolor=blue"]
-      # hyperref: ["linkcolor=blue"]
 date: "COMPoissonReg v0.8.0"
 bibliography: references.bib
 vignette: >
@@ -40,15 +34,27 @@ set.seed(1235)
 # Introduction
 \label{sec:intro}
 
-TBD. Decide what to write here. Here are some thoughts.
+<!--
+TBD:
+- We could cite other CMP-related packages, like @combayes, @multicmp, @CompGLM,
+  @compoisson, @cmpreg, @FungEtAl2020, and @SASProcCountreg2018. Do we know
+  enough about them?
+- Make sure larger code changes are tested and documented
+	+ Helper functions and changes to main interface functions
+	+ Fixing values
+	+ Handling of `newdata` in `predict`
+- I think fixing values needs more explanation
+- Need to give some context on the ZICMP example. Optimization is tricky because
+  nu estimates tend to zero in optimization, yet lambdas tend to be smaller than
+  1. The estimate for gamma and associate SE seems to be unstable. Fixing it to
+  -Inf seems to help a lot in this case.
+- Maybe take out the extra regression on $\nu$ in Section 4.2. It's not adding
+  much anymore.
+-->
 
-- @ShmueliEtAl2005 discuss some important properties of CMP as a count distribution, and @SellersShmueli2010 demonstrate the use of CMP in regression modeling.
-- @SellersRaim2016 provide more discussion on ZICMP and its use in regression modeling.
-- See the manual for a full specification of the public interface.
-- Mention the Github page and CRAN location.
-- The package uses `R` [@Rcore] (of course), `Rcpp` [@Eddelbuettel2013], and `numDeriv` [@numDeriv].
-- We use `ggplot2` [@Wickham2016] here in the vignette, but not within the package.
-- We could cite other CMP-related packages, like @combayes, @multicmp, @CompGLM, @compoisson, @cmpreg, @FungEtAl2020, and @SASProcCountreg2018. Do we know enough about them?
+The `COMPoissonReg` package supports Conway-Maxwell Poisson (CMP) and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models for analysis of count data in a flexible manner, to account for data dispersion relative to the Poisson model. The package provides regression functionality in addition to basic distribution functions. Interested users can refer to @SellersShmueli2010 and @SellersRaim2016 regarding the underlying theoretical developments for the CMP and ZICMP regressions, respectively. A full specification of the public `COMPoissonReg` interface can be found in the manual. In addition to package prerequisites `Rcpp` [@Eddelbuettel2013] and `numDeriv` [@numDeriv], `ggplot2` [@Wickham2016] is also used in this vignette.
+
+The remainder of the vignette proceeds as follows. Sections \ref{sec:cmp} describes functions to support the CMP distribution, including numerical handling of the normalizing constant. Section \ref{sec:zicmp} describes functions for ZICMP. Finally, Section \ref{sec:reg} demonstrates regression functions; Sections \ref{sec:cmp-reg} and \ref{sec:zicmp-reg} give specific examples based on CMP and ZICMP outcomes, respectively. The `COMPoissonReg` package is on CRAN at <https://cran.r-project.org/package=COMPoissonReg> and the source code is on Github at <https://github.com/lotze/COMPoissonReg>.
 
 # Conway Maxwell Poisson Distribution
 \label{sec:cmp}
@@ -64,7 +70,7 @@ where $\lambda > 0$, $\nu > 0$, and $\mathbb{N}$ represents the nonnegative inte
 
 a. The case $\nu = 1$ corresponds to $\text{Poisson}(\lambda)$. 
 
-a. When $\lambda \in (0,1)$ and $\nu \rightarrow 0$, the $\text{CMP}(\lambda, \nu)$ distribution becomes $\text{Geometric}(1-\lambda)$ with density $f(y \mid \lambda) = (1 - \lambda) \lambda^y$ for $y \in \mathbb{N}$, which is overdispersed relative to Poisson.
+a. When $\lambda \in (0,1)$ and $\nu = 0$, the $\text{CMP}(\lambda, \nu)$ distribution is $\text{Geometric}(1-\lambda)$ with density $f(y \mid \lambda) = (1 - \lambda) \lambda^y$ for $y \in \mathbb{N}$, which is overdispersed relative to Poisson.
 
 a. When $\nu \rightarrow \infty$, $\text{CMP}(\lambda, \nu)$ converges to a $\text{Bernoulli}(\lambda / (1 + \lambda))$ distribution which is underdispersed relative to Poisson.
 
@@ -425,6 +431,7 @@ sum(xx^4 * dcmp(xx, lambda, nu))    # E(X^4)
 ```
 
 # Zero-Inflated Conway Maxwell Poisson Distribution
+\label{sec:zicmp}
 
 Let $S \sim \text{Bernoulli}(p)$ and $T \sim \text{CMP}(\lambda, \nu)$ be independent random variables. Then $Y = (1-S) T$ has Zero-Inflated Conway Maxwell Poisson distribution $\text{ZICMP}(\lambda, \nu, p)$ with density
 <!-- -->
@@ -558,6 +565,7 @@ vzicmp(lambda = 1.5, nu = 0.5, p = c(0.1, 0.2, 0.5))
 ```
 
 # Regression Modeling with CMP and ZICMP
+\label{sec:reg}
 
 Suppose there are $n$ subjects with outcomes $y_1, \ldots, y_n \in \mathbb{N}$ and covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in
 \mathbb{R}^{d_2}$, and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$. The `COMPoissonReg` package fits both CMP and ZICMP regression models.
@@ -719,7 +727,7 @@ X = model.matrix(~ transfers, data = freight)
 S = model.matrix(~ 1, data = freight)
 off.x = rep(13, nrow(freight))
 off.s = rep(1, nrow(freight))
-glm.cmp.raw(y, X, S, off.x = off.x, off.s = off.s)
+cmp.raw.out = glm.cmp.raw(y, X, S, off = get.offset(x = off.x, s = off.s))
 ```
 
 Several accessors are provided to extract results from the output object.
@@ -744,15 +752,27 @@ predict(cmp.out, type = "link")
 
 We can also use `predict` on new covariate values.
 
-```{r, fig.width = 3, fig.height = 3, fig.align = "center"}
-new.data = data.frame(transfers = 0:10)
-y.hat.new = predict(cmp.out, newdata = new.data)
+```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt=FALSE}
+new.df = data.frame(transfers = 0:10)
+
+# TBD: Pass new data to formula interface
+y.hat.new = predict(cmp.out, newdata = new.df)
+
+# TBD: Pass new data for the raw interface
+X = model.matrix(~ transfers, data = new.df)
+S = model.matrix(~ 1, data = new.df)
+new.data = get.cmp.newdata(X = X, S = S)
+predict(cmp.raw.out, newdata = new.data)
+
+# Compute predictions for links
+predict(cmp.out, newdata = new.df, type = "link")
+
+# TBD: Plot predictions
 ggplot() +
-	geom_point(data = new.data, aes(transfers, y.hat.new)) +
+	geom_point(data = new.df, aes(transfers, y.hat.new)) +
 	xlab("Number of transfers") +
 	ylab("Predicted number broken") +
 	theme_bw()
-predict(cmp.out, newdata = new.data, type = "link")
 ```
 
 The `leverage` function computes the diagonal entries of a "hat" matrix which can be formulated in CMP regression. These can be used to diagnose influential observations. For details, see Section 3.6 of @SellersShmueli2010.
@@ -874,22 +894,68 @@ Now consider a ZICMP regression with
 We use the `glm.cmp` function as follows.
 
 ```{r}
-zicmp.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
+glm.cmp(UPB ~ EDUCATION + ANXIETY,
 	formula.nu = ~ 1,
 	formula.p = ~ EDUCATION + ANXIETY,
  	data = couple)
-print(zicmp.out)
 ```
 
 There are now three sets of coefficients reported in the output: the `X:`, `S:`, and `W:` prefixes label estimates for the $\lambda_i$, $\nu_i$, and $p_i$ formulas respectively.
 
-The AIC of the ZICMP model is drastically smaller than the Poisson model, indicating a greatly improved fit. The estimate for $\gamma_0$ is a large negative number, which can sometimes lead to issues with infinite values when using the `L-BFGS-B` optimization method. Let us switch to `BFGS` for the remainder of this example.
+The AIC of the ZICMP model is drastically smaller than the Poisson model, indicating a greatly improved fit. The estimate for $\gamma_0$ is a large negative number, which can sometimes lead to issues with infinite values when using the `L-BFGS-B` optimization method. Another apparent issue is the extremely large value of the SE associated with $\gamma_0$, despite $\nu$ having an estimate of zero with a small SE.
+
+We will change several options for the remainder of the example to avoid these numerical issues. We will switch to the derivative-free `Nelder-Mead` optimizer and increase the maximum number of iterations to allow for its slower convergence. We will also request a smaller tolerance for the truncation method of computing the normalizing constant; this is needed because criteria \eqref{eqn:can_approx} may not be satisfied as the estimate for $\nu$ is rather small but estimates for $\lambda_i$ are also not much larger than 1.
+
 
 ```{r}
-options(COMPoissonReg.optim.method = "BFGS")
+options(COMPoissonReg.truncate.tol = 1e-7)
+options(COMPoissonReg.optim.method = 'Nelder-Mead')
+options(COMPoissonReg.optim.control = list(maxit = 10000))
 ```
 
-Let us consider changing the regression on $\nu_i$ to
+Let us rerun the previous example as-is.
+
+```{r}
+zicmp1.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
+	formula.nu = ~ 1,
+	formula.p = ~ EDUCATION + ANXIETY,
+	data = couple)
+print(zicmp1.out)
+```
+
+Now the coefficient $\gamma_0$ is highly significant, which makes more sense in the context of the other outputs. We may access the optimizer output to ensure convergence was reported.
+
+```{r}
+print(zicmp1.out$opt.res$counts)
+print(zicmp1.out$opt.res$convergence)
+print(zicmp1.out$opt.res$message)
+```
+
+We see that convergence was indeed reported to have been achieved before the iteration limit was reached. However, if we attempt to refine the optimization further, the results continue to change. We will demonstrate this using the raw interface.
+
+```{r, prompt=FALSE}
+y = couple$UPB
+X = model.matrix(~ EDUCATION + ANXIETY, data = couple)
+S = model.matrix(~ 1, data = couple)
+W = model.matrix(~ EDUCATION + ANXIETY, data = couple)
+
+# Start with estimates from previous (zicmp.out) fit
+init2 = coef(zicmp1.out, type = "list")
+zicmp2.out = glm.zicmp.raw(y, X, S, W,
+	init = get.init(beta = init2$beta, gamma = init2$gamma, zeta = init2$zeta))
+print(zicmp2.out)
+```
+
+
+```{r}
+init3 = coef(zicmp2.out, type = "list")
+zicmp.out = glm.zicmp.raw(y, X, S, W,
+	init = get.init(beta = init3$beta, gamma = -Inf, zeta = init3$zeta),
+	fixed = get.fixed(gamma = c(1)))
+print(zicmp.out)
+```
+
+Next consider changing the regression on $\nu_i$ to
 <!-- -->
 \begin{align*}
 \log \nu_i = \gamma_0 + \gamma_1 \cdot \text{EDUCATION}_i + \gamma_2 \cdot \text{ANXIETY}_i
@@ -903,21 +969,12 @@ zicmp1.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
 	formula.p = ~ EDUCATION + ANXIETY,
  	data = couple)
 print(zicmp1.out)
+print(zicmp1.out$opt.res$counts)
+print(zicmp1.out$opt.res$convergence)
+print(zicmp1.out$opt.res$message)
 ```
 
-The AIC of model `zicmp1.out` is not much smaller than that of `zicmp.out`, so we will proceed with `zicmp.out`. From here, much of the interface is similar to CMP regression discussed in Section \ref{sec:cmp-reg}.
-
-Here is an example using the raw interface.
-
-```{r}
-y = couple$UPB
-X = model.matrix(~ EDUCATION + ANXIETY, data = couple)
-S = model.matrix(~ 1, data = couple)
-W = model.matrix(~ EDUCATION + ANXIETY, data = couple)
-link.init = coef(zicmp.out, type = "list")  # Initial values from previous fit
-glm.zicmp.raw(y, X, S, W, beta.init = link.init$beta,
-	gamma.init = link.init$gamma, zeta.init = link.init$zeta)
-```
+The AIC of model `zicmp1.out` is somewhat smaller than that of `zicmp.out`, but we will proceed with `zicmp.out` in the interest of parsimony. From here, much of the interface is similar to CMP regression discussed in Section \ref{sec:cmp-reg}.
 
 Here are several of the accessors provided to extract model outputs.
 
@@ -932,6 +989,8 @@ sdev(zicmp.out)                 ## Standard deviations from vcov(...) diagonals
 sdev(zicmp.out, type = "list")  ## Standard deviations as a named list
 equitest(zicmp.out)             ## Likelihood ratio test for H_0: gamma = 0
 ```
+
+Because we fixed $\gamma = -\infty$, the `equitest` function returns a message instead of carrying out the equidispersion test and returning the result.
 
 The `predict` function behaves similarly as in CMP regression; however, the `link` type here also includes a column with the estimated $p_i$.
 
@@ -973,10 +1032,24 @@ plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
 Here is an example of computing fitted values to new covariate data.
 
 ```{r}
-new.data = data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
-predict(zicmp.out, newdata = new.data)
+# TBD: This all needs explanation
+new.df = data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
+
+X.new = model.matrix(~ EDUCATION + ANXIETY, data = new.df)
+S.new = model.matrix(~ 1, data = new.df)
+W.new = model.matrix(~ EDUCATION + ANXIETY, data = new.df)
+new.data = get.zicmp.newdata(X.new, S.new, W.new)
+
+# For the formula interface
+y.hat.new = predict(zicmp1.out, newdata = new.df)
+head(y.hat.new)
+
+# For the raw interface
+y.hat.new = predict(zicmp.out, newdata = new.data)
 head(y.hat.new)
 ```
+
+TBD: Added special handling of raw interface.
 
 As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\btheta}^{(r)}$ of $\btheta$ based on the estimate $\hat{\btheta}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. Again, we may use the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
 

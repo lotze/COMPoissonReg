@@ -43,12 +43,12 @@ vzicmp(lambda, nu, p, method = "hybrid")
 }
 \value{
 \describe{
-\item{dzicmp}{gives the density,}
-\item{pzicmp}{gives the cumulative probability,}
-\item{qzicmp}{gives the quantile value, and}
+\item{dzicmp}{the density,}
+\item{pzicmp}{the cumulative probability,}
+\item{qzicmp}{the quantile value, and}
 \item{rzicmp}{generates random numbers,}
-\item{ezicmp}{gives the expected value.}
-\item{vzicmp}{gives the variance.}
+\item{ezicmp}{the expected value.}
+\item{vzicmp}{the variance.}
 }
 }
 \description{
