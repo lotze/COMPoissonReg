@@ -15,6 +15,8 @@
 #' @param beta.init initial values for regression coefficients of \code{lambda}.
 #' @param gamma.init initial values for regression coefficients of \code{nu}.
 #' @param zeta.init initial values for regression coefficients of \code{p}.
+#' @param control a \code{COMPoissonReg.control} object from \code{get.control}
+#' or \code{NULL} to use global default.
 #' @param ... other arguments, such as \code{subset} and \code{na.action}.
 #' 
 #' @return
@@ -89,41 +91,10 @@ NULL
 #' @name glm.cmp-raw
 NULL
 
-#' @name glm.cmp-raw
-#' @export
-get.fixed = function(beta = integer(0), gamma = integer(0), zeta = integer(0))
-{
-	stopifnot(is.numeric(beta))
-	stopifnot(is.numeric(gamma))
-	stopifnot(is.numeric(zeta))
-
-	out = list(beta = beta, gamma = gamma, zeta = zeta)
-	class(out) = "glm.cmp.fixed"
-	return(out)
-}
-
-#' @name glm.cmp-raw
-#' @export
-get.init = function(beta = NULL, gamma = NULL, zeta = NULL)
-{
-	out = list(beta = beta, gamma = gamma, zeta = zeta)
-	class(out) = "glm.cmp.init"
-	return(out)
-}
-
-#' @name glm.cmp-raw
-#' @export
-get.offset = function(x, s, w)
-{
-	out = list(x = x, s = s, w = s)
-	class(out) = "glm.cmp.offset"
-	return(out)
-}
-
 #' @name glm.cmp
 #' @export
 glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
-	data = NULL, init = NULL, fixed = NULL, ...)
+	data = NULL, init = NULL, fixed = NULL, control = NULL, ...)
 {
 	# Parse formula.lambda. This one should have the response.
 	mf = model.frame(formula.lambda, data, ...)
@@ -156,8 +127,9 @@ glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	# If formula.p is NULL, do CMP regression. Else do ZICMP regression
 	if (is.null(formula.p)) {
 		# Run the regression using the raw interface function
-		off = get.offset(x = off.x, s = off.s)
-		res = glm.cmp.raw(y, X, S, off = off, init = init, fixed = fixed)
+		offset = get.offset(x = off.x, s = off.s)
+		res = glm.cmp.raw(y, X, S, offset = offset, init = init, fixed = fixed,
+			control = control)
 	} else {
 		mf = model.frame(formula.p, data, ...)
 		W = model.matrix(formula.p, mf)
@@ -173,11 +145,12 @@ glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 		if (is.null(off.w)) { off.w = rep(0, n) }
 
 		# Run the regression using the raw interface function
-		off = get.offset(x = off.x, s = off.s, w = off.w)
-		res = glm.zicmp.raw(y, X, S, W, off = off, init = init, fixed = fixed)
+		offset = get.offset(x = off.x, s = off.s, w = off.w)
+		res = glm.zicmp.raw(y, X, S, W, offset = offset, init = init, fixed = fixed,
+			control = control)
 	}
 	
-	# Add a few things to return value
+	# Add formula-specific things to return object
 	res$interface = "formula"
 	res$formula.lambda = formula.lambda
 	res$formula.nu = formula.nu
@@ -188,7 +161,7 @@ glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 
 #' @name glm.cmp-raw
 #' @export
-glm.cmp.raw = function(y, X, S, off = NULL, init = NULL, fixed = NULL)
+glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, control = NULL)
 {
 	# Get dimensions
 	n = length(y)
@@ -196,10 +169,10 @@ glm.cmp.raw = function(y, X, S, off = NULL, init = NULL, fixed = NULL)
 	d2 = ncol(S)
 
 	# Offsets
-	if (is.null(off)) {
-		off = get.offset(x = numeric(n), s = numeric(n), w = NULL)
+	if (is.null(offset)) {
+		offset = get.offset(x = numeric(n), s = numeric(n), w = NULL)
 	}
-	stopifnot(class(off) == "glm.cmp.offset")
+	stopifnot(class(offset) == "glm.cmp.offset")
 
 	# Fixed values
 	if (is.null(fixed)) {
@@ -207,50 +180,37 @@ glm.cmp.raw = function(y, X, S, off = NULL, init = NULL, fixed = NULL)
 	}
 	stopifnot(class(fixed) == "glm.cmp.fixed")
 
-	# Make sure fixed indices are between 1 and the corresponding dimension
-	stopifnot(all(fixed$beta %in% seq_len(d1)))
-	stopifnot(all(fixed$gamma %in% seq_len(d2)))
-
-	# Make sure dimensions match up
-	stopifnot(n == nrow(X))
-	stopifnot(n == nrow(S))
-	stopifnot(n == length(off$x))
-	stopifnot(n == length(off$s))
+	# Make sure control object is set
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control")
+	}
+	stopifnot("COMPoissonReg.control" %in% class(control))
 
 	# Initial parameter values
-	if (is.null(init)) { init = get.init() }
-	if (is.null(init$beta)) { init$beta = numeric(d1) }
-	if (is.null(init$gamma)) { init$gamma = numeric(d2) }
-	stopifnot(class(init) == "glm.cmp.init")
-	stopifnot(d1 == length(init$beta))
-	stopifnot(d2 == length(init$gamma))
+	if (is.null(init)) {
+		init = get.init(beta = numeric(d1), gamma = numeric(d2))
+	}
 
 	# Fit the CMP regression model
-	fit.out = fit.cmp.reg(y, X, S, beta.init = init$beta,
-		gamma.init = init$gamma, off.x = off$x, off.s = off$s,
-		fixed.beta = fixed$beta, fixed.gamma = fixed$gamma)
+	fit.out = fit.cmp.reg(y, X, S, init = init, offset = offset, fixed = fixed,
+		control = control)
 
 	# Construct return value
 	res = list(
 		y = y,
 		X = X,
 		S = S,
-		beta.init = init$beta,
-		gamma.init = init$gamma,
-		off.x = off$x,
-		off.s = off$s,
+		init = init,
+		offset = offset,
 		beta = fit.out$theta.hat$beta,
 		gamma = fit.out$theta.hat$gamma,
 		H = fit.out$H,
 		loglik = fit.out$loglik,
 		opt.res = fit.out$opt.res,
-		optim.method = fit.out$optim.method,
-		optim.control = fit.out$optim.control,
+		control = fit.out$control,
 		elapsed.sec = fit.out$elapsed.sec,
-		fixed.beta = fit.out$fixed.beta,
-		fixed.gamma = fit.out$fixed.gamma,
-		unfixed.beta = fit.out$unfixed.beta,
-		unfixed.gamma = fit.out$unfixed.gamma,
+		fixed = fit.out$fixed,
+		unfixed = fit.out$unfixed,
 		interface = "raw"
 	)
 	attr(res, "class") = c("cmp", attr(res, "class"))
@@ -263,7 +223,7 @@ glm.cmp.raw = function(y, X, S, off = NULL, init = NULL, fixed = NULL)
 
 #' @name glm.cmp-raw
 #' @export
-glm.zicmp.raw = function(y, X, S, W, off = NULL, init = NULL, fixed = NULL)
+glm.zicmp.raw = function(y, X, S, W, offset = NULL, init = NULL, fixed = NULL, control = NULL)
 {
 	# Get dimensions
 	n = length(y)
@@ -272,10 +232,10 @@ glm.zicmp.raw = function(y, X, S, W, off = NULL, init = NULL, fixed = NULL)
 	d3 = ncol(W)
 
 	# Offsets
-	if (is.null(off)) {
-		off = get.offset(x = numeric(n), s = numeric(n), w = numeric(n))
+	if (is.null(offset)) {
+		offset = get.offset(x = numeric(n), s = numeric(n), w = numeric(n))
 	}
-	stopifnot(class(off) == "glm.cmp.offset")
+	stopifnot(class(offset) == "glm.cmp.offset")
 
 	# Fixed values
 	if (is.null(fixed)) {
@@ -283,35 +243,21 @@ glm.zicmp.raw = function(y, X, S, W, off = NULL, init = NULL, fixed = NULL)
 	}
 	stopifnot(class(fixed) == "glm.cmp.fixed")
 
-	# Make sure fixed indices are between 1 and the corresponding dimension
-	stopifnot(all(fixed$beta %in% seq_len(d1)))
-	stopifnot(all(fixed$gamma %in% seq_len(d2)))
-	stopifnot(all(fixed$zeta %in% seq_len(d3)))
-
-	# Make sure dimensions match up
-	stopifnot(n == nrow(X))
-	stopifnot(n == nrow(S))
-	stopifnot(n == nrow(W))
-	stopifnot(n == length(off$x))
-	stopifnot(n == length(off$s))
-	stopifnot(n == length(off$w))
+	# Make sure control object is set
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control")
+	}
+	stopifnot("COMPoissonReg.control" %in% class(control))
 
 	# Initial parameter values
-	if (is.null(init)) { init = get.init() }
-	if (is.null(init$beta)) { init$beta = numeric(d1) }
-	if (is.null(init$gamma)) { init$gamma = numeric(d2) }
-	if (is.null(init$zeta)) { init$zeta = numeric(d3) }
-
-	stopifnot(class(init) == "glm.cmp.init")
-	stopifnot(d1 == length(init$beta))
-	stopifnot(d2 == length(init$gamma))
-	stopifnot(d3 == length(init$zeta))
+	if (is.null(init)) {
+		init = get.init(beta = numeric(d1), gamma = numeric(d2),
+			zeta = numeric(d3))
+	}
 
 	# Fit the ZICMP regression model
-	fit.out = fit.zicmp.reg(y, X, S, W, beta.init = init$beta,
-		gamma.init = init$gamma, zeta.init = init$zeta, off.x = off$x,
-		off.s = off$s, off.w = off$w, fixed.beta = fixed$beta,
-		fixed.gamma = fixed$gamma, fixed.zeta = fixed$zeta)
+	fit.out = fit.zicmp.reg(y, X, S, W, init = init, offset = offset,
+		fixed = fixed, control = control)
 
 	# Construct return value
 	res = list(
@@ -319,27 +265,18 @@ glm.zicmp.raw = function(y, X, S, W, off = NULL, init = NULL, fixed = NULL)
 		X = X,
 		S = S,
 		W = W,
-		beta.init = init$beta,
-		gamma.init = init$gamma,
-		zeta.init = init$zeta,
-		off.x = off$x,
-		off.s = off$s,
-		off.w = off$w,
+		init = init,
+		offset = offset,
 		beta = fit.out$theta.hat$beta,
 		gamma = fit.out$theta.hat$gamma,
 		zeta = fit.out$theta.hat$zeta,
 		H = fit.out$H,
 		loglik = fit.out$loglik,
 		opt.res = fit.out$opt.res,
-		optim.method = fit.out$optim.method,
-		optim.control = fit.out$optim.control,
+		control = fit.out$control,
 		elapsed.sec = fit.out$elapsed.sec,
-		fixed.beta = fit.out$fixed.beta,
-		fixed.gamma = fit.out$fixed.gamma,
-		fixed.zeta = fit.out$fixed.zeta,
-		unfixed.beta = fit.out$unfixed.beta,
-		unfixed.gamma = fit.out$unfixed.gamma,
-		unfixed.zeta = fit.out$unfixed.zeta,
+		fixed = fit.out$fixed,
+		unfixed = fit.out$unfixed,
 		interface = "raw"
 	)
 	attr(res, "class") = c("zicmp", attr(res, "class"))

@@ -10,17 +10,17 @@
 \alias{vzicmp}
 \title{ZICMP Distribution}
 \usage{
-dzicmp(x, lambda, nu, p, log = FALSE)
+dzicmp(x, lambda, nu, p, log = FALSE, control = NULL)
 
-rzicmp(n, lambda, nu, p)
+rzicmp(n, lambda, nu, p, control = NULL)
 
-pzicmp(x, lambda, nu, p)
+pzicmp(x, lambda, nu, p, control = NULL)
 
-qzicmp(q, lambda, nu, p, log.p = FALSE)
+qzicmp(q, lambda, nu, p, log.p = FALSE, control = NULL)
 
-ezicmp(lambda, nu, p, method = "hybrid")
+ezicmp(lambda, nu, p, control = NULL)
 
-vzicmp(lambda, nu, p, method = "hybrid")
+vzicmp(lambda, nu, p, control = NULL)
 }
 \arguments{
 \item{x}{vector of quantiles.}
@@ -33,13 +33,14 @@ vzicmp(lambda, nu, p, method = "hybrid")
 
 \item{log}{logical; if TRUE, probabilities are returned on log-scale.}
 
+\item{control}{a \code{COMPoissonReg.control} object from \code{get.control}
+or \code{NULL} to use global default.}
+
 \item{n}{number of observations.}
 
 \item{q}{vector of probabilities.}
 
 \item{log.p}{logical; if TRUE, probabilities p are given as \eqn{\log(p)}.}
-
-\item{method}{a string: \code{hybrid}, \code{approx}, or \code{trunc}.}
 }
 \value{
 \describe{

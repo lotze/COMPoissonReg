@@ -1,15 +1,15 @@
-rqres.zicmp = function(y, lambda, nu, p)
+rqres.zicmp = function(y, lambda, nu, p, control = NULL)
 {
 	F = function(y) {
-		pzicmp(y, lambda, nu, p)
+		pzicmp(y, lambda, nu, p, control)
 	}
 	rqres(y, F)
 }
 
-rqres.cmp = function(y, lambda, nu)
+rqres.cmp = function(y, lambda, nu, control = NULL)
 {
 	F = function(y) {
-		pcmp(y, lambda, nu)
+		pcmp(y, lambda, nu, control)
 	}
 	rqres(y, F)
 }

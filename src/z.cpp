@@ -40,18 +40,16 @@ std::pair<double, unsigned int> truncate(double lambda, double nu, double tol,
 		char msg[512];
 		sprintf(msg,
 			"Terms of normalizing constant CMP(%g, %g) could not be bounded by "
-			"a geometric series when y <= %g. Consider changing the options "
-			"COMPoissonReg.ymax, COMPoissonReg.hybrid.tol, and "
-			"COMPoissonReg.truncate.tol",
+			"a geometric series when y <= %g. Consider adjusting the controls "
+			"ymax, hybrid.tol, and truncate.tol",
 			lambda, nu, ymax);
 		Rf_warning(msg);
 	} else if (diff > log_tol) {
 		char msg[512];
 		sprintf(msg,
 			"Absolute relative error %g was larger than tolerance %g with "
-			"CMP(%g, %g) truncated to %g. Consider changing the options "
-			"COMPoissonReg.ymax, COMPoissonReg.hybrid.tol, and "
-			"COMPoissonReg.truncate.tol",
+			"CMP(%g, %g) truncated to %g. Consider adjusting the controls "
+			"ymax, hybrid.tol, and COMPoissonReg.truncate.tol",
 			exp(diff), tol, lambda, nu, ymax);
 		Rf_warning(msg);
 	}

@@ -5,13 +5,9 @@
 \usepackage{amsthm}
 \usepackage{bm}
 \usepackage{graphicx}
-%\usepackage{lscape}
 \usepackage{color}
-%\usepackage{mdwlist}
 \usepackage[round]{natbib}
-%\usepackage{listings}
 \usepackage{framed}
-%\usepackage{setspace}
 
 \usepackage{algorithm}
 \usepackage{algorithmicx}
@@ -21,8 +17,6 @@
 \usepackage{subcaption}
 \usepackage{capt-of}
 \usepackage{verbatim}
-%\usepackage{fancyvrb}
-%\usepackage{fullpage}
 %\usepackage{mathtools}
 %\usepackage{mathrsfs}
 
@@ -31,7 +25,6 @@
 \newcommand{\indep}{\stackrel{\text{ind}}{\sim}}
 \newcommand{\iid}{\stackrel{\text{iid}}{\sim}}
 \newcommand{\given}{\;\middle\vert\;}
-%\newcommand{\logit}{\text{logit}}
 
 \DeclareMathOperator{\Diag}{Diag}
 \DeclareMathOperator{\blockdiag}{Blockdiag}
@@ -62,45 +55,10 @@
 \def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
 \makeatother
 
-% Load hyperref last, as suggested by Latex forums, to avoid interference with other packages
-% \usepackage[colorlinks=true, citecolor=blue, linkcolor=blue, urlcolor=blue]{hyperref}
-
 \hypersetup{
 	colorlinks = true,
 	citecolor = {blue},
 	linkcolor = {blue},
 	urlcolor = {blue}
 }
-
-% Make a list of keywords
-\newcommand{\keywords}[1]{\par\noindent
-{\textbf{Keywords:} #1}}
-
-%\newcommand{\code}[1]{\lstinline!#1!}
-%\newcommand{\pkg}[1]{\lstinline!#1!}
-%%\newcommand{\file}[1]{\lstinline!#1!}
-%\newcommand{\proglang}[1]{\lstinline!#1!}
-%\newcommand{\bs}{$\backslash$}
-
-%\DefineVerbatimEnvironment{CodeInput}{Verbatim}{numbers=left,
-%fontsize=\small, tabsize=4, xleftmargin=5mm}
-%\DefineVerbatimEnvironment{CodeOutput}{Verbatim}{numbers=left,
-%fontsize=\small, tabsize=4, xleftmargin=5mm}
-%\DefineVerbatimEnvironment{CodeChunk}{Verbatim}{numbers=left,
-%fontsize=\small, tabsize=4, xleftmargin=5mm}
-
-%\lstset{ 
-%  backgroundcolor = \color{white},
-%  % basicstyle=\footnotesize\ttfamily,
-%  basicstyle  = \ttfamily,
-%  tabsize = 4,
-%}
-
-\newenvironment{myenumerate}
-{ \begin{enumerate}
-	\setlength{\itemsep}{5pt}
-	%\setlength{\parskip}{0pt}
-	%\setlength{\parsep}{0pt}
-}
-{ \end{enumerate} }
 

@@ -41,12 +41,10 @@ summary.cmp = function(object, ...)
 
 	# We need the indices of the fixed coefficients and the ones included in
 	# optimization.
-	fixed.beta = object$fixed.beta
-	fixed.gamma = object$fixed.gamma
-	unfixed.beta = object$unfixed.beta
-	unfixed.gamma = object$unfixed.gamma
-	idx.par1 = seq_along(unfixed.beta)
-	idx.par2 = seq_along(unfixed.gamma) + length(unfixed.beta)
+	fixed = object$fixed
+	unfixed = object$unfixed
+	idx.par1 = seq_along(unfixed$beta)
+	idx.par2 = seq_along(unfixed$gamma) + length(unfixed$beta)
 
 	V = vcov(object)
 	est = coef(object)
@@ -54,8 +52,8 @@ summary.cmp = function(object, ...)
 	# In the vector of SEs, include an NA entry if the variable was fixed
 	# This NA will propagate to the corresponding z-value and p-value as well.
 	se = rep(NA, qq)
-	se[unfixed.beta] = sdev(object)[idx.par1]
-	se[unfixed.gamma + d1] = sdev(object)[idx.par2]
+	se[unfixed$beta] = sdev(object)[idx.par1]
+	se[unfixed$gamma + d1] = sdev(object)[idx.par2]
 
 	z.val = est / se
 	p.val = 2*pnorm(-abs(z.val))
@@ -80,8 +78,8 @@ summary.cmp = function(object, ...)
 	# for the Jacobian and Hessian. If one of the intercepts was fixed, it should
 	# result in an SE of zero.
 
-	if (is.intercept.only(object$X) && is.zero.matrix(object$off.x)) {
-		if (length(fixed.beta) > 0) {
+	if (is.intercept.only(object$X) && is.zero.matrix(object$offset$x)) {
+		if (length(fixed$beta) > 0) {
 			se = 0
 		} else {
 			J = c(exp(object$beta), numeric(length(idx.par2)))
@@ -95,8 +93,8 @@ summary.cmp = function(object, ...)
 		rownames(DF.lambda) = "lambda"
 	}
 
-	if (is.intercept.only(object$S) && is.zero.matrix(object$off.s)) {
-		if (length(fixed.gamma) > 0) {
+	if (is.intercept.only(object$S) && is.zero.matrix(object$offset$s)) {
+		if (length(fixed$gamma) > 0) {
 			se = 0
 		} else {
 			J = c(numeric(length(idx.par1)), exp(object$gamma))
@@ -115,7 +113,7 @@ summary.cmp = function(object, ...)
 		loglik = logLik(object),
 		aic = AIC(object),
 		bic = BIC(object),
-		optim.method = object$optim.method,
+		optim.method = object$control$optim.method,
 		opt.message = object$opt.res$message,
 		opt.convergence = object$opt.res$convergence,
 		elapsed.sec = object$elapsed.sec
@@ -215,10 +213,10 @@ sdev.cmp = function(object, type = c("vector", "list"), ...)
 {
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
-	unfixed.beta = sort(setdiff(seq_len(d1), object$fixed.beta))
-	unfixed.gamma = sort(setdiff(seq_len(d2), object$fixed.gamma))
-	idx.par1 = seq_along(object$unfixed.beta)
-	idx.par2 = seq_along(object$unfixed.gamma) + length(object$unfixed.beta)
+	fixed = object$fixed
+	unfixed = object$unfixed
+	idx.par1 = seq_along(unfixed$beta)
+	idx.par2 = seq_along(unfixed$gamma) + length(unfixed$beta)
 
 	sd.hat = sqrt(diag(vcov(object)))
 
@@ -227,8 +225,8 @@ sdev.cmp = function(object, type = c("vector", "list"), ...)
 	} else if (match.arg(type) == "list") {
 		sd.beta = rep(NA, d1)
 		sd.gamma = rep(NA, d2)
-		sd.beta[unfixed.beta] = sd.hat[idx.par1]
-		sd.gamma[unfixed.gamma] = sd.hat[idx.par2]
+		sd.beta[unfixed$beta] = sd.hat[idx.par1]
+		sd.gamma[unfixed$gamma] = sd.hat[idx.par2]
 		out = list(beta = sd.beta, gamma = sd.gamma)
 	} else {
 		stop("Unrecognized type")
@@ -256,17 +254,15 @@ equitest.cmp = function(object, ...)
 	y = object$y
 	X = object$X
 	S = object$S
-	beta.init = object$beta.init
-	off.x = object$off.x
-	off.s = object$off.s
-	fixed.beta = object$fixed.beta
-	fixed.gamma = object$fixed.gamma
+	init = object$init
+	offset = object$offset
+	fixed = object$fixed
 	ll = object$loglik
 
 	# If any elements of gamma have been fixed, an "equidispersion" test no
 	# longer makes sense. Unless the values were fixed at zeroes. But let's
 	# avoid this this complication.
-	if (length(fixed.gamma) > 0) {
+	if (length(fixed$gamma) > 0) {
 		msg = c("Chi-squared test for equidispersion not run",
 			"(Some elements of gamma were fixed)")
 		return(msg)
@@ -277,11 +273,10 @@ equitest.cmp = function(object, ...)
 
 	# Null model is CMP with nu determined by the offset off.s. If off.s happens
 	# to be zeros, this simplifies to a Poisson regression.
-	S0 = matrix(0, n, 0)
-	gamma0 = numeric(0)
-	fit0.out = fit.cmp.reg(y, X, S = S0, beta.init = beta.init,
-		gamma.init = gamma0, off.x = off.x, off.s = off.s,
-		fixed.beta = fixed.beta, fixed.gamma = fixed.gamma)
+	fit0.out = fit.cmp.reg(y, X, S, offset = offset,
+		init = get.init(beta = object$beta, gamma = numeric(d2)),
+		fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2)),
+		control = object$control)
 	ll0 = fit0.out$loglik
 
 	teststat = -2 * (ll0 - ll)
@@ -297,14 +292,14 @@ leverage.cmp = function(object, ...)
 	n = length(y)
 
 	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
-		object$off.x, object$off.s)
+		object$offset$x, object$offset$s)
 
 	# 1) Some quantities corresponding to parameters lambda and nu: Normalizing
 	# constants, expected values, variances, and truncation values.
-	z.hat = ncmp(out$lambda, out$nu)
-	E.y = ecmp(out$lambda, out$nu)
-	V.y = vcmp(out$lambda, out$nu)
-	y.trunc = max(tcmp(out$lambda, out$nu))
+	z.hat = ncmp(out$lambda, out$nu, control = object$control)
+	E.y = ecmp(out$lambda, out$nu, control = object$control)
+	V.y = vcmp(out$lambda, out$nu, control = object$control)
+	y.trunc = max(tcmp(out$lambda, out$nu, control = object$control))
 
 	# Note that z_prodlogj uses truncation, even if we would approximate z 
 	# using the asymptotic expression using some of the given lambda and nu
@@ -343,46 +338,39 @@ deviance.cmp = function(object, ...)
 {
 	# Compute the COM-Poisson deviances exactly
 	y = object$y
+	X = object$X
+	S = object$S
+	# init = object$init
+	offset = object$offset
+	control = object$control
 	n = length(y)
-
-	opt.method = getOption("COMPoissonReg.optim.method")
-	opt.control = getOption("COMPoissonReg.optim.control")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
-	ymax = getOption("COMPoissonReg.ymax")
+	d2 = ncol(S)
 
 	# Compute optimal log likelihood value for given nu-hat value
-	beta.init = object$beta
-	d1 = length(beta.init)
-	ll.y = numeric(n)
-
-	# Make sure optim is set to use maximization
-	opt.control$fnscale = -1
+	# beta.init = object$beta
+	# d1 = length(beta.init)
+	ll.star = numeric(n)
 
 	for (i in 1:n) {
-		# loglik for single observation
-		logf = function(beta) {
-			out = fitted.cmp.internal(object$X[i,], object$S[i,], beta,
-				object$gamma, object$off.x[i], object$off.s[i])
-			loglik_cmp(y[i], out$lambda, out$nu, hybrid_tol = hybrid.tol,
-				truncate_tol = truncate.tol, ymax = ymax)
-		}
-
-		# Determine the MLEs
-		res = optim(beta.init, logf, method = opt.method, control = opt.control)
-		ll.y[i] = res$value
+		# Maximize loglik for ith obs
+		glm.out = fit.cmp.reg(y[i],
+			X = X[i,,drop = FALSE],
+			S = S[i,,drop = FALSE],
+			init = get.init(beta = object$beta, gamma = numeric(d2)),
+			offset = get.offset(x = offset$x[i], s = offset$s[i], w = offset$w[i]),
+			fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2)),
+			control = control)
+		ll.star[i] = glm.out$opt.res$value
 	}
 
 	# Compute exact deviances
-	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
-		object$off.x, object$off.s)
-	ll.mu = numeric(n)
+	ll = numeric(n)
+	out = fitted.cmp.internal(X, S, object$beta, object$gamma, offset$x, offset$s)
 	for (i in 1:n) {
-		ll.mu[i] = loglik_cmp(y[i], out$lambda[i], out$nu[i],
-			hybrid_tol = hybrid.tol, truncate_tol = truncate.tol, ymax = ymax)
+		ll[i] = dcmp(y[i], out$lambda[i], out$nu[i], log = TRUE, control = control)
 	}
 
-	dev = -2*(ll.mu - ll.y)
+	dev = -2*(ll - ll.star)
 	lev = leverage(object)
 	cmpdev = dev / sqrt(1 - lev)
 	return(cmpdev)
@@ -393,14 +381,15 @@ deviance.cmp = function(object, ...)
 residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 {
 	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
-		object$off.x, object$off.s)
+		object$offset$x, object$offset$s)
 
 	type = match.arg(type)
 	if (type == "raw") {
-		y.hat = ecmp(out$lambda, out$nu)
+		y.hat = ecmp(out$lambda, out$nu, control = object$control)
 		res = object$y - y.hat
 	} else if (type == "quantile") {
-		res = rqres.cmp(object$y, lambda = out$lambda, nu = out$nu)
+		res = rqres.cmp(object$y, lambda = out$lambda, nu = out$nu,
+			control = object$control)
 	} else {
 		stop("Unsupported residual type")
 	}
@@ -410,9 +399,9 @@ residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-get.cmp.newdata = function(X, S, off.x = NULL, off.s = NULL)
+get.cmp.newdata = function(X, S, offset = get.offset())
 {
-	out = list(X = X, S = S, off.x = off.x, off.s = off.s)
+	out = list(X = X, S = S, offset = offset)
 	class(out) = "cmp.newdata"
 	return(out)
 }
@@ -425,8 +414,8 @@ predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...
 		# If newdata is NULL, reuse data for model fit
 		X = object$X
 		S = object$S
-		off.x = object$off.x
-		off.s = object$off.s
+		off.x = object$offset$x
+		off.s = object$offset$s
 	} else if (object$interface == "formula") {
 		# If the model was fit with the formula interface, attempt to process
 		# newdata as a data.frame
@@ -459,8 +448,8 @@ predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...
 		stopifnot(class(newdata) == "cmp.newdata")
 		X = newdata$X
 		S = newdata$S
-		off.x = newdata$off.x
-		off.s = newdata$off.s
+		off.x = newdata$offset$x
+		off.s = newdata$offset$s
 
 		n.new = nrow(X)
 		if (is.null(off.x)) { off.x = rep(0, n.new) }
@@ -480,18 +469,20 @@ predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...
 #' @export
 parametric.bootstrap.cmp = function(object, reps = 1000, report.period = reps+1, ...)
 {
+	browser()
 	n = nrow(object$X)
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
+	qq = d1 + d2
 
-	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma, object$off.x, object$off.s)
+	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma, object$offset$x, object$offset$s)
 	lambda.hat = out$lambda
 	nu.hat = out$nu
 
 	# Generate `reps` samples, using beta.hat and nu.hat from full dataset
 	# Run CMP regression on each bootstrap sample to generate new beta and nu estimates
 
-	boot.out = matrix(NA, nrow = reps, ncol = d1 + d2)
+	boot.out = matrix(NA, nrow = reps, ncol = qq)
 
 	for (r in 1:reps){
 		if (r %% report.period == 0) {
@@ -500,9 +491,8 @@ parametric.bootstrap.cmp = function(object, reps = 1000, report.period = reps+1,
 		y.boot = rcmp(n, lambda.hat, nu.hat)
 		tryCatch({
 			res = fit.cmp.reg(y = y.boot, X = object$X, S = object$S,
-				beta.init = object$beta.glm, gamma.init = object$gamma,
-				off.x = object$off.x, off.s = object$off.s,
-				fixed.beta = object$fixed.beta, fixed.gamma = object$fixed.gamma)
+				init = get.init(beta = object$beta, gamma = object$gamma),
+				offset = object$offset, fixed = object$fixed, control = object$control)
 			boot.out[r,] = unlist(res$theta.hat)
 		}, error = function(e) {
 			# Do nothing now; emit a warning later

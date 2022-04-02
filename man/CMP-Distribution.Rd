@@ -12,21 +12,21 @@
 \alias{tcmp}
 \title{COM-Poisson Distribution}
 \usage{
-dcmp(x, lambda, nu, log = FALSE)
+dcmp(x, lambda, nu, log = FALSE, control = NULL)
 
-rcmp(n, lambda, nu)
+rcmp(n, lambda, nu, control = NULL)
 
-pcmp(x, lambda, nu)
+pcmp(x, lambda, nu, control = NULL)
 
-qcmp(q, lambda, nu, log.p = FALSE)
+qcmp(q, lambda, nu, log.p = FALSE, control = NULL)
 
-ecmp(lambda, nu, method = "hybrid")
+ecmp(lambda, nu, control = NULL)
 
-vcmp(lambda, nu, method = "hybrid")
+vcmp(lambda, nu, control = NULL)
 
-ncmp(lambda, nu, log = FALSE, method = "hybrid")
+ncmp(lambda, nu, log = FALSE, control = NULL)
 
-tcmp(lambda, nu)
+tcmp(lambda, nu, control = NULL)
 }
 \arguments{
 \item{x}{vector of quantiles.}
@@ -37,13 +37,14 @@ tcmp(lambda, nu)
 
 \item{log}{logical; if TRUE, probabilities are returned on log-scale.}
 
+\item{control}{a \code{COMPoissonReg.control} object from \code{get.control}
+or \code{NULL} to use global default.}
+
 \item{n}{number of observations.}
 
 \item{q}{vector of probabilities.}
 
 \item{log.p}{logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.}
-
-\item{method}{a string: \code{hybrid}, \code{approx}, or \code{trunc}.}
 }
 \value{
 \describe{

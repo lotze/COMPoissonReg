@@ -19,7 +19,7 @@
 \alias{parametric.bootstrap.zicmp}
 \title{Supporting Functions for ZICMP Regression}
 \usage{
-get.cmp.newdata(X, S, off.x = NULL, off.s = NULL)
+get.cmp.newdata(X, S, offset = get.offset())
 
 \method{summary}{zicmp}(object, ...)
 
@@ -43,7 +43,7 @@ get.cmp.newdata(X, S, off.x = NULL, off.s = NULL)
 
 \method{residuals}{zicmp}(object, type = c("raw", "quantile"), ...)
 
-get.zicmp.newdata(X, S, W, off.x = NULL, off.s = NULL, off.w = NULL)
+get.zicmp.newdata(X, S, W, offset)
 
 \method{predict}{zicmp}(object, newdata = NULL, type = c("response", "link"), ...)
 

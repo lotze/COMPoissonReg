@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // loglik_cmp
 double loglik_cmp(const Rcpp::NumericVector& x, const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, double hybrid_tol, double truncate_tol, double ymax);
 RcppExport SEXP _COMPoissonReg_loglik_cmp(SEXP xSEXP, SEXP lambdaSEXP, SEXP nuSEXP, SEXP hybrid_tolSEXP, SEXP truncate_tolSEXP, SEXP ymaxSEXP) {

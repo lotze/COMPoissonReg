@@ -9,7 +9,8 @@
 #' @param nu dispersion parameter.
 #' @param log logical; if TRUE, probabilities are returned on log-scale.
 #' @param log.p logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.
-#' @param method a string: \code{hybrid}, \code{approx}, or \code{trunc}.
+#' @param control a \code{COMPoissonReg.control} object from \code{get.control}
+#' or \code{NULL} to use global default.
 #' 
 #' @return 
 #' \describe{
@@ -37,14 +38,16 @@ NULL
 
 #' @name CMP Distribution
 #' @export
-dcmp = function(x, lambda, nu, log = FALSE)
+dcmp = function(x, lambda, nu, log = FALSE, control = NULL)
 {
 	n = length(x)
 	prep = prep.zicmp(n, lambda, nu)
 
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	ymax = control$ymax
+	hybrid.tol = control$hybrid.tol
+	truncate.tol = control$truncate.tol
 
 	if (prep$type == "iid") {
 		# Independent and identically distributed case
@@ -65,13 +68,15 @@ dcmp = function(x, lambda, nu, log = FALSE)
 
 #' @name CMP Distribution
 #' @export
-rcmp = function(n, lambda, nu)
+rcmp = function(n, lambda, nu, control = NULL)
 {
 	prep = prep.zicmp(n, lambda, nu)
 
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	ymax = control$ymax
+	hybrid.tol = control$hybrid.tol
+	truncate.tol = control$truncate.tol
 
 	if (prep$type == "iid") {
 		# Independent and identically distributed case
@@ -89,14 +94,16 @@ rcmp = function(n, lambda, nu)
 
 #' @name CMP Distribution
 #' @export
-pcmp = function(x, lambda, nu)
+pcmp = function(x, lambda, nu, control = NULL)
 {
 	n = length(x)
 	prep = prep.zicmp(n, lambda, nu)
 
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	ymax = control$ymax
+	hybrid.tol = control$hybrid.tol
+	truncate.tol = control$truncate.tol
 
 	if (prep$type == "iid") {
 		# Independent and identically distributed case
@@ -117,14 +124,16 @@ pcmp = function(x, lambda, nu)
 
 #' @name CMP Distribution
 #' @export
-qcmp = function(q, lambda, nu, log.p = FALSE)
+qcmp = function(q, lambda, nu, log.p = FALSE, control = NULL)
 {
 	n = length(q)
 	prep = prep.zicmp(n, lambda, nu)
 
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	ymax = control$ymax
+	hybrid.tol = control$hybrid.tol
+	truncate.tol = control$truncate.tol
 
 	if (log.p) { lq = q } else { lq = log(q) }
 
@@ -138,9 +147,8 @@ qcmp = function(q, lambda, nu, log.p = FALSE)
 			"particular, %d of the given probabilities were greater than",
 			"1 - truncate_tol = exp(%g), where truncate_tol = %g.",
 			"Associated results may be a consequence of truncation and not",
-			"actual quantiles. Consider changing the options",
-			"COMPoissonReg.ymax and COMPoissonReg.truncate.tol or reducing",
-			"logq"),
+			"actual quantiles. Consider adjusting the controls",
+			"ymax and truncate.tol or reducing logq"),
 			length(idx_warn), log1p(-truncate.tol), truncate.tol)
 		warning(msg)
 	}
@@ -163,7 +171,7 @@ qcmp = function(q, lambda, nu, log.p = FALSE)
 
 #' @name CMP Distribution
 #' @export
-ecmp = function(lambda, nu, method = "hybrid")
+ecmp = function(lambda, nu, control = NULL)
 {
 	# If lambda and nu are vectors, assume they are not repeats of the same
 	# value and do not attempt to save time if this is the case.
@@ -171,9 +179,12 @@ ecmp = function(lambda, nu, method = "hybrid")
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)
 
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	method = control$z.method
+	ymax = control$ymax
+	hybrid.tol = control$hybrid.tol
+	truncate.tol = control$truncate.tol
 
 	# For hybrid method, use asymptotic approximation if this is true.
 	# Otherwise use truncated sum.
@@ -185,11 +196,11 @@ ecmp = function(lambda, nu, method = "hybrid")
 			# Use 1st derivative of the log-normalizing constant to compute the
 			# expected value.
 			out[i] = prep$lambda[i] * grad(ncmp, prep$lambda[i],
-				nu = prep$nu[i], log = TRUE)
+				nu = prep$nu[i], log = TRUE, control = control)
 		} else if (method == "trunc" || (method == "hybrid" && !is.approx.valid[i])) {
 			# Compute the expected value by a simple truncated sum
-			x.seq = seq(0, tcmp(prep$lambda[i], prep$nu[i]))
-			out[i] = sum(x.seq * dcmp(x.seq, prep$lambda[i], prep$nu[i]))
+			x.seq = seq(0, tcmp(prep$lambda[i], prep$nu[i], control = control))
+			out[i] = sum(x.seq * dcmp(x.seq, prep$lambda[i], prep$nu[i], control = control))
 		} else {
 			msg = sprintf("Method not recognized: %s", method)
 			stop(msg)
@@ -202,23 +213,26 @@ ecmp = function(lambda, nu, method = "hybrid")
 
 #' @name CMP Distribution
 #' @export
-vcmp = function(lambda, nu, method = "hybrid")
+vcmp = function(lambda, nu, control = NULL)
 {
 	# If lambda and nu are vectors, assume they are not repeats of the same
 	# value and do not attempt to save time if this is the case.
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)
 
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	method = control$z.method
+	ymax = control$ymax
+	hybrid.tol = control$hybrid.tol
+	truncate.tol = control$truncate.tol
 
 	# For hybrid method, use asymptotic approximation if this is true.
 	# Otherwise use truncated sum.
 	is.approx.valid = -1/prep$nu * log(prep$lambda) < log(hybrid.tol)
 
 	# Compute expected value
-	ev = ecmp(lambda, nu, method)
+	ev = ecmp(lambda, nu, control = control)
 
 	out = numeric(n)
 	for (i in 1:n) {
@@ -228,12 +242,13 @@ vcmp = function(lambda, nu, method = "hybrid")
 			# that we use `method = hybrid` for ncmp itself. This can be changed
 			# via the global options, if desired.
 			dd = prep$lambda[i]^2 * hessian(ncmp, prep$lambda[i],
-			 	nu = prep$nu[i], log = TRUE)
+			 	nu = prep$nu[i], log = TRUE, control = control)
 			out[i] = dd + ev[i]
 		} else if (method == "trunc" || (method == "hybrid" && !is.approx.valid[i])) {
 			# Compute the expected value by a simple truncated sum
-			x.seq = seq(0, tcmp(prep$lambda[i], prep$nu[i]))
-			out[i] = sum(x.seq^2 * dcmp(x.seq, prep$lambda[i], prep$nu[i])) - ev[i]^2
+			x.seq = seq(0, tcmp(prep$lambda[i], prep$nu[i], control = control))
+			f.seq = dcmp(x.seq, prep$lambda[i], prep$nu[i], control = control)
+			out[i] = sum(x.seq^2 * f.seq) - ev[i]^2
 		} else {
 			msg = sprintf("Method not recognized: %s", method)
 			stop(msg)
@@ -245,16 +260,19 @@ vcmp = function(lambda, nu, method = "hybrid")
 
 #' @name CMP Distribution
 #' @export
-ncmp = function(lambda, nu, log = FALSE, method = "hybrid")
+ncmp = function(lambda, nu, log = FALSE, control = NULL)
 {
 	# If lambda and nu are vectors, assume they are not repeats of the same
 	# value and do not attempt to save time if this is the case.
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)
 
-	ymax = getOption("COMPoissonReg.ymax")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	method = control$z.method
+	ymax = control$ymax
+	hybrid.tol = control$hybrid.tol
+	truncate.tol = control$truncate.tol
 
 	if (method == "trunc") {
 		out = z_trunc(prep$lambda, prep$nu, tol = truncate.tol, take_log = log,
@@ -274,10 +292,12 @@ ncmp = function(lambda, nu, log = FALSE, method = "hybrid")
 
 #' @name CMP Distribution
 #' @export
-tcmp = function(lambda, nu)
+tcmp = function(lambda, nu, control = NULL)
 {
-	ymax = getOption("COMPoissonReg.ymax")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	ymax = control$ymax
+	truncate.tol = control$truncate.tol
 
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)

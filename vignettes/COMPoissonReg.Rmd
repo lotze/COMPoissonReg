@@ -1,19 +1,19 @@
 ---
 title: "A Vignette for the COMPoissonReg Package"
-author: Andrew and ?
 output: 
-  pdf_document:
-    highlight: default
-    number_sections: true
-    toc: true
+  pdf_document: 
+    citation_package: natbib
+    number_sections: yes
+    toc: yes
     extra_dependencies:
       common: null
-date: "COMPoissonReg v0.8.0"
+    keep_tex: yes
+date: "`r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
 bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{A Vignette for the COMPoissonReg Package}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r, include = FALSE}
@@ -36,9 +36,6 @@ set.seed(1235)
 
 <!--
 TBD:
-- We could cite other CMP-related packages, like @combayes, @multicmp, @CompGLM,
-  @compoisson, @cmpreg, @FungEtAl2020, and @SASProcCountreg2018. Do we know
-  enough about them?
 - Make sure larger code changes are tested and documented
 	+ Helper functions and changes to main interface functions
 	+ Fixing values
@@ -52,7 +49,7 @@ TBD:
   much anymore.
 -->
 
-The `COMPoissonReg` package supports Conway-Maxwell Poisson (CMP) and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models for analysis of count data in a flexible manner, to account for data dispersion relative to the Poisson model. The package provides regression functionality in addition to basic distribution functions. Interested users can refer to @SellersShmueli2010 and @SellersRaim2016 regarding the underlying theoretical developments for the CMP and ZICMP regressions, respectively. A full specification of the public `COMPoissonReg` interface can be found in the manual. In addition to package prerequisites `Rcpp` [@Eddelbuettel2013] and `numDeriv` [@numDeriv], `ggplot2` [@Wickham2016] is also used in this vignette.
+The `COMPoissonReg` package supports Conway-Maxwell Poisson (CMP) and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models for analysis of count data in a flexible manner, to account for data dispersion relative to a Poisson model. The package provides regression functionality in addition to basic distribution functions. Interested users can refer to @SellersShmueli2010 and @SellersRaim2016 regarding the underlying theoretical developments for the CMP and ZICMP regressions, respectively. A full specification of the public `COMPoissonReg` interface can be found in the manual. In addition to package prerequisites `Rcpp` [@Eddelbuettel2013] and `numDeriv` [@numDeriv], `ggplot2` [@Wickham2016] is also used in this vignette.
 
 The remainder of the vignette proceeds as follows. Sections \ref{sec:cmp} describes functions to support the CMP distribution, including numerical handling of the normalizing constant. Section \ref{sec:zicmp} describes functions for ZICMP. Finally, Section \ref{sec:reg} demonstrates regression functions; Sections \ref{sec:cmp-reg} and \ref{sec:zicmp-reg} give specific examples based on CMP and ZICMP outcomes, respectively. The `COMPoissonReg` package is on CRAN at <https://cran.r-project.org/package=COMPoissonReg> and the source code is on Github at <https://github.com/lotze/COMPoissonReg>.
 
@@ -84,7 +81,7 @@ Z(\lambda, \nu) &= \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2
 \label{eqn:approx}
 \end{align}
 <!-- -->
-Approximations have been further studied and refined in subsequent literature; see for example @GillispieGreen2015, @DalyGaunt2016, and @GauntEtAl2019. The first term in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes as $\nu \rightarrow 0$ when $\lambda > 1$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
+Approximations have been further studied and refined in subsequent literature; see for example @GillispieGreen2015, @DalyGaunt2016, and @GauntEtAl2019. The expression in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes as $\nu \rightarrow 0$ when $\lambda > 1$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
 
 In practice, the `COMPoissonReg` package does not place constraints on $\lambda$ and $\nu$, except to ensure that they are positive, so that their values are driven by the data or the user's selection. A hybrid strategy motivated by \eqref{eqn:approx} is taken by `COMPoissonReg`. 
 
@@ -201,7 +198,7 @@ The individual terms $\lambda^r / (r!)^\nu$ in the summation may be too large to
 \label{eqn:logadd}
 \end{align}
 <!-- -->
-this is especially helpful when $0 < y << x$, as $\log x$ may be kept on the log-scale by the first term of the right-hand side of \eqref{eqn:logadd}, and the standard library function `log1p` may be used with the second term to accurately compute $\log(1 + \phi)$ for very small $\phi > 0$.
+this is especially helpful when $0 < y << x$, as $\log x$ may be kept on the log-scale by the first term of the right-hand side of \eqref{eqn:logadd}, and the standard library function `log1p` may be used to accurately compute $\log(1 + \phi)$ for very small $\phi > 0$.
 
 The tolerances $\delta$ and $\epsilon$ are specified in `COMPoissonReg` using global options `COMPoissonReg.hybrid.tol` and `COMPoissonReg.truncate.tol` respectively. Furthermore, an upper limit $y_\text{max}$ for $M$ is specified by the option `COMPoissonReg.ymax`. This is a safety measure that prevents very large computations unless the user opts to allow them. All options can be accessed using R's `getOption` function, with default values shown.
 
@@ -216,8 +213,8 @@ The `ncmp` function computes $Z(\lambda, \nu)$ and returns its value either on t
 ```{r}
 ncmp(lambda = 1.5, nu = 1.2)
 ncmp(lambda = 1.5, nu = 1.2, log = TRUE)
-ncmp(lambda = 1.5, nu = 1.2, log = TRUE, method = "approx")
-ncmp(lambda = 1.5, nu = 1.2, log = TRUE, method = "trunc")
+ncmp(lambda = 1.5, nu = 1.2, log = TRUE, control = get.control(z.method = "approx"))
+ncmp(lambda = 1.5, nu = 1.2, log = TRUE, control = get.control(z.method = "trunc"))
 ```
 
 The function `tcmp` returns the truncation value $M$ obtained from `ncmp` with `method = "trunc"`.
@@ -235,26 +232,20 @@ tryCatch({
 
 Note that `tcmp` returns `1e6` and produces a warning for the smallest `nu` value `r min(nu_seq)` because Algorithm \ref{alg:normconst-trunc} has reached `COMPoissonReg.ymax = 1e6` before the series could be bounded by a geometric series. Here, it is likely that support values with non-negligible mass are being left out. To avoid this problem, let us increase `COMPoissonReg.ymax` for the current session using R's `options` function.
 
+(TBD: briefly explain global defaults and control objects)
+
 ```{r}
 ymax.old = getOption("COMPoissonReg.ymax")  ## Save current value
 ```
 
 ```{r}
-options(COMPoissonReg.ymax = 3e6)
-tcmp(lambda = 1.5, nu = nu_seq)
+tcmp(lambda = 1.5, nu = nu_seq, control = get.control(ymax = 3e6))
 ```
 
-It is also possible to reach the second loop of Algorithm \ref{alg:normconst-trunc} where the geometric series can be used, but `COMPoissonReg.ymax` is not large enough to satisfy \eqref{eqn:adaptive-log-scale}. Here is an example where this occurs.
+It is also possible to reach the second loop of Algorithm \ref{alg:normconst-trunc} where the geometric series can be used, but `ymax` is not large enough to satisfy \eqref{eqn:adaptive-log-scale}. Here is an example where this occurs.
 
 ```{r}
-options(COMPoissonReg.ymax = 1200)
-tcmp(lambda = 1.2, nu = 0.03)
-```
-
-Let us restore the original `COMPoissonReg.ymax` value before continuing.
-
-```{r}
-options(COMPoissonReg.ymax = ymax.old)
+tcmp(lambda = 1.2, nu = 0.03, control = get.control(ymax = 1200))
 ```
 
 Now that we have a somewhat robust computation for the normalizing constant, let us create a plot of the interesting behavior when $\lambda > 1$ and $\nu$ decreases.
@@ -307,7 +298,7 @@ The CMP distribution functions compute the normalizing constant via Section \ref
 tryCatch({ rcmp(1, lambda = 2, nu = 0.01) }, warning = print_warning)
 ```
 
-The truncation method for `qcmp` can result in unreliable quantiles when the argument is very close to 1. For example, the actual quantile for probability $1$ is $\infty$, which can be expressed with no computation, but the computed quantity will be the truncation value $M$. More generally, \eqref{eqn:rel_error_bound} implies that
+The truncation method for `qcmp` can result in unreliable quantiles when the requested probability is very close to 1. For example, the actual quantile for probability $1$ is $\infty$, which can be expressed with no computation, but the computed quantity will be the truncation value $M$. More generally, \eqref{eqn:rel_error_bound} implies that
 <!-- -->
 \begin{align}
 \frac{Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu)}{Z(\lambda, \nu)} < \epsilon
@@ -343,28 +334,31 @@ px = pcmp(xx, lambda, nu)
 qx = qcmp(qq, lambda, nu)
 
 qx_emp = quantile(x, probs = qq)
+```
 
+```{r, fig.width = 3, fig.height = 3, fig.cap = "Empirical density of draws (histogram) versus density computed via the dcmp function (points)."}
 ggplot() +
 	geom_bar(data = data.frame(x = x), aes(x = x, y = ..prop..), fill = "NA",
 		col = "black") +
-	geom_point(data = data.frame(x = xx, fx = fx), aes(x, fx)) +
-	ylab("Proportion") +
-	ggtitle("Empirical Density vs. dcmp") +
+	geom_point(data = data.frame(x = xx[-1], fx = fx[-1]), aes(x, fx)) +
+	ylab("Density") +
 	theme_bw()
+```
 
+```{r, fig.width = 3, fig.height = 3, fig.cap = "Empirical CDF of draws (solid line) versus CDF computed via the pcmp function (points)."}
 ggplot() +
 	stat_ecdf(data = data.frame(x = x), aes(x), geom = "step") +
 	geom_point(data = data.frame(x = xx, px = px), aes(x, px)) +
-	ylab("Proportion") +
-	ggtitle("Empirical CDF vs. pcmp") +
+	ylab("Probability") +
 	theme_bw()
+```
 
+```{r, fig.width = 3, fig.height = 3, fig.cap = "Empirical quantiles of draws (`o`) versus quantiles computed via the qcmp function (`+`)."}
 ggplot() +
 	geom_point(data = data.frame(x = qq, qx_emp = qx_emp), aes(qq, qx_emp), pch = 1) +
 	geom_point(data = data.frame(x = qq, qx = qx), aes(qq, qx), pch = 3) +
 	xlab("Probability") +
 	ylab("Quantile") +
-	ggtitle("Empirical Quantiles vs. qcmp") +
 	theme_bw()
 ```
 
@@ -406,16 +400,16 @@ The `ecmp` and `vcmp` functions implement this computation of the expectation an
 ecmp(lambda = 10, nu = 1.2)
 ecmp(lambda = 1.5, nu = 0.5)
 ecmp(lambda = 1.5, nu = 0.05)
-ecmp(lambda = 1.5, nu = 0.05, method = "trunc")
-ecmp(lambda = 1.5, nu = 0.05, method = "approx")
+ecmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "trunc"))
+ecmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "approx"))
 ```
 
 ```{r}
 vcmp(lambda = 10, nu = 1.2)
 vcmp(lambda = 1.5, nu = 0.5)
 vcmp(lambda = 1.5, nu = 0.05)
-vcmp(lambda = 1.5, nu = 0.05, method = "trunc")
-vcmp(lambda = 1.5, nu = 0.05, method = "approx")
+vcmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "trunc"))
+vcmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "approx"))
 ```
 
 As with the `ncmp` function, `method = "approx"` explicitly requests the differentiation approach, `method = "trunc"` requests truncation, and the default `method = "hybrid"` uses condition \eqref{eqn:can_approx} to decide.
@@ -452,7 +446,7 @@ a. Finally, when $\nu \rightarrow \infty$, $\text{ZICMP}(\lambda, \nu, p)$ conve
 f(y \mid \lambda, p) = (1 - p) \left[ \lambda/(1+\lambda) \right]^y \left[ 1/(1+\lambda) \right]^{1-y} + p \cdot \ind(y = 0).
 \end{math}
 <!-- -->
-Here the $\lambda$ and $p$ parameters are not individually identifiable. Therefore, users may want to avoid zero-inflation in CMP data analyses with extreme underdispersion.
+which remains a Bernoulli distribution with an adjusted success probability. Here the $\lambda$ and $p$ parameters are not individually identifiable. Therefore, users may want to avoid zero-inflation in CMP data analyses with extreme underdispersion.
 
 ## Density, Generation, CDF, and Quantile Functions
 
@@ -518,28 +512,31 @@ px = pzicmp(xx, lambda, nu, p)
 qx = qzicmp(qq, lambda, nu, p)
 
 qx_emp = quantile(x, probs = qq)
+```
 
+```{r, fig.width = 3, fig.height = 3, fig.cap = "Empirical density of draws (histogram) versus density computed via the dzicmp function (points)."}
 ggplot() +
 	geom_bar(data = data.frame(x = x), aes(x = x, y = ..prop..), fill = "NA",
 		col = "black") +
-	geom_point(data = data.frame(x = xx, fx = fx), aes(x, fx)) +
-	ylab("Proportion") +
-	ggtitle("Empirical Density vs. dzicmp") +
+	geom_point(data = data.frame(x = xx[-1], fx = fx[-1]), aes(x, fx)) +
+	ylab("Density") +
 	theme_bw()
+```
 
+```{r, fig.width = 3, fig.height = 3, fig.cap = "Empirical CDF of draws (solid line) versus CDF computed via the pzicmp function (points)."}
 ggplot() +
 	stat_ecdf(data = data.frame(x = x), aes(x), geom = "step") +
 	geom_point(data = data.frame(x = xx, px = px), aes(x, px)) +
-	ylab("Proportion") +
-	ggtitle("Empirical CDF vs. pzicmp") +
+	ylab("Probability") +
 	theme_bw()
+```
 
+```{r, fig.width = 3, fig.height = 3, fig.cap = "Empirical quantiles of draws (`o`) versus quantiles computed via the qzicmp function (`+`)."}
 ggplot() +
 	geom_point(data = data.frame(x = qq, qx_emp = qx_emp), aes(qq, qx_emp), pch = 1) +
 	geom_point(data = data.frame(x = qq, qx = qx), aes(qq, qx), pch = 3) +
 	xlab("Probability") +
 	ylab("Quantile") +
-	ggtitle("Empirical Quantiles vs. qzicmp") +
 	theme_bw()
 ```
 
@@ -614,6 +611,8 @@ The interface contains three formulas: `formula.lambda` specifies the regression
 
 `COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\btheta}$ for $\btheta$ under the specified model. Two global options are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
 
+> TBD: Not necessarily global anymore.
+
 ```{r}
 getOption("COMPoissonReg.optim.method")
 getOption("COMPoissonReg.optim.control")
@@ -684,15 +683,8 @@ Model `cmp2.out` provides a slight improvement over `cmp.out` in AIC and BIC, bu
 To gain some insight into the optimization, we may wish to increase the trace level, which can be done as follows.
 
 ```{r}
-optim.control.old = getOption("COMPoissonReg.optim.control")
-options(COMPoissonReg.optim.control = list(maxit = 5, trace = 3, REPORT = 1))
-cmp3.out = glm.cmp(broken ~ transfers, data = freight)
-```
-
-We will return to the default options before we proceed.
-
-```{r}
-options(COMPoissonReg.optim.control = optim.control.old)
+control = get.control(optim.control = list(maxit = 5, trace = 3, REPORT = 1))
+cmp3.out = glm.cmp(broken ~ transfers, data = freight, control = control)
 ```
 
 Data from the local environment may be passed to the `glm.cmp` function without explicitly using the `data` argument.
@@ -725,9 +717,8 @@ For users who wish to bypass the formula interface and prepare the $\vec{X}$ and
 y = freight$broken
 X = model.matrix(~ transfers, data = freight)
 S = model.matrix(~ 1, data = freight)
-off.x = rep(13, nrow(freight))
-off.s = rep(1, nrow(freight))
-cmp.raw.out = glm.cmp.raw(y, X, S, off = get.offset(x = off.x, s = off.s))
+offs = get.offset(x = rep(13, nrow(freight)), s = rep(1, nrow(freight)))
+cmp.raw.out = glm.cmp.raw(y, X, S, offset = offs)
 ```
 
 Several accessors are provided to extract results from the output object.
@@ -767,7 +758,7 @@ predict(cmp.raw.out, newdata = new.data)
 # Compute predictions for links
 predict(cmp.out, newdata = new.df, type = "link")
 
-# TBD: Plot predictions
+# Plot predictions
 ggplot() +
 	geom_point(data = new.df, aes(transfers, y.hat.new)) +
 	xlab("Number of transfers") +
@@ -788,7 +779,7 @@ res.raw = residuals(cmp.out)
 res.qtl = residuals(cmp.out, type = "quantile")
 ```
 
-Pearson residuals may be preferred over raw residuals for diagnostics; these can be obtained by standardizing raw residuals using leverage values and variance estimates. (TBD: Kim may want to check this).
+Pearson residuals may be preferred over raw residuals for diagnostics; these can be obtained by standardizing raw residuals using leverage values and variance estimates.
 
 ```{r}
 link.hat = predict(cmp.out, type = "link")
@@ -902,24 +893,19 @@ glm.cmp(UPB ~ EDUCATION + ANXIETY,
 
 There are now three sets of coefficients reported in the output: the `X:`, `S:`, and `W:` prefixes label estimates for the $\lambda_i$, $\nu_i$, and $p_i$ formulas respectively.
 
-The AIC of the ZICMP model is drastically smaller than the Poisson model, indicating a greatly improved fit. The estimate for $\gamma_0$ is a large negative number, which can sometimes lead to issues with infinite values when using the `L-BFGS-B` optimization method. Another apparent issue is the extremely large value of the SE associated with $\gamma_0$, despite $\nu$ having an estimate of zero with a small SE.
+The AIC of the ZICMP model is drastically smaller than the Poisson model, indicating a greatly improved fit. The estimate for $\gamma_0$ is a large negative number, which can sometimes lead to issues with infinite values when using the `L-BFGS-B` optimization method. Another apparent numerical issue is the extremely large value of the SE associated with $\gamma_0$, despite $\nu$ having an estimate of zero with a small SE.
 
 We will change several options for the remainder of the example to avoid these numerical issues. We will switch to the derivative-free `Nelder-Mead` optimizer and increase the maximum number of iterations to allow for its slower convergence. We will also request a smaller tolerance for the truncation method of computing the normalizing constant; this is needed because criteria \eqref{eqn:can_approx} may not be satisfied as the estimate for $\nu$ is rather small but estimates for $\lambda_i$ are also not much larger than 1.
 
 
 ```{r}
-options(COMPoissonReg.truncate.tol = 1e-7)
-options(COMPoissonReg.optim.method = 'Nelder-Mead')
-options(COMPoissonReg.optim.control = list(maxit = 10000))
-```
-
-Let us rerun the previous example as-is.
-
-```{r}
+control = get.control(truncate.tol = 1e-7,
+	optim.method = 'Nelder-Mead',
+	optim.control = list(maxit = 10000))
 zicmp1.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
 	formula.nu = ~ 1,
 	formula.p = ~ EDUCATION + ANXIETY,
-	data = couple)
+	data = couple, control = control)
 print(zicmp1.out)
 ```
 
@@ -942,16 +928,18 @@ W = model.matrix(~ EDUCATION + ANXIETY, data = couple)
 # Start with estimates from previous (zicmp.out) fit
 init2 = coef(zicmp1.out, type = "list")
 zicmp2.out = glm.zicmp.raw(y, X, S, W,
-	init = get.init(beta = init2$beta, gamma = init2$gamma, zeta = init2$zeta))
+	init = get.init(beta = init2$beta, gamma = init2$gamma, zeta = init2$zeta),
+	control = control)
 print(zicmp2.out)
 ```
 
+> TBD: Just use a geometric model for this regression.
 
 ```{r}
 init3 = coef(zicmp2.out, type = "list")
 zicmp.out = glm.zicmp.raw(y, X, S, W,
 	init = get.init(beta = init3$beta, gamma = -Inf, zeta = init3$zeta),
-	fixed = get.fixed(gamma = c(1)))
+	fixed = get.fixed(gamma = 1L))
 print(zicmp.out)
 ```
 
@@ -967,7 +955,7 @@ as well.
 zicmp1.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
 	formula.nu = ~ EDUCATION + ANXIETY,
 	formula.p = ~ EDUCATION + ANXIETY,
- 	data = couple)
+ 	data = couple, control = control)
 print(zicmp1.out)
 print(zicmp1.out$opt.res$counts)
 print(zicmp1.out$opt.res$convergence)
@@ -988,6 +976,7 @@ vcov(zicmp.out)                 ## Estimated covariance matrix of theta hat
 sdev(zicmp.out)                 ## Standard deviations from vcov(...) diagonals
 sdev(zicmp.out, type = "list")  ## Standard deviations as a named list
 equitest(zicmp.out)             ## Likelihood ratio test for H_0: gamma = 0
+equitest(zicmp1.out)            ## Try again on model without fixed gamma
 ```
 
 Because we fixed $\gamma = -\infty$, the `equitest` function returns a message instead of carrying out the equidispersion test and returning the result.

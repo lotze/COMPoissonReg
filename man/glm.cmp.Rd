@@ -11,6 +11,7 @@ glm.cmp(
   data = NULL,
   init = NULL,
   fixed = NULL,
+  control = NULL,
   ...
 )
 }
@@ -26,6 +27,9 @@ default, is taken to be only an intercept.}
 
 \item{data}{An optional data.frame with variables to be used with regression
 formulas. Variables not found here are read from the envionment.}
+
+\item{control}{a \code{COMPoissonReg.control} object from \code{get.control}
+or \code{NULL} to use global default.}
 
 \item{...}{other arguments, such as \code{subset} and \code{na.action}.}
 

@@ -43,15 +43,11 @@ summary.zicmp = function(object, ...)
 
 	# We need the indices of the fixed coefficients and the ones included in
 	# optimization.
-	fixed.beta = object$fixed.beta
-	fixed.gamma = object$fixed.gamma
-	fixed.zeta = object$fixed.zeta
-	unfixed.beta = object$unfixed.beta
-	unfixed.gamma = object$unfixed.gamma
-	unfixed.zeta = object$unfixed.zeta
-	idx.par1 = seq_along(unfixed.beta)
-	idx.par2 = seq_along(unfixed.gamma) + length(unfixed.beta)
-	idx.par3 = seq_along(unfixed.zeta) + length(unfixed.beta) +  length(unfixed.gamma)
+	fixed = object$fixed
+	unfixed = object$unfixed
+	idx.par1 = seq_along(unfixed$beta)
+	idx.par2 = seq_along(unfixed$gamma) + length(unfixed$beta)
+	idx.par3 = seq_along(unfixed$zeta) + length(unfixed$beta) +  length(unfixed$gamma)
 
 	V = vcov(object)
 	est = coef(object)
@@ -59,9 +55,9 @@ summary.zicmp = function(object, ...)
 	# In the vector of SEs, include an NA entry if the variable was fixed
 	# This NA will propagate to the corresponding z-value and p-value as well.
 	se = rep(NA, qq)
-	se[unfixed.beta] = sdev(object)[idx.par1]
-	se[unfixed.gamma + d1] = sdev(object)[idx.par2]
-	se[unfixed.zeta + d1 + d2] = sdev(object)[idx.par3]
+	se[unfixed$beta] = sdev(object)[idx.par1]
+	se[unfixed$gamma + d1] = sdev(object)[idx.par2]
+	se[unfixed$zeta + d1 + d2] = sdev(object)[idx.par3]
 
 	z.val = est / se
 	p.val = 2*pnorm(-abs(z.val))
@@ -90,8 +86,8 @@ summary.zicmp = function(object, ...)
 	# for the Jacobian and Hessian. If one of the intercepts was fixed, it should
 	# result in an SE of zero.
 	
-	if (is.intercept.only(object$X) && is.zero.matrix(object$off.x)) {
-		if (length(fixed.beta) > 0) {
+	if (is.intercept.only(object$X) && is.zero.matrix(object$offset$x)) {
+		if (length(fixed$beta) > 0) {
 			se = 0
 		} else {
 			J = c(exp(object$beta), numeric(length(idx.par2)), numeric(length(idx.par3)))
@@ -105,8 +101,8 @@ summary.zicmp = function(object, ...)
 		rownames(DF.lambda) = "lambda"
 	}
 
-	if (is.intercept.only(object$S) && is.zero.matrix(object$off.s)) {
-		if (length(fixed.gamma) > 0) {
+	if (is.intercept.only(object$S) && is.zero.matrix(object$offset$s)) {
+		if (length(fixed$gamma) > 0) {
 			se = 0
 		} else {
 			J = c(numeric(length(idx.par1)), exp(object$gamma), numeric(rep(length(idx.par3))))
@@ -119,8 +115,8 @@ summary.zicmp = function(object, ...)
 		rownames(DF.nu) = "nu"
 	}
 
-	if (is.intercept.only(object$W) && is.zero.matrix(object$off.w)) {
-		if (length(fixed.zeta) > 0) {
+	if (is.intercept.only(object$W) && is.zero.matrix(object$offset$w)) {
+		if (length(fixed$zeta) > 0) {
 			se = 0
 		} else {
 			J = c(numeric(length(idx.par1)), numeric(length(idx.par2)), dlogis(object$zeta))
@@ -139,7 +135,7 @@ summary.zicmp = function(object, ...)
 		loglik = logLik(object),
 		aic = AIC(object),
 		bic = BIC(object),
-		optim.method = object$optim.method,
+		optim.method = object$control$optim.method,
 		opt.message = object$opt.res$message,
 		opt.convergence = object$opt.res$convergence,
 		elapsed.sec = object$elapsed.sec
@@ -242,12 +238,10 @@ sdev.zicmp = function(object, type = c("vector", "list"), ...)
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
 	d3 = ncol(object$W)
-	unfixed.beta = sort(setdiff(seq_len(d1), object$fixed.beta))
-	unfixed.gamma = sort(setdiff(seq_len(d2), object$fixed.gamma))
-	unfixed.zeta = sort(setdiff(seq_len(d3), object$fixed.zeta))
-	idx.par1 = seq_along(object$unfixed.beta)
-	idx.par2 = seq_along(object$unfixed.gamma) + length(object$unfixed.beta)
-	idx.par3 = seq_along(object$unfixed.zeta) + length(object$unfixed.beta) +  length(object$unfixed.gamma)
+	unfixed = object$unfixed
+	idx.par1 = seq_along(unfixed$beta)
+	idx.par2 = seq_along(unfixed$gamma) + length(unfixed$beta)
+	idx.par3 = seq_along(unfixed$zeta) + length(unfixed$beta) +  length(unfixed$gamma)
 
 	sd.hat = sqrt(diag(vcov(object)))
 
@@ -257,9 +251,9 @@ sdev.zicmp = function(object, type = c("vector", "list"), ...)
 		sd.beta = rep(NA, d1)
 		sd.gamma = rep(NA, d2)
 		sd.zeta = rep(NA, d3)
-		sd.beta[unfixed.beta] = sd.hat[idx.par1]
-		sd.gamma[unfixed.gamma] = sd.hat[idx.par2]
-		sd.zeta[unfixed.zeta] = sd.hat[idx.par3]
+		sd.beta[unfixed$beta] = sd.hat[idx.par1]
+		sd.gamma[unfixed$gamma] = sd.hat[idx.par2]
+		sd.zeta[unfixed$zeta] = sd.hat[idx.par3]
 		out = list(beta = sd.beta, gamma = sd.gamma, zeta = sd.zeta)
 	} else {
 		stop("Unrecognized type")
@@ -288,20 +282,16 @@ equitest.zicmp = function(object, ...)
 	X = object$X
 	S = object$S
 	W = object$W
-	beta.init = object$beta.init
-	zeta.init = object$zeta.init
-	off.x = object$off.x
-	off.s = object$off.s
-	off.w = object$off.w
-	fixed.beta = object$fixed.beta
-	fixed.gamma = object$fixed.gamma
-	fixed.zeta = object$fixed.zeta
+	init = object$init
+	offset = object$offset
+	fixed = object$fixed
+	control = object$control
 	ll = object$loglik
 
 	# If any elements of gamma have been fixed, an "equidispersion" test no
 	# longer makes sense. Unless the values were fixed at zeroes. But let's
 	# avoid this this complication.
-	if (length(fixed.gamma) > 0) {
+	if (length(fixed$gamma) > 0) {
 		msg = c("Chi-squared test for equidispersion not run",
 			"(Some elements of gamma were fixed)")
 		return(msg)
@@ -312,12 +302,10 @@ equitest.zicmp = function(object, ...)
 
 	# Null model is ZICMP with nu determined by the offset off.s. If off.s happens
 	# to be zeros, this simplifies to a Poisson regression.
-	S0 = matrix(0, n, 0)
-	gamma0 = numeric(0)
-	fit0.out = fit.zicmp.reg(y, X, S0, W, beta.init = beta.init,
-		gamma.init = gamma0, zeta.init = zeta.init, off.x = off.x,
-		off.s = off.s, off.w = off.w, fixed.beta = fixed.beta,
-		fixed.gamma = fixed.gamma, fixed.zeta = fixed.zeta)
+	fit0.out = fit.zicmp.reg(y, X, S, W, offset = offset,
+		init = get.init(beta = object$beta, gamma = numeric(d2), zeta = object$zeta),
+		fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2), zeta = fixed$zeta),
+		control = control)
 	ll0 = fit0.out$loglik
 
 	X2 = -2 * (ll0 - ll)
@@ -329,39 +317,62 @@ equitest.zicmp = function(object, ...)
 #' @export
 deviance.zicmp = function(object, ...)
 {
+	browser()
+
 	y = object$y
 	X = object$X
 	S = object$S
 	W = object$W
 	n = length(y)
-	d1 = ncol(X)
-	d2 = ncol(S)
-	d3 = ncol(W)
-	off.x = object$off.x
-	off.s = object$off.s
-	off.w = object$off.w
+	# d1 = ncol(X)
+	# d2 = ncol(S)
+	# d3 = ncol(W)
+	fixed = object$fixed
+	offset = object$offset
+	control = object$control
 
-	par.hat = c(object$beta, object$gamma, object$zeta)
-	par.init = par.hat
-	ll = numeric(n)
+	# par.hat = c(object$beta, object$gamma, object$zeta)
+	# init = get.init(beta = object$beta, gamma = object$gamma, zeta = object$zeta)
+	# par.init = par.hat
 	ll.star = numeric(n)
 
 	for (i in 1:n) {
-		loglik = function(par){
-			beta = par[1:d1]
-			gamma = par[1:d2 + d1]
-			zeta = par[1:d3 + d1 + d2]
-			out = fitted.zicmp.internal(X[i,], S[i,], W[i,], beta, gamma, zeta,
-				off.x[i], off.s[i], off.w[i])
-			dzicmp(y[i], out$lambda, out$nu, out$p, log = TRUE)
-		}
+		# loglik = function(par){
+		#	beta = par[1:d1]
+		#	gamma = par[1:d2 + d1]
+		#	zeta = par[1:d3 + d1 + d2]
+		#	out = fitted.zicmp.internal(X[i,], S[i,], W[i,], beta, gamma, zeta,
+		#		offset$x[i], offset$s[i], offset$w[i])
+		#	dzicmp(y[i], out$lambda, out$nu, out$p, log = TRUE)
+		# }
 
 		# Maximize loglik for ith obs
-		res = optim(par.init, loglik, control = list(fnscale = -1))
-		ll.star[i] = res$value
+		# res = optim(par.init, loglik, control = list(fnscale = -1))
+		# ll.star[i] = res$value
 
-		# loglik maximized over all the obs, evaluated for ith obs
-		ll[i] = loglik(par.hat)
+		# Maximize loglik for ith obs
+		# glm.out = glm.zicmp.raw(y[i], X[i,], S[i,], W[i,],
+		#	offset = get.offset(x = offset$x[i], s = offset$s[i], w = offset$w[i]),
+		#	init = par.hat, fixed = fixed, control = control)
+		
+		glm.out = fit.zicmp.reg(y[i],
+			X = X[i,,drop = FALSE],
+			S = S[i,,drop = FALSE],
+			W = W[i,,drop = FALSE],
+			init = get.init(beta = object$beta, gamma = numeric(d2), zeta = object$zeta),
+			offset = get.offset(x = offset$x[i], s = offset$s[i], w = offset$w[i]),
+			fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2), zeta = fixed$zeta),
+			control = control)
+		ll.star[i] = glm.out$opt.res$value
+	}
+
+	# Compute exact deviances
+	ll = numeric(n)
+	out = fitted.zicmp.internal(X, S, W, object$beta, object$gamma,
+		object$zeta, offset$x, offset$s, offset$w)
+	for (i in 1:n) {
+		ll[i] = dzicmp(y[i], out$lambda[i], out$nu[i], out$p[i], log = TRUE,
+			control = control)
 	}
 
 	dev = -2 * (ll - ll.star)
@@ -375,14 +386,16 @@ deviance.zicmp = function(object, ...)
 residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 {
 	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
-		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
+		object$gamma, object$zeta, object$offset$x, object$offset$s,
+		object$offset$w)
 
 	type = match.arg(type)
 	if (type == "raw") {
-		y.hat = ezicmp(out$lambda, out$nu, out$p)
+		y.hat = ezicmp(out$lambda, out$nu, out$p, control = object$control)
 		res = object$y - y.hat
 	} else if (type == "quantile") {
-		res = rqres.zicmp(object$y, out$lambda, out$nu, out$p)
+		res = rqres.zicmp(object$y, out$lambda, out$nu, out$p,
+			control = object$control)
 	} else {
 		stop("Unsupported residual type")
 	}
@@ -392,9 +405,9 @@ residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-get.zicmp.newdata = function(X, S, W, off.x = NULL, off.s = NULL, off.w = NULL)
+get.zicmp.newdata = function(X, S, W, offset)
 {
-	out = list(X = X, S = S, W = W, off.x = off.x, off.s = off.s, off.w = off.w)
+	out = list(X = X, S = S, W = W, offset = offset)
 	class(out) = "zicmp.newdata"
 	return(out)
 }
@@ -408,9 +421,9 @@ predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), .
 		X = object$X
 		S = object$S
 		W = object$W
-		off.x = object$off.x
-		off.s = object$off.s
-		off.w = object$off.w
+		off.x = object$offset$x
+		off.s = object$offset$s
+		off.w = object$offset$w
 	} else if (object$interface == "formula") {
 		# If the model was fit with the formula interface, attempt to process
 		# newdata as a data.frame
@@ -448,9 +461,9 @@ predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), .
 		X = newdata$X
 		S = newdata$S
 		W = newdata$W
-		off.x = newdata$off.x
-		off.s = newdata$off.s
-		off.w = newdata$off.w
+		off.x = newdata$offset$x
+		off.s = newdata$offset$s
+		off.w = newdata$offset$w
 
 		n.new = nrow(X)
 		if (is.null(off.x)) { off.x = rep(0, n.new) }
@@ -463,7 +476,7 @@ predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), .
 	link = fitted.zicmp.internal(X, S, W, object$beta,
 		object$gamma, object$zeta, off.x, off.s, off.w)
 	switch(match.arg(type),
-		response = ezicmp(link$lambda, link$nu, link$p),
+		response = ezicmp(link$lambda, link$nu, link$p, control = object$control),
 		link = data.frame(lambda = link$lambda, nu = link$nu, p = link$p)
 	)
 }
@@ -477,10 +490,12 @@ parametric.bootstrap.zicmp = function(object, reps = 1000, report.period = reps+
 	theta.boot = matrix(NA, reps, qq)
 
 	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
-		object$gamma, object$zeta, object$off.x, object$off.s, object$off.w)
+		object$gamma, object$zeta, object$offset$x, object$offset$s, object$offset$w)
 	lambda.hat = out$lambda
 	nu.hat = out$nu
 	p.hat = out$p
+
+	init = get.init(beta = object$beta, gamma = object$gamma, zeta = object$zeta)
 
 	for (r in 1:reps) {
 		if (r %% report.period == 0) {
@@ -494,10 +509,8 @@ parametric.bootstrap.zicmp = function(object, reps = 1000, report.period = reps+
 		# estimates
 		tryCatch({
 			fit.boot = fit.zicmp.reg(y.boot, object$X, object$S, object$W,
-				object$beta.init, object$gamma.init, object$zeta.init,
-				off.x = object$off.x, off.s = object$off.s, off.w = object$off.w,
-				fixed.beta = object$fixed.beta, fixed.gamma = object$fixed.gamma,
-				fixed.zeta = object$fixed.zeta)
+				init = init, offset = object$offset,	fixed = object$fixed,
+				control = object$control)
 			theta.boot[r,] = unlist(fit.boot$theta.hat)
 		},
 		error = function(e) {

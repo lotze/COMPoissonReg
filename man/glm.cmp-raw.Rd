@@ -2,22 +2,22 @@
 % Please edit documentation in R/glm.R
 \name{glm.cmp-raw}
 \alias{glm.cmp-raw}
-\alias{get.fixed}
-\alias{get.init}
-\alias{get.offset}
 \alias{glm.cmp.raw}
 \alias{glm.zicmp.raw}
 \title{Raw Interface to COM-Poisson and Zero-Inflated COM-Poisson Regression}
 \usage{
-get.fixed(beta = integer(0), gamma = integer(0), zeta = integer(0))
+glm.cmp.raw(y, X, S, offset = NULL, init = NULL, fixed = NULL, control = NULL)
 
-get.init(beta, gamma, zeta)
-
-get.offset(x, s, w)
-
-glm.cmp.raw(y, X, S, off = NULL, init = NULL, fixed = NULL)
-
-glm.zicmp.raw(y, X, S, W, off = NULL, init = NULL, fixed = NULL)
+glm.zicmp.raw(
+  y,
+  X,
+  S,
+  W,
+  offset = NULL,
+  init = NULL,
+  fixed = NULL,
+  control = NULL
+)
 }
 \arguments{
 \item{y}{A vector of counts which represent the response .}

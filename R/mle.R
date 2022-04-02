@@ -1,5 +1,4 @@
-fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init,
-	off.x, off.s, off.w, fixed.beta, fixed.gamma, fixed.zeta)
+fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 {
 	start = Sys.time()
 	u = as.integer(y == 0)
@@ -9,18 +8,33 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init,
 	n = length(y)
 	qq = d1 + d2 + d3
 
-	if (is.null(beta.init)) { beta.init = numeric(d1) }
-	if (is.null(gamma.init)) { gamma.init = numeric(d2) }
-	if (is.null(zeta.init)) { zeta.init = numeric(d3) }
-	stopifnot(d1 == length(beta.init))
-	stopifnot(d2 == length(gamma.init))
-	stopifnot(d3 == length(zeta.init))
+	# Make sure dimensions match up
+	stopifnot(n == nrow(X))
+	stopifnot(n == nrow(S))
+	stopifnot(n == nrow(W))
+	stopifnot(n == length(offset$x))
+	stopifnot(n == length(offset$s))
+	stopifnot(n == length(offset$w))
 
-	optim.method = getOption("COMPoissonReg.optim.method")
-	optim.control = getOption("COMPoissonReg.optim.control")
-	hybrid.tol = getOption("COMPoissonReg.hybrid.tol")
-	truncate.tol = getOption("COMPoissonReg.truncate.tol")
-	ymax = getOption("COMPoissonReg.ymax")
+	# Make sure fixed indices are between 1 and the corresponding dimension
+	stopifnot("glm.cmp.fixed" %in% class(fixed))
+	stopifnot(all(fixed$beta %in% seq_len(d1)))
+	stopifnot(all(fixed$gamma %in% seq_len(d2)))
+	stopifnot(all(fixed$zeta %in% seq_len(d3)))
+
+	# Make sure initial values have the correct dimension
+	stopifnot("glm.cmp.init" %in% class(init))
+	stopifnot(d1 == length(init$beta))
+	stopifnot(d2 == length(init$gamma))
+	stopifnot(d3 == length(init$zeta))
+
+	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	stopifnot("COMPoissonReg.control" %in% class(control))
+	optim.method = control$optim.method
+	optim.control = control$optim.control
+	hybrid.tol = control$hybrid.tol
+	truncate.tol = control$truncate.tol
+	ymax = control$ymax
 
 	# "par" represents the vector of optimization variables; it contains only
 	# coefficients which have not been fixed.
@@ -29,56 +43,62 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init,
 	# coefficients; these include fixed variables in addition to optimization
 	# variables. Fixed variables are assumed to be set to their initial values.
 
-	fixed.beta = sort(unique(fixed.beta))
-	fixed.gamma = sort(unique(fixed.gamma))
-	fixed.zeta = sort(unique(fixed.zeta))
-	unfixed.beta = sort(setdiff(seq_len(d1), fixed.beta))
-	unfixed.gamma = sort(setdiff(seq_len(d2), fixed.gamma))
-	unfixed.zeta = sort(setdiff(seq_len(d3), fixed.zeta))
-	idx.par1 = seq_along(unfixed.beta)
-	idx.par2 = seq_along(unfixed.gamma) + length(unfixed.beta)
-	idx.par3 = seq_along(unfixed.zeta) + length(unfixed.beta) +  length(unfixed.gamma)
+	unfixed = get.fixed(
+		beta = setdiff(seq_len(d1), fixed$beta),
+		gamma = setdiff(seq_len(d2), fixed$gamma),
+		zeta = setdiff(seq_len(d3), fixed$zeta)
+	)
+
+	idx.par1 = seq_along(unfixed$beta)
+	idx.par2 = seq_along(unfixed$gamma) + length(unfixed$beta)
+	idx.par3 = seq_along(unfixed$zeta) + length(unfixed$beta) +  length(unfixed$gamma)
 
 	# The following functions transform back and forth between the "par" and
 	# "theta" representations.
 	
 	par2theta = function(par) {
 		beta = rep(NA, d1)
-		beta[fixed.beta] = beta.init[fixed.beta]
-		beta[unfixed.beta] = par[idx.par1]
+		beta[fixed$beta] = init$beta[fixed$beta]
+		beta[unfixed$beta] = par[idx.par1]
 
 		gamma = rep(NA, d2)
-		gamma[fixed.gamma] = gamma.init[fixed.gamma]
-		gamma[unfixed.gamma] = par[idx.par2]
+		gamma[fixed$gamma] = init$gamma[fixed$gamma]
+		gamma[unfixed$gamma] = par[idx.par2]
 
 		zeta = rep(NA, d3)
-		zeta[fixed.zeta] = zeta.init[fixed.zeta]
-		zeta[unfixed.zeta] = par[idx.par3]
+		zeta[fixed$zeta] = init$zeta[fixed$zeta]
+		zeta[unfixed$zeta] = par[idx.par3]
 
 		list(beta = beta, gamma = gamma, zeta = zeta)
 	}
 
 	theta2par = function(theta) {
-		c(theta$beta[unfixed.beta], theta$gamma[unfixed.gamma], theta$zeta[unfixed.zeta])
+		c(theta$beta[unfixed$beta],
+			theta$gamma[unfixed$gamma],
+			theta$zeta[unfixed$zeta])
 	}
 
 	loglik = function(par) {
 		theta = par2theta(par)
 		out = fitted.zicmp.internal(X, S, W, theta$beta, theta$gamma,
-			theta$zeta, off.x, off.s, off.w)
+			theta$zeta, offset$x, offset$s, offset$w)
 		loglik_zicmp(y, out$lambda, out$nu, out$p, hybrid.tol, truncate.tol, ymax)
 	}
 
 	if (!is.null(optim.control$fnscale)) {
-		warning("COMPoissonReg.optim.control$fnscale disregarded and taken as -1")
+		warning("optim.control$fnscale disregarded and taken as -1")
 	}
 	optim.control$fnscale = -1
-	par.init = theta2par(list(beta = beta.init, gamma = gamma.init, zeta = zeta.init))
+	par.init = theta2par(
+		list(beta = init$beta,
+			gamma = init$gamma,
+			zeta = init$zeta)
+	)
 	res = optim(par.init, loglik, method = optim.method,
 		control = optim.control, hessian = TRUE)
 
 	# theta includes fixed values as well as optimization results.
-	
+
 	theta.hat = par2theta(res$par)
 	names(theta.hat$beta) = sprintf("X:%s", colnames(X))
 	names(theta.hat$gamma) = sprintf("S:%s", colnames(S))
@@ -90,33 +110,28 @@ fit.zicmp.reg = function(y, X, S, W, beta.init, gamma.init, zeta.init,
 	
 	H = res$hessian
 	colnames(H) = rownames(H) = c(
-		sprintf("X:%s", colnames(X)[unfixed.beta]),
-		sprintf("S:%s", colnames(S)[unfixed.gamma]),
-		sprintf("W:%s", colnames(W)[unfixed.zeta]))
+		sprintf("X:%s", colnames(X)[unfixed$beta]),
+		sprintf("S:%s", colnames(S)[unfixed$gamma]),
+		sprintf("W:%s", colnames(W)[unfixed$zeta]))
 
 	loglik = res$value
 	elapsed.sec = as.numeric(Sys.time() - start, units = "secs")
 
 	res = list(theta.hat = theta.hat, H = H, opt.res = res,
-		elapsed.sec = elapsed.sec, loglik = loglik, n = n,
-		optim.method = optim.method, optim.control = optim.control,
-		fixed.beta = fixed.beta, fixed.gamma = fixed.gamma,
-		fixed.zeta = fixed.zeta, unfixed.beta = unfixed.beta,
-		unfixed.gamma = unfixed.gamma, unfixed.zeta = unfixed.zeta)
+		control = control, elapsed.sec = elapsed.sec, loglik = loglik, n = n,
+		fixed = fixed, unfixed = unfixed)
 	return(res)
 }
 
 # This is just provided as a convenience to call fit.zicmp.reg with some dummy
 # values.
-fit.cmp.reg = function(y, X, S, beta.init, gamma.init, off.x, off.s, fixed.beta,
-	fixed.gamma)
+fit.cmp.reg = function(y, X, S, init, offset, fixed, control)
 {
 	n = length(y)
 	W = matrix(NA, n, 0)
-	zeta.init = numeric(0)
-	off.w = numeric(n)
-	fixed.zeta = integer(0)
+	init$zeta = numeric(0)
+	offset$w = numeric(n)
+	fixed$zeta = integer(0)
 
-	fit.zicmp.reg(y, X, S, W, beta.init, gamma.init, zeta.init,
-		off.x, off.s, off.w, fixed.beta, fixed.gamma, fixed.zeta)
+	fit.zicmp.reg(y, X, S, W, init, offset, fixed, control)
 }
