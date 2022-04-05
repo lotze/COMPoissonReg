@@ -2,8 +2,11 @@
 % Please edit documentation in R/glm.R
 \name{glm.cmp}
 \alias{glm.cmp}
+\alias{formula2raw}
 \title{COM-Poisson and Zero-Inflated COM-Poisson Regression}
 \usage{
+formula2raw(formula.lambda, formula.nu, formula.p, data = NULL, ...)
+
 glm.cmp(
   formula.lambda,
   formula.nu = ~1,
@@ -28,10 +31,10 @@ default, is taken to be only an intercept.}
 \item{data}{An optional data.frame with variables to be used with regression
 formulas. Variables not found here are read from the envionment.}
 
+\item{...}{other arguments, such as \code{subset} and \code{na.action}.}
+
 \item{control}{a \code{COMPoissonReg.control} object from \code{get.control}
 or \code{NULL} to use global default.}
-
-\item{...}{other arguments, such as \code{subset} and \code{na.action}.}
 
 \item{beta.init}{initial values for regression coefficients of \code{lambda}.}
 

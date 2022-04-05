@@ -32,7 +32,7 @@ NULL
 
 #' @name glm.cmp, CMP support
 #' @export
-summary.cmp = function(object, ...)
+summary.cmpfit = function(object, ...)
 {
 	n = nrow(object$X)
 	d1 = ncol(object$X)
@@ -130,7 +130,7 @@ fitted.cmp.internal = function(X, S, beta, gamma, off.x, off.s)
 
 #' @name glm.cmp, CMP support
 #' @export
-print.cmp = function(x, ...)
+print.cmpfit = function(x, ...)
 {
 	printf("CMP coefficients\n")
 	s = summary(x)
@@ -167,21 +167,21 @@ print.cmp = function(x, ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-logLik.cmp = function(object, ...)
+logLik.cmpfit = function(object, ...)
 {
 	object$loglik
 }
 
 #' @name glm.cmp, CMP support
 #' @export
-AIC.cmp = function(object, ..., k=2)
+AIC.cmpfit= function(object, ..., k=2)
 {
 	-2*object$loglik + 2*length(coef(object))
 }
 
 #' @name glm.cmp, CMP support
 #' @export
-BIC.cmp = function(object, ...)
+BIC.cmpfit = function(object, ...)
 {
 	n = length(object$y)
 	-2*object$loglik + log(n)*length(coef(object))
@@ -189,7 +189,7 @@ BIC.cmp = function(object, ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-coef.cmp = function(object, type = c("vector", "list"), ...)
+coef.cmpfit = function(object, type = c("vector", "list"), ...)
 {
 	switch(match.arg(type),
 		vector = c(object$beta, object$gamma),
@@ -199,7 +199,7 @@ coef.cmp = function(object, type = c("vector", "list"), ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-nu.cmp = function(object, ...)
+nu.cmpfit = function(object, ...)
 {
 	# This function is deprecated - use predict instead
 	.Deprecated("predict(object, type = \"link\")")
@@ -209,7 +209,7 @@ nu.cmp = function(object, ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-sdev.cmp = function(object, type = c("vector", "list"), ...)
+sdev.cmpfit = function(object, type = c("vector", "list"), ...)
 {
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
@@ -237,7 +237,7 @@ sdev.cmp = function(object, type = c("vector", "list"), ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-vcov.cmp = function(object, ...)
+vcov.cmpfit = function(object, ...)
 {
 	# Compute the covariance via Hessian from optimizer
 	-solve(object$H)
@@ -245,7 +245,7 @@ vcov.cmp = function(object, ...)
 
 #' @name equitest
 #' @export
-equitest.cmp = function(object, ...)
+equitest.cmpfit = function(object, ...)
 {
 	if ("equitest" %in% names(object)) {
 		return(object$equitest)
@@ -274,8 +274,8 @@ equitest.cmp = function(object, ...)
 	# Null model is CMP with nu determined by the offset off.s. If off.s happens
 	# to be zeros, this simplifies to a Poisson regression.
 	fit0.out = fit.cmp.reg(y, X, S, offset = offset,
-		init = get.init(beta = object$beta, gamma = numeric(d2)),
-		fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2)),
+		init = get.init(beta = object$beta, gamma = numeric(d2), zeta = numeric(0)),
+		fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2), zeta = fixed$zeta),
 		control = object$control)
 	ll0 = fit0.out$loglik
 
@@ -286,7 +286,7 @@ equitest.cmp = function(object, ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-leverage.cmp = function(object, ...)
+leverage.cmpfit = function(object, ...)
 {
 	y = object$y
 	n = length(y)
@@ -334,13 +334,14 @@ leverage.cmp = function(object, ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-deviance.cmp = function(object, ...)
+deviance.cmpfit = function(object, ...)
 {
 	# Compute the COM-Poisson deviances exactly
 	y = object$y
 	X = object$X
 	S = object$S
 	# init = object$init
+	fixed = object$fixed
 	offset = object$offset
 	control = object$control
 	n = length(y)
@@ -358,7 +359,7 @@ deviance.cmp = function(object, ...)
 			S = S[i,,drop = FALSE],
 			init = get.init(beta = object$beta, gamma = numeric(d2)),
 			offset = get.offset(x = offset$x[i], s = offset$s[i], w = offset$w[i]),
-			fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2)),
+			fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2), zeta = fixed$zeta),
 			control = control)
 		ll.star[i] = glm.out$opt.res$value
 	}
@@ -378,7 +379,7 @@ deviance.cmp = function(object, ...)
 
 #' @name glm.cmp, CMP support
 #' @export
-residuals.cmp = function(object, type = c("raw", "quantile"), ...)
+residuals.cmpfit = function(object, type = c("raw", "quantile"), ...)
 {
 	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
 		object$offset$x, object$offset$s)
@@ -397,21 +398,12 @@ residuals.cmp = function(object, type = c("raw", "quantile"), ...)
 	return(as.numeric(res))
 }
 
-#' @name glm.cmp, ZICMP support
-#' @export
-get.cmp.newdata = function(X, S, offset = get.offset())
-{
-	out = list(X = X, S = S, offset = offset)
-	class(out) = "cmp.newdata"
-	return(out)
-}
-
 #' @name glm.cmp, CMP support
 #' @export
-predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...)
+predict.cmpfit = function(object, newdata = NULL, type = c("response", "link"), ...)
 {
 	if (is.null(newdata)) {
-		# If newdata is NULL, reuse data for model fit
+		# If newdata is NULL, reuse data from model fit
 		X = object$X
 		S = object$S
 		off.x = object$offset$x
@@ -427,33 +419,20 @@ predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...
 			newdata[[response.name]] = 0
 		}
 
-		mf.x = model.frame(object$formula.lambda, data = newdata, ...)
-		mf.s = model.frame(object$formula.nu, data = newdata, ...)
-		X = model.matrix(object$formula.lambda, mf.x)
-		S = model.matrix(object$formula.nu, mf.s)
-		off.x = model.offset(mf.x)
-		off.s = model.offset(mf.s)
-
-		n.new = nrow(X)
-		if (is.null(off.x)) { off.x = rep(0, n.new) }
-		if (is.null(off.s)) { off.s = rep(0, n.new) }
-		
-		weights = model.weights(mf.x)
-		if (!is.null(weights)) {
-			stop("weights argument is currently not supported")
-		}
+		raw = formula2raw(object$formula.lambda, object$formula.nu,
+			object$formula.p, data = newdata, ...)
+		X = raw$X
+		S = raw$S
+		off.x = raw$offset$x
+		off.s = raw$offset$s
 	} else if (object$interface == "raw") {
 		# If the model was fit with the raw interface, attempt to process
 		# newdata as a list
-		stopifnot(class(newdata) == "cmp.newdata")
+		stopifnot(class(newdata) == "COMPoissonReg.modelmatrix")
 		X = newdata$X
 		S = newdata$S
 		off.x = newdata$offset$x
 		off.s = newdata$offset$s
-
-		n.new = nrow(X)
-		if (is.null(off.x)) { off.x = rep(0, n.new) }
-		if (is.null(off.s)) { off.s = rep(0, n.new) }
 	} else {
 		stop("Don't recognize value of interface")
 	}
@@ -467,43 +446,47 @@ predict.cmp = function(object, newdata = NULL, type = c("response", "link"), ...
 
 #' @name glm.cmp, CMP support
 #' @export
-parametric.bootstrap.cmp = function(object, reps = 1000, report.period = reps+1, ...)
+parametric.bootstrap.cmpfit = function(object, reps = 1000, report.period = reps+1, ...)
 {
-	browser()
 	n = nrow(object$X)
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
 	qq = d1 + d2
 
-	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma, object$offset$x, object$offset$s)
-	lambda.hat = out$lambda
-	nu.hat = out$nu
+	out = matrix(NA, nrow = reps, ncol = qq)
+	colnames(out) = c(colnames(object$X), colnames(object$S), recursive=TRUE)
 
-	# Generate `reps` samples, using beta.hat and nu.hat from full dataset
-	# Run CMP regression on each bootstrap sample to generate new beta and nu estimates
+	fitted.out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
+		object$offset$x, object$offset$s)
+	lambda.hat = fitted.out$lambda
+	nu.hat = fitted.out$nu
 
-	boot.out = matrix(NA, nrow = reps, ncol = qq)
+	init = get.init(beta = object$beta, gamma = object$gamma)
 
 	for (r in 1:reps){
 		if (r %% report.period == 0) {
 			logger("Starting bootstrap rep %d\n", r)
 		}
-		y.boot = rcmp(n, lambda.hat, nu.hat)
+
+		# Generate bootstrap samples of the full dataset using MLE
+		y.boot = rcmp(n, lambda.hat, nu.hat, control = object$control)
+
+		# Take each of the bootstrap samples and fit model to generate bootstrap
+		# estimates
 		tryCatch({
-			res = fit.cmp.reg(y = y.boot, X = object$X, S = object$S,
-				init = get.init(beta = object$beta, gamma = object$gamma),
-				offset = object$offset, fixed = object$fixed, control = object$control)
-			boot.out[r,] = unlist(res$theta.hat)
+			fit.boot = fit.cmp.reg(y = y.boot, X = object$X, S = object$S,
+				init = init, offset = object$offset, fixed = object$fixed,
+				control = object$control)
+			out[r,] = unlist(fit.boot$theta.hat)
 		}, error = function(e) {
 			# Do nothing now; emit a warning later
 		})
 	}
 
-	cnt = sum(rowSums(is.na(boot.out)) > 0)
+	cnt = sum(rowSums(is.na(out)) > 0)
 	if (cnt > 0) {
 		warning(sprintf("%d out of %d bootstrap iterations failed", cnt, reps))
 	}
 
-	colnames(boot.out) = c(colnames(object$X), colnames(object$S), recursive=TRUE)
-	return(boot.out)
+	return(out)
 }

@@ -2,15 +2,15 @@
 % Please edit documentation in R/S3methods.R, R/cmp-reg.R, R/zicmp-reg.R
 \name{equitest}
 \alias{equitest}
-\alias{equitest.cmp}
-\alias{equitest.zicmp}
+\alias{equitest.cmpfit}
+\alias{equitest.zicmpfit}
 \title{Equidispersion Test}
 \usage{
 equitest(object, ...)
 
-\method{equitest}{cmp}(object, ...)
+\method{equitest}{cmpfit}(object, ...)
 
-\method{equitest}{zicmp}(object, ...)
+\method{equitest}{zicmpfit}(object, ...)
 }
 \arguments{
 \item{object}{a model object}

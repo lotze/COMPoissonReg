@@ -33,7 +33,7 @@ NULL
 
 #' @name glm.cmp, ZICMP support
 #' @export
-summary.zicmp = function(object, ...)
+summary.zicmpfit = function(object, ...)
 {
 	n = nrow(object$X)
 	d1 = ncol(object$X)
@@ -153,7 +153,7 @@ fitted.zicmp.internal = function(X, S, W, beta, gamma, zeta, off.x, off.s, off.w
 
 #' @name glm.cmp, ZICMP support
 #' @export
-print.zicmp = function(x, ...)
+print.zicmpfit = function(x, ...)
 {
 	printf("ZICMP coefficients\n")
 	s = summary(x)
@@ -190,21 +190,21 @@ print.zicmp = function(x, ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-logLik.zicmp = function(object, ...)
+logLik.zicmpfit = function(object, ...)
 {
 	object$loglik
 }
 
 #' @name glm.cmp, ZICMP support
 #' @export
-AIC.zicmp = function(object, ..., k = 2)
+AIC.zicmpfit = function(object, ..., k = 2)
 {
 	-2*object$loglik + 2*length(coef(object))
 }
 
 #' @name glm.cmp, ZICMP support
 #' @export
-BIC.zicmp = function(object, ...)
+BIC.zicmpfit = function(object, ...)
 {
 	n = length(object$y)
 	-2*object$loglik + log(n)*length(coef(object))
@@ -212,7 +212,7 @@ BIC.zicmp = function(object, ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-coef.zicmp = function(object, type = c("vector", "list"), ...)
+coef.zicmpfit = function(object, type = c("vector", "list"), ...)
 {
 	switch(match.arg(type),
 		vector = c(object$beta, object$gamma, object$zeta),
@@ -223,7 +223,7 @@ coef.zicmp = function(object, type = c("vector", "list"), ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-nu.zicmp = function(object, ...)
+nu.zicmpfit = function(object, ...)
 {
 	# This function is deprecated - use predict instead
 	.Deprecated("predict(object, type = \"link\")")
@@ -233,7 +233,7 @@ nu.zicmp = function(object, ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-sdev.zicmp = function(object, type = c("vector", "list"), ...)
+sdev.zicmpfit = function(object, type = c("vector", "list"), ...)
 {
 	d1 = ncol(object$X)
 	d2 = ncol(object$S)
@@ -264,7 +264,7 @@ sdev.zicmp = function(object, type = c("vector", "list"), ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-vcov.zicmp = function(object, ...)
+vcov.zicmpfit = function(object, ...)
 {
 	# Compute the covariance via Hessian from optimizer
 	-solve(object$H)
@@ -272,7 +272,7 @@ vcov.zicmp = function(object, ...)
 
 #' @name equitest
 #' @export
-equitest.zicmp = function(object, ...)
+equitest.zicmpfit = function(object, ...)
 {
 	if ("equitest" %in% names(object)) {
 		return(object$equitest)
@@ -315,7 +315,7 @@ equitest.zicmp = function(object, ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-deviance.zicmp = function(object, ...)
+deviance.zicmpfit = function(object, ...)
 {
 	browser()
 
@@ -383,7 +383,7 @@ deviance.zicmp = function(object, ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
+residuals.zicmpfit = function(object, type = c("raw", "quantile"), ...)
 {
 	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
 		object$gamma, object$zeta, object$offset$x, object$offset$s,
@@ -405,16 +405,7 @@ residuals.zicmp = function(object, type = c("raw", "quantile"), ...)
 
 #' @name glm.cmp, ZICMP support
 #' @export
-get.zicmp.newdata = function(X, S, W, offset)
-{
-	out = list(X = X, S = S, W = W, offset = offset)
-	class(out) = "zicmp.newdata"
-	return(out)
-}
-
-#' @name glm.cmp, ZICMP support
-#' @export
-predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), ...)
+predict.zicmpfit = function(object, newdata = NULL, type = c("response", "link"), ...)
 {
 	if (is.null(newdata)) {
 		# If newdata is NULL, reuse data for model fit
@@ -435,40 +426,24 @@ predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), .
 			newdata[[response.name]] = 0
 		}
 
-		mf.x = model.frame(object$formula.lambda, data = newdata, ...)
-		mf.s = model.frame(object$formula.nu, data = newdata, ...)
-		mf.w = model.frame(object$formula.p, data = newdata, ...)
-		X = model.matrix(object$formula.lambda, mf.x)
-		S = model.matrix(object$formula.nu, mf.s)
-		W = model.matrix(object$formula.p, mf.w)
-		off.x = model.offset(mf.x)
-		off.s = model.offset(mf.s)
-		off.w = model.offset(mf.w)
-
-		n.new = nrow(X)
-		if (is.null(off.x)) { off.x = rep(0, n.new) }
-		if (is.null(off.s)) { off.s = rep(0, n.new) }
-		if (is.null(off.w)) { off.w = rep(0, n.new) }
-
-		weights = model.weights(mf.x)
-		if(!is.null(weights)) {
-			stop("weights argument is currently not supported")
-		}
+		raw = formula2raw(object$formula.lambda, object$formula.nu,
+			object$formula.p, data = newdata, ...)
+		X = raw$X
+		S = raw$S
+		W = raw$W
+		off.x = raw$offset$x
+		off.s = raw$offset$s
+		off.w = raw$offset$w
 	} else if (object$interface == "raw") {
 		# If the model was fit with the raw interface, attempt to process
 		# newdata as a list
-		stopifnot(class(newdata) == "zicmp.newdata")
+		stopifnot(class(newdata) == "COMPoissonReg.modelmatrix")
 		X = newdata$X
 		S = newdata$S
 		W = newdata$W
 		off.x = newdata$offset$x
 		off.s = newdata$offset$s
 		off.w = newdata$offset$w
-
-		n.new = nrow(X)
-		if (is.null(off.x)) { off.x = rep(0, n.new) }
-		if (is.null(off.s)) { off.s = rep(0, n.new) }
-		if (is.null(off.w)) { off.w = rep(0, n.new) }
 	} else {
 		stop("Don't recognize value of interface")
 	}
@@ -483,17 +458,24 @@ predict.zicmp = function(object, newdata = NULL, type = c("response", "link"), .
 
 #' @name glm.cmp, ZICMP support
 #' @export
-parametric.bootstrap.zicmp = function(object, reps = 1000, report.period = reps+1, ...)
+parametric.bootstrap.zicmpfit = function(object, reps = 1000, report.period = reps+1, ...)
 {
 	n = length(object$y)
 	qq = length(object$beta) + length(object$gamma) + length(object$zeta)
-	theta.boot = matrix(NA, reps, qq)
 
-	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
-		object$gamma, object$zeta, object$offset$x, object$offset$s, object$offset$w)
-	lambda.hat = out$lambda
-	nu.hat = out$nu
-	p.hat = out$p
+	out = matrix(NA, reps, qq)
+	colnames(out) = c(
+		sprintf("X:%s", colnames(object$X)),
+		sprintf("S:%s", colnames(object$S)),
+		sprintf("W:%s", colnames(object$W))
+	)
+
+	fitted.out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
+		object$gamma, object$zeta, object$offset$x, object$offset$s,
+		object$offset$w)
+	lambda.hat = fitted.out$lambda
+	nu.hat = fitted.out$nu
+	p.hat = fitted.out$p
 
 	init = get.init(beta = object$beta, gamma = object$gamma, zeta = object$zeta)
 
@@ -508,26 +490,20 @@ parametric.bootstrap.zicmp = function(object, reps = 1000, report.period = reps+
 		# Take each of the bootstrap samples and fit model to generate bootstrap
 		# estimates
 		tryCatch({
-			fit.boot = fit.zicmp.reg(y.boot, object$X, object$S, object$W,
-				init = init, offset = object$offset,	fixed = object$fixed,
-				control = object$control)
-			theta.boot[r,] = unlist(fit.boot$theta.hat)
+			fit.boot = fit.zicmp.reg(y = y.boot, X = object$X, S = object$S,
+				W = object$W, init = init, offset = object$offset,
+				fixed = object$fixed, control = object$control)
+			out[r,] = unlist(fit.boot$theta.hat)
 		},
 		error = function(e) {
 			# Do nothing now; emit a warning later
 		})
 	}
 
-	cnt = sum(rowSums(is.na(theta.boot)) > 0)
+	cnt = sum(rowSums(is.na(out)) > 0)
 	if (cnt > 0) {
 		warning(sprintf("%d out of %d bootstrap iterations failed", cnt, reps))
 	}
 
-	colnames(theta.boot) = c(
-		sprintf("X:%s", colnames(object$X)),
-		sprintf("S:%s", colnames(object$S)),
-		sprintf("W:%s", colnames(object$W))
-	)
-
-	return(theta.boot)
+	return(out)
 }

@@ -200,15 +200,30 @@ The individual terms $\lambda^r / (r!)^\nu$ in the summation may be too large to
 <!-- -->
 this is especially helpful when $0 < y << x$, as $\log x$ may be kept on the log-scale by the first term of the right-hand side of \eqref{eqn:logadd}, and the standard library function `log1p` may be used to accurately compute $\log(1 + \phi)$ for very small $\phi > 0$.
 
-The tolerances $\delta$ and $\epsilon$ are specified in `COMPoissonReg` using global options `COMPoissonReg.hybrid.tol` and `COMPoissonReg.truncate.tol` respectively. Furthermore, an upper limit $y_\text{max}$ for $M$ is specified by the option `COMPoissonReg.ymax`. This is a safety measure that prevents very large computations unless the user opts to allow them. All options can be accessed using R's `getOption` function, with default values shown.
+Many of the functions in the user interface of `COMPoissonReg` take an optional `control` argument, which can be constructed as follows.
 
 ```{r}
-getOption("COMPoissonReg.hybrid.tol")
-getOption("COMPoissonReg.truncate.tol")
-getOption("COMPoissonReg.ymax")
+control = get.control(
+	ymax = 100000,
+	z.method = "hybrid",
+	hybrid.tol = 1e-2,
+	truncate.tol = 1e-6
+)
 ```
 
-The `ncmp` function computes $Z(\lambda, \nu)$ and returns its value either on the original scale or the log-scale. The `method` argument specifies how the computation will be carried out. The argument `method = "approx"` corresponds to \eqref{eqn:z-approx}, while `method = "trunc"` uses the truncated sum $Z^{(M)}(\lambda, \nu)$, and the default `method = "hybrid"` uses the hybrid strategy.
+The tolerances $\delta$ and $\epsilon$ are specified as `hybrid.tol` and `truncate.tol` respectively. The `z.method` argument specifies how the computation will be carried out: the argument `method = "approx"` corresponds to \eqref{eqn:z-approx}, while `method = "trunc"` uses the truncated sum $Z^{(M)}(\lambda, \nu)$, and the default `method = "hybrid"` uses the hybrid strategy. The argument `ymax` specifies upper limit $M$; this is a safety measure which prevents very large computations unless the user opts to allow them. When no control object is specified, a global default (via option `COMPoissonReg.control`) is used.
+
+```{r}
+control = getOption("COMPoissonReg.control")
+control$ymax
+control$z.method
+control$hybrid.tol
+control$truncate.tol
+```
+
+The control object contains several other useful arguments which will be discussed later.
+
+The `ncmp` function computes $Z(\lambda, \nu)$ and returns its value either on the original scale or the log-scale.
 
 ```{r}
 ncmp(lambda = 1.5, nu = 1.2)
@@ -230,13 +245,7 @@ tryCatch({
 }, warning = print_warning)
 ```
 
-Note that `tcmp` returns `1e6` and produces a warning for the smallest `nu` value `r min(nu_seq)` because Algorithm \ref{alg:normconst-trunc} has reached `COMPoissonReg.ymax = 1e6` before the series could be bounded by a geometric series. Here, it is likely that support values with non-negligible mass are being left out. To avoid this problem, let us increase `COMPoissonReg.ymax` for the current session using R's `options` function.
-
-(TBD: briefly explain global defaults and control objects)
-
-```{r}
-ymax.old = getOption("COMPoissonReg.ymax")  ## Save current value
-```
+Note that `tcmp` returns `1e6` and produces a warning for the smallest `nu` value `r min(nu_seq)` because Algorithm \ref{alg:normconst-trunc} has reached `ymax = 1e6` before the series could be bounded by a geometric series. Here, it is likely that support values with non-negligible mass are being left out. Let us increase `ymax` to avoid this problem.
 
 ```{r}
 tcmp(lambda = 1.5, nu = nu_seq, control = get.control(ymax = 3e6))
@@ -412,7 +421,7 @@ vcmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "trunc"))
 vcmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "approx"))
 ```
 
-As with the `ncmp` function, `method = "approx"` explicitly requests the differentiation approach, `method = "trunc"` requests truncation, and the default `method = "hybrid"` uses condition \eqref{eqn:can_approx} to decide.
+As with the `ncmp` function, `z.method = "approx"` explicitly requests the differentiation approach, `z.method = "trunc"` requests truncation, and the default `z.method = "hybrid"` uses condition \eqref{eqn:can_approx} to decide.
 
 Provided that an enormously large truncation value $M$ is not required, we may compute other moments by truncated sums using `tcmp`.
 
@@ -604,21 +613,33 @@ We will write $d = d_1 + d_2 + d_3$ for the total dimension of $\btheta$. The $n
 
 ```{r, eval = FALSE, prompt = FALSE}
 out = glm.cmp(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
-	data = NULL, beta.init = NULL, gamma.init = NULL, zeta.init = NULL, ...)
+	data = NULL, init = NULL, fixed = NULL, control = NULL, ...)
 ```
 
-The interface contains three formulas: `formula.lambda` specifies the regression $\vec{x}_i^\top \vec{\beta}$ used for $\lambda_i$, while `formula.nu` and `formula.p` correspond to $\vec{s}_i^\top \vec{\gamma}$ for $\nu_i$ and $\vec{w}_i^\top \vec{\zeta}$ for $p_i$, respectively. ZICMP regression is utilized when `formula.p` is set to something other than its default `NULL` value; otherwise, CMP regression is assumed. The `data` argument is used to pass a `data.frame` explicitly rather than having the data be read from the local environment. The `beta.init`, `gamma.init`, and `zeta.init` allow initial values to be passed to the optimizer for fitting. See the package manual for details about the `glm.cmp` interface.
-
-`COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\btheta}$ for $\btheta$ under the specified model. Two global options are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
-
-> TBD: Not necessarily global anymore.
+The interface contains three formulas: `formula.lambda` specifies the regression $\vec{x}_i^\top \vec{\beta}$ used for $\lambda_i$, while `formula.nu` and `formula.p` correspond to $\vec{s}_i^\top \vec{\gamma}$ for $\nu_i$ and $\vec{w}_i^\top \vec{\zeta}$ for $p_i$, respectively. ZICMP regression is utilized when `formula.p` is set to something other than its default `NULL` value; otherwise, CMP regression is assumed. The `data` argument is used to pass a `data.frame` explicitly rather than having the data be read from the local environment. The `init` argument takes an initial value for the optimizer. The following functions can be used to construct an initial value.
 
 ```{r}
-getOption("COMPoissonReg.optim.method")
-getOption("COMPoissonReg.optim.control")
+get.init(beta = c(1, 2, 3), gamma = c(-1, 1), zeta = c(-2, -1))
+get.init.zero(d1 = 3, d2 = 2, d3 = 2)
 ```
 
-The option `COMPoissonReg.optim.method` is a string which is passed as the `method` argument to `optim`, while `COMPoissonReg.optim.control` is a list passed as the `control` argument. For the latter, note that if an entry is given for `fnscale`, it will be ignored and overwritten internally by `COMPoissonReg`.
+The `fixed` argument is used to specify indices of the three coefficients which will remain fixed at their initial value during optimization. This can be useful in some circumstances but can usually be disregarded.
+
+```{r}
+get.fixed(beta = c(1L, 2L), gamma = c(1L))
+```
+
+The specification above requests the first two elements of `beta` and the first element of `gamma` to be fixed. Notice that indices must be integers and that the default value is an empty integer vector which is interpreted as "no elements are fixed". See the package manual for details about the `glm.cmp` interface.
+
+`COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\btheta}$ for $\btheta$ under the specified model. Several controls are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
+
+```{r}
+control = getOption("COMPoissonReg.control")
+control$optim.method
+control$optim.control
+```
+
+The control `optim.method` is a string which is passed as the `method` argument to `optim`, while `optim.control` is a list passed as the `control` argument of `optim`. Note that, for the latter, if an entry is given for `fnscale`, it will be ignored and overwritten internally by `COMPoissonReg`.
 
 The covariance of $\hat{\btheta}$ is estimated by $\hat{\vec{V}}(\hat{\btheta}) = -[\vec{H}(\hat{\btheta})]^{-1}$, where $\vec{H}(\btheta) = \partial^2 \log L(\btheta) / [\partial \btheta \partial \btheta^\top]$ is the Hessian of the log-likelihood computed by `optim`. The standard error for coefficient $\theta_j$ in $\btheta$ is then obtained as the square root of the $j$th diagonal of $\hat{\vec{V}}(\hat{\btheta})$.
 
@@ -741,18 +762,18 @@ predict(cmp.out)
 predict(cmp.out, type = "link")
 ```
 
-We can also use `predict` on new covariate values.
+We can also use `predict` on new covariate values. Note that models fit with the formula interface expect the new data to be provided as a data.frame which can be interpreted using the formula which was used to fit the model. If the raw interface was used to fit the model, use the `get.modelmatrix` function to specify design matrices to use for prediction.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt=FALSE}
 new.df = data.frame(transfers = 0:10)
 
-# TBD: Pass new data to formula interface
+# Pass new data to model fit by formula interface
 y.hat.new = predict(cmp.out, newdata = new.df)
 
-# TBD: Pass new data for the raw interface
+# Pass new data to model fit by raw interface
 X = model.matrix(~ transfers, data = new.df)
 S = model.matrix(~ 1, data = new.df)
-new.data = get.cmp.newdata(X = X, S = S)
+new.data = get.modelmatrix(X = X, S = S)
 predict(cmp.raw.out, newdata = new.data)
 
 # Compute predictions for links
@@ -927,9 +948,8 @@ W = model.matrix(~ EDUCATION + ANXIETY, data = couple)
 
 # Start with estimates from previous (zicmp.out) fit
 init2 = coef(zicmp1.out, type = "list")
-zicmp2.out = glm.zicmp.raw(y, X, S, W,
-	init = get.init(beta = init2$beta, gamma = init2$gamma, zeta = init2$zeta),
-	control = control)
+zicmp2.out = glm.zicmp.raw(y, X, S, W, control = control,
+	init = get.init(beta = init2$beta, gamma = init2$gamma, zeta = init2$zeta))
 print(zicmp2.out)
 ```
 
@@ -1021,13 +1041,14 @@ plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
 Here is an example of computing fitted values to new covariate data.
 
 ```{r}
-# TBD: This all needs explanation
+# Prepare new data to model fit by formula interface
 new.df = data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
 
+# Prepare new data to model fit by raw interface
 X.new = model.matrix(~ EDUCATION + ANXIETY, data = new.df)
 S.new = model.matrix(~ 1, data = new.df)
 W.new = model.matrix(~ EDUCATION + ANXIETY, data = new.df)
-new.data = get.zicmp.newdata(X.new, S.new, W.new)
+new.data = get.modelmatrix(X.new, S.new, W.new)
 
 # For the formula interface
 y.hat.new = predict(zicmp1.out, newdata = new.df)
@@ -1037,8 +1058,6 @@ head(y.hat.new)
 y.hat.new = predict(zicmp.out, newdata = new.data)
 head(y.hat.new)
 ```
-
-TBD: Added special handling of raw interface.
 
 As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\btheta}^{(r)}$ of $\btheta$ based on the estimate $\hat{\btheta}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. Again, we may use the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
 

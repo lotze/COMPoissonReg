@@ -1,12 +1,16 @@
 fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 {
 	start = Sys.time()
-	u = as.integer(y == 0)
 	d1 = ncol(X)
 	d2 = ncol(S)
 	d3 = ncol(W)
 	n = length(y)
 	qq = d1 + d2 + d3
+
+	stopifnot("COMPoissonReg.init" %in% class(init))
+	stopifnot("COMPoissonReg.offset" %in% class(offset))
+	stopifnot("COMPoissonReg.fixed" %in% class(fixed))
+	stopifnot("COMPoissonReg.control" %in% class(control))
 
 	# Make sure dimensions match up
 	stopifnot(n == nrow(X))
@@ -17,19 +21,16 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 	stopifnot(n == length(offset$w))
 
 	# Make sure fixed indices are between 1 and the corresponding dimension
-	stopifnot("glm.cmp.fixed" %in% class(fixed))
 	stopifnot(all(fixed$beta %in% seq_len(d1)))
 	stopifnot(all(fixed$gamma %in% seq_len(d2)))
 	stopifnot(all(fixed$zeta %in% seq_len(d3)))
 
 	# Make sure initial values have the correct dimension
-	stopifnot("glm.cmp.init" %in% class(init))
 	stopifnot(d1 == length(init$beta))
 	stopifnot(d2 == length(init$gamma))
 	stopifnot(d3 == length(init$zeta))
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
-	stopifnot("COMPoissonReg.control" %in% class(control))
+	# Get settings from control
 	optim.method = control$optim.method
 	optim.control = control$optim.control
 	hybrid.tol = control$hybrid.tol

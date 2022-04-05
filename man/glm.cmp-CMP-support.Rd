@@ -2,49 +2,49 @@
 % Please edit documentation in R/cmp-reg.R
 \name{glm.cmp, CMP support}
 \alias{glm.cmp, CMP support}
-\alias{summary.cmp}
-\alias{print.cmp}
-\alias{logLik.cmp}
-\alias{AIC.cmp}
-\alias{BIC.cmp}
-\alias{coef.cmp}
-\alias{nu.cmp}
-\alias{sdev.cmp}
-\alias{vcov.cmp}
-\alias{leverage.cmp}
-\alias{deviance.cmp}
-\alias{residuals.cmp}
-\alias{predict.cmp}
-\alias{parametric.bootstrap.cmp}
+\alias{summary.cmpfit}
+\alias{print.cmpfit}
+\alias{logLik.cmpfit}
+\alias{AIC.cmpfit}
+\alias{BIC.cmpfit}
+\alias{coef.cmpfit}
+\alias{nu.cmpfit}
+\alias{sdev.cmpfit}
+\alias{vcov.cmpfit}
+\alias{leverage.cmpfit}
+\alias{deviance.cmpfit}
+\alias{residuals.cmpfit}
+\alias{predict.cmpfit}
+\alias{parametric.bootstrap.cmpfit}
 \title{Supporting Functions for COM-Poisson Regression}
 \usage{
-\method{summary}{cmp}(object, ...)
+\method{summary}{cmpfit}(object, ...)
 
-\method{print}{cmp}(x, ...)
+\method{print}{cmpfit}(x, ...)
 
-\method{logLik}{cmp}(object, ...)
+\method{logLik}{cmpfit}(object, ...)
 
-\method{AIC}{cmp}(object, ..., k = 2)
+\method{AIC}{cmpfit}(object, ..., k = 2)
 
-\method{BIC}{cmp}(object, ...)
+\method{BIC}{cmpfit}(object, ...)
 
-\method{coef}{cmp}(object, type = c("vector", "list"), ...)
+\method{coef}{cmpfit}(object, type = c("vector", "list"), ...)
 
-\method{nu}{cmp}(object, ...)
+\method{nu}{cmpfit}(object, ...)
 
-\method{sdev}{cmp}(object, type = c("vector", "list"), ...)
+\method{sdev}{cmpfit}(object, type = c("vector", "list"), ...)
 
-\method{vcov}{cmp}(object, ...)
+\method{vcov}{cmpfit}(object, ...)
 
-\method{leverage}{cmp}(object, ...)
+\method{leverage}{cmpfit}(object, ...)
 
-\method{deviance}{cmp}(object, ...)
+\method{deviance}{cmpfit}(object, ...)
 
-\method{residuals}{cmp}(object, type = c("raw", "quantile"), ...)
+\method{residuals}{cmpfit}(object, type = c("raw", "quantile"), ...)
 
-\method{predict}{cmp}(object, newdata = NULL, type = c("response", "link"), ...)
+\method{predict}{cmpfit}(object, newdata = NULL, type = c("response", "link"), ...)
 
-\method{parametric.bootstrap}{cmp}(object, reps = 1000, report.period = reps + 1, ...)
+\method{parametric.bootstrap}{cmpfit}(object, reps = 1000, report.period = reps + 1, ...)
 }
 \arguments{
 \item{object}{object of type \code{cmp}.}
