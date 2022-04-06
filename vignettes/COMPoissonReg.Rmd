@@ -271,7 +271,7 @@ nc2 = ncmp(lambda = 1.05, nu = nu_seq, log = TRUE)
 nc3 = ncmp(lambda = 1.20, nu = nu_seq, log = TRUE)
 ```
 
-```{r, fig.width = 5, fig.height = 3, fig.align = "center", prompt = FALSE, fig.cap = "Log of normalizing constant for `lambda = 0.5` (`o`), `lambda = 1.05` (triangles), and `lambda = 1.20` (`+`)."}
+```{r, fig.width = 5, fig.height = 3, fig.align = "center", prompt = FALSE, fig.cap = "Log of normalizing constant for $\\lambda = 0.5$ ($\\circ$), $\\lambda = 1.05$ ($\\Delta$), and $\\lambda = 1.20$ ($+$)."}
 
 ggplot() +
 	geom_point(data = data.frame(x = nu_seq, y = nc1), aes(x = x, y = y), pch = 1) +
@@ -1036,10 +1036,10 @@ W.new = model.matrix(~ EDUCATION + ANXIETY, data = new.df)
 new.data = get.modelmatrix(X.new, S.new, W.new)
 
 # For the formula interface
-y.hat.new = predict(zicmp1.out, newdata = new.df)
+y.hat.new = predict(zicmp.out, newdata = new.df)
 
 # For the raw interface
-y.hat.new = predict(zicmp.out, newdata = new.data)
+y.hat.new = predict(zicmp0.out, newdata = new.data)
 ```
 
 ```{r}

@@ -344,37 +344,14 @@ deviance.zicmpfit = function(object, ...)
 	S = object$S
 	W = object$W
 	n = length(y)
-	# d1 = ncol(X)
-	# d2 = ncol(S)
-	# d3 = ncol(W)
 	fixed = object$fixed
 	offset = object$offset
 	control = object$control
 
-	# par.hat = c(object$beta, object$gamma, object$zeta)
-	# init = get.init(beta = object$beta, gamma = object$gamma, zeta = object$zeta)
-	# par.init = par.hat
 	ll.star = numeric(n)
 
 	for (i in 1:n) {
-		# loglik = function(par){
-		#	beta = par[1:d1]
-		#	gamma = par[1:d2 + d1]
-		#	zeta = par[1:d3 + d1 + d2]
-		#	out = fitted.zicmp.internal(X[i,], S[i,], W[i,], beta, gamma, zeta,
-		#		offset$x[i], offset$s[i], offset$w[i])
-		#	dzicmp(y[i], out$lambda, out$nu, out$p, log = TRUE)
-		# }
-
 		# Maximize loglik for ith obs
-		# res = optim(par.init, loglik, control = list(fnscale = -1))
-		# ll.star[i] = res$value
-
-		# Maximize loglik for ith obs
-		# glm.out = glm.zicmp.raw(y[i], X[i,], S[i,], W[i,],
-		#	offset = get.offset(x = offset$x[i], s = offset$s[i], w = offset$w[i]),
-		#	init = par.hat, fixed = fixed, control = control)
-		
 		glm.out = fit.zicmp.reg(y[i],
 			X = X[i,,drop = FALSE],
 			S = S[i,,drop = FALSE],
@@ -457,7 +434,7 @@ predict.zicmpfit = function(object, newdata = NULL, type = c("response", "link")
 	} else if (object$interface == "raw") {
 		# If the model was fit with the raw interface, attempt to process
 		# newdata as a list
-		stopifnot(class(newdata) == "COMPoissonReg.modelmatrix")
+		stopifnot("COMPoissonReg.modelmatrix" %in% class(newdata))
 		X = newdata$X
 		S = newdata$S
 		W = newdata$W
@@ -505,7 +482,7 @@ parametric.bootstrap.zicmpfit = function(object, reps = 1000, report.period = re
 		}
 
 		# Generate bootstrap samples of the full dataset using MLE
-		y.boot = rzicmp(n, lambda.hat, nu.hat, p.hat)
+		y.boot = rzicmp(n, lambda.hat, nu.hat, p.hat, control = object$control)
 
 		# Take each of the bootstrap samples and fit model to generate bootstrap
 		# estimates

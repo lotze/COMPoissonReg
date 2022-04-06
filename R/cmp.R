@@ -21,11 +21,9 @@
 #' \item{ecmp}{the expected value,}
 #' \item{vcmp}{the variance,}
 #' \item{ncmp}{the value of the normalizing constant, and}
-#' \item{tcmp}{the upper value to which we would truncate (see details).}
+#' \item{tcmp}{the upper value used to compute the normalizing constant under
+#' truncation method.}
 #' }
-#' 
-#' @details 
-#' TBD: tcmp
 #' 
 #' @references
 #' Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for

@@ -446,7 +446,7 @@ predict.cmpfit = function(object, newdata = NULL, type = c("response", "link"), 
 	} else if (object$interface == "raw") {
 		# If the model was fit with the raw interface, attempt to process
 		# newdata as a list
-		stopifnot(class(newdata) == "COMPoissonReg.modelmatrix")
+		stopifnot("COMPoissonReg.modelmatrix" %in% class(newdata))
 		X = newdata$X
 		S = newdata$S
 		off.x = newdata$offset$x
@@ -457,7 +457,7 @@ predict.cmpfit = function(object, newdata = NULL, type = c("response", "link"), 
 
 	link = fitted.cmp.internal(X, S, object$beta, object$gamma, off.x, off.s)
 	switch(match.arg(type),
-		response = ecmp(link$lambda, link$nu),
+		response = ecmp(link$lambda, link$nu, control = object$control),
 		link = data.frame(lambda = link$lambda, nu = link$nu)
 	)
 }

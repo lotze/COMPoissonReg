@@ -1,7 +1,7 @@
 rqres.zicmp = function(y, lambda, nu, p, control = NULL)
 {
 	F = function(y) {
-		pzicmp(y, lambda, nu, p, control)
+		pzicmp(y, lambda, nu, p, control = control)
 	}
 	rqres(y, F)
 }
@@ -9,7 +9,7 @@ rqres.zicmp = function(y, lambda, nu, p, control = NULL)
 rqres.cmp = function(y, lambda, nu, control = NULL)
 {
 	F = function(y) {
-		pcmp(y, lambda, nu, control)
+		pcmp(y, lambda, nu, control = control)
 	}
 	rqres(y, F)
 }
