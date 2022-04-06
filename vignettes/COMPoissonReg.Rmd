@@ -994,10 +994,12 @@ vcov(zicmp.out)                 ## Estimated covariance matrix of theta hat
 sdev(zicmp.out)                 ## Standard deviations from vcov(...) diagonals
 sdev(zicmp.out, type = "list")  ## Standard deviations as a named list
 equitest(zicmp.out)             ## Likelihood ratio test for H_0: gamma = 0
-equitest(zicmp0.out)            ## Try again on model without fixed gamma
+tryCatch({                      ## Try again on model without fixed gamma
+	equitest(zicmp0.out)
+}, error = print_warning)
 ```
 
-Because we fixed $\gamma = -\infty$, the `equitest` function returns a message instead of carrying out the equidispersion test and returning the result.
+Because we fixed $\gamma = -\infty$ to obtain `zicmp0.out`, the `equitest` function throws an error instead of proceeding with an equidispersion test.
 
 The `predict` function behaves similarly as in CMP regression; however, the `link` type here also includes a column with the estimated $p_i$.
 
@@ -1021,7 +1023,7 @@ plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted vs Quantile Residuals")
 plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
 ```
 
-Here is an example of computing fitted values to new covariate data.
+Here is an example of computing fitted values for new covariate data.
 
 ```{r, prompt = FALSE}
 # Prepare new data to model fit by formula interface
@@ -1044,7 +1046,7 @@ y.hat.new = predict(zicmp.out, newdata = new.data)
 print(y.hat.new)
 ```
 
-As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\btheta}^{(r)}$ of $\btheta$ based on the estimate $\hat{\btheta}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. Again, we may use the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
+As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\btheta}^{(r)}$ of $\btheta$ based on the estimate $\hat{\btheta}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. As in Section \ref{sec:cmp-reg}, we consider using the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
 
 ```{r, eval = FALSE}
 zicmp.boot = parametric.bootstrap(zicmp.out, reps = 100)

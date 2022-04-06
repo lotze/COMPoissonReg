@@ -224,8 +224,10 @@ glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, contro
 	)
 	attr(res, "class") = c("cmpfit", attr(res, "class"))
 
-	# Add the equidispersion test
-	res$equitest = equitest(res)
+	# Add the equidispersion test if no elements of gamma are fixed
+	if (length(fixed$gamma) == 0) {
+		res$equitest = equitest(res)
+	}
 
 	return(res)
 }
@@ -272,8 +274,10 @@ glm.zicmp.raw = function(y, X, S, W, offset = NULL, init = NULL, fixed = NULL, c
 	)
 	attr(res, "class") = c("zicmpfit", attr(res, "class"))
 
-	# Add the equidispersion test
-	res$equitest = equitest(res)
+	# Add the equidispersion test if no elements of gamma are fixed
+	if (length(fixed$gamma) == 0) {
+		res$equitest = equitest(res)
+	}
 
 	return(res)
 }

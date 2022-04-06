@@ -168,8 +168,15 @@ print.zicmpfit = function(x, ...)
 {
 	printf("ZICMP coefficients\n")
 	s = summary(x)
-	tt = equitest(x)
 	print(s$DF)
+	
+	if (length(x$fixed$gamma) > 0) {
+		tt = paste(collapse = " ", c(
+			"Some elements of gamma were fixed.",
+			"Chi-squared test for equidispersion not defined."))
+	} else {
+		tt = equitest(x)
+	}
 
 	if (!is.null(s$DF.lambda) || !is.null(s$DF.nu) || !is.null(s$DF.p)) {
 		printf("--\n")
@@ -303,11 +310,11 @@ equitest.zicmpfit = function(object, ...)
 
 	# If any elements of gamma have been fixed, an "equidispersion" test no
 	# longer makes sense. Unless the values were fixed at zeroes. But let's
-	# avoid this this complication.
+	# avoid this complication.
 	if (length(fixed$gamma) > 0) {
-		msg = c("Chi-squared test for equidispersion not run",
-			"(Some elements of gamma were fixed)")
-		return(msg)
+		msg = c("Some elements of gamma were fixed,",
+			"chi-squared test for equidispersion not defined")
+		stop(paste(msg, collapse = " "))
 	}
 
 	n = length(y)
