@@ -47,6 +47,9 @@
 #' Previous versions of the package used simple truncation (defaulting to 100
 #' terms), but this was found to be inaccurate in some settings.
 #' 
+#' See the package vignette for a more comprehensive guide on package use and
+#' explanations of the computations.
+#' 
 #' @author Kimberly Sellers, Thomas Lotze, Andrew M. Raim
 #' 
 #' @references
@@ -65,121 +68,6 @@
 #' Boatwright (2005). A useful distribution for fitting discrete data: revival
 #' of the Conway-Maxwell-Poisson distribution. Journal of Royal Statistical
 #' Society C, 54, 127-142.
-#' 
-#' @examples 
-#' ## load freight data
-#' data(freight)
-#' 
-#' # Fit standard Poisson model
-#' glm.out = glm(broken ~ transfers, data=freight,
-#'   family=poisson, na.action=na.exclude)
-#' print(glm.out)
-#' 
-#' # Fit COM-Poisson model (with intercept-only regression linked to the
-#' # dispersion parameter)
-#' cmp.out = glm.cmp(broken ~ transfers, data=freight)
-#' print(cmp.out)
-#' coef(cmp.out)
-#' nu(cmp.out)[1]
-#' 
-#' # Compute associated standard errors
-#' sdev(cmp.out)
-#' 
-#' # Get the full covariance matrix for the estimates
-#' vcov(cmp.out)
-#' 
-#' # Likelihood ratio test for dispersion parameter
-#' # Test for H_0: dispersion equal to 1 vs. H_1: not equal to 1
-#' # (i.e. Poisson vs. COM-Poisson regression models)
-#' lrt = equitest(cmp.out)
-#' 
-#' # Compute constant COM-Poisson leverage
-#' lev = leverage(cmp.out)
-#' 
-#' \dontrun{
-#' # Compute constant COM-Poisson deviances
-#' dev = deviance(cmp.out)
-#' }
-#' 
-#' # Compute fitted values
-#' y.hat = predict(cmp.out, newdata=freight)
-#' 
-#' # Compute residual values
-#' res = residuals(cmp.out)
-#' print(summary(res))
-#' 
-#' # Compute MSE
-#' mean(res^2)
-#' 
-#' # Compute predictions on new data
-#' new.data = data.frame(transfers=(0:10))
-#' y.hat = predict(cmp.out, newdata=new.data)
-#' plot(0:10, y.hat, type="l",
-#'   xlab="number of transfers", ylab="predicted number broken")
-#' 
-#' \dontrun{
-#' # Compute parametric bootstrap results and use them to generate
-#' # 0.95 confidence intervals for parameters.
-#' cmp.boot = parametric.bootstrap(cmp.out, reps=1000)
-#' print(apply(cmp.boot, 2, quantile, c(0.025,0.975)))
-#' }
-#' 
-#' \dontrun{
-#' ## load couple data
-#' data(couple)
-#' 
-#' # Fit standard Poisson model
-#' glm.out = glm(UPB ~ EDUCATION + ANXIETY, data=couple, family=poisson)
-#' print(glm.out)
-#' 
-#' # Fit ZICMP model
-#' zicmp.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
-#'   formula.nu = ~ 1,
-#'   formula.p = ~ EDUCATION + ANXIETY,
-#'   data=couple)
-#' print(zicmp.out)
-#' 
-#' # Compute standard errors for estimates of coefficients
-#' sdev(zicmp.out)
-#' 
-#' # Get the full covariance matrix for the estimates
-#' vcov(zicmp.out)
-#' 
-#' # Likelihood ratio test for equidispersion (H0: nu = 1 vs H1: not)
-#' equitest(zicmp.out)
-#' 
-#' # Compute fitted values
-#' y.hat = predict(zicmp.out)
-#' 
-#' # Compute residuals
-#' res.raw = residuals(zicmp.out, type = "raw")
-#' res.quan = residuals(zicmp.out, type = "quantile")
-#' print(summary(res.raw))
-#' print(summary(res.quan))
-#' 
-#' # Compute predictions on new data
-#' new.data = data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
-#' y.hat.new = predict(zicmp.out, newdata=new.data)
-#' print(y.hat.new)
-#' 
-#' # Compute parametric bootstrap results and use them to generate
-#' # 0.95 confidence intervals for parameters.
-#' zicmp.boot = parametric.bootstrap(zicmp.out, reps=1000)
-#' print(apply(zicmp.boot, 2, quantile, c(0.025,0.975)))
-#' 
-#' # A CMP example with offset terms.
-#' cmp.out = glm.cmp(broken ~ transfers + offset(transfers), data=freight)
-#' print(cmp.out)
-#' coef(cmp.out)
-#' nu(cmp.out)[1]
-#' 
-#' # A ZICMP example with offset terms.
-#' zicmp.out = glm.cmp(UPB ~ EDUCATION + ANXIETY + offset(ANXIETY),
-#'     formula.nu = ~ offset(ANXIETY),
-#'     formula.p = ~ EDUCATION + ANXIETY + offset(ANXIETY),
-#'     data=couple)
-#' print(zicmp.out)
-#' }
 #' 
 #' @name COMPoissonReg-package
 #' @useDynLib COMPoissonReg, .registration = TRUE
