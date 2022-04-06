@@ -26,9 +26,21 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 	stopifnot(all(fixed$zeta %in% seq_len(d3)))
 
 	# Make sure initial values have the correct dimension
-	stopifnot(d1 == length(init$beta))
-	stopifnot(d2 == length(init$gamma))
-	stopifnot(d3 == length(init$zeta))
+	if (d1 != length(init$beta)) {
+		msg = sprintf("Length %d of init$beta is not equal to length %d of beta",
+			length(init$beta), d1)
+		stop(msg)
+	}
+	if (d2 != length(init$gamma)) {
+		msg = sprintf("Length %d of init$gamma is not equal to length %d of gamma",
+			length(init$gamma), d2)
+		stop(msg)
+	}
+	if (d3 != length(init$zeta)) {
+		msg = sprintf("Length %d of init$zeta is not equal to length %d of zeta",
+			length(init$zeta), d3)
+		stop(msg)
+	}
 
 	# Get settings from control
 	optim.method = control$optim.method
@@ -90,11 +102,7 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 		warning("optim.control$fnscale disregarded and taken as -1")
 	}
 	optim.control$fnscale = -1
-	par.init = theta2par(
-		list(beta = init$beta,
-			gamma = init$gamma,
-			zeta = init$zeta)
-	)
+	par.init = theta2par(init)
 	res = optim(par.init, loglik, method = optim.method,
 		control = optim.control, hessian = TRUE)
 

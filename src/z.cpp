@@ -49,7 +49,7 @@ std::pair<double, unsigned int> truncate(double lambda, double nu, double tol,
 		sprintf(msg,
 			"Absolute relative error %g was larger than tolerance %g with "
 			"CMP(%g, %g) truncated to %g. Consider adjusting the controls "
-			"ymax, hybrid.tol, and COMPoissonReg.truncate.tol",
+			"ymax, hybrid.tol, and truncate.tol",
 			exp(diff), tol, lambda, nu, ymax);
 		Rf_warning(msg);
 	}

@@ -4,40 +4,15 @@
 \alias{COMPoissonReg-options}
 \title{Package options}
 \arguments{
-\item{COMPoissonReg.optim.method}{Optim method to use when computing
-maximum likelihood estimates.}
-
-\item{COMPoissonReg.optim.control}{A list to be passed to \code{control}
-when calling \code{optim}. \code{fnscale} will be ignored if specified.}
-
-\item{COMPoissonReg.grad.eps}{Distance to be used when finite differences
-are taken.}
-
-\item{COMPoissonReg.hess.eps}{Distance to be used when finite second
-differences are taken.}
-
-\item{COMPoissonReg.ymax}{Maximum count value to be considered. Larger
-values are truncated.}
-
-\item{COMPoissonReg.hybrid.tol}{Determines whether asymptotic approximation
-or truncation approach will be used will be used for expressions based on
-the CMP normalizing constant. See details.}
-
-\item{COMPoissonReg.truncate.tol}{Tolerance for truncation approach.}
+\item{COMPoissonReg.control}{A default control data structure for the
+package. See the helper function \link{get.control} for a description of
+contents.}
 }
 \description{
 Global options used by the COMPoissonReg package.
 }
 \details{
 \itemize{
-\item \code{options(COMPoissonReg.optim.method = 'L-BFGS-B')}
-\item \code{options(COMPoissonReg.optim.control = list(maxit = 150))}
-\item \code{options(COMPoissonReg.grad.eps = 1e-5)}
-\item \code{options(COMPoissonReg.hess.eps = 1e-2)}
-\item \code{options(COMPoissonReg.ymax = 1e6)}
-\item \code{options(COMPoissonReg.hybrid.tol = 1e-2)}
-\item \code{options(COMPoissonReg.truncate.tol = 1e-6)}
+\item \code{getOption("COMPoissonReg.control")}
 }
-
-TBD
 }

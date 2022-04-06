@@ -12,17 +12,21 @@
 #'   (the default), zero-inflation term is excluded from the model.
 #' @param data An optional data.frame with variables to be used with regression
 #'   formulas. Variables not found here are read from the envionment.
-#' @param beta.init initial values for regression coefficients of \code{lambda}.
-#' @param gamma.init initial values for regression coefficients of \code{nu}.
-#' @param zeta.init initial values for regression coefficients of \code{p}.
-#' @param control a \code{COMPoissonReg.control} object from \code{get.control}
-#' or \code{NULL} to use global default.
+#' @param offset A data structure that specifies offsets. See the helper
+#' function \link{get.offset}.
+#' @param init A data structure that specifies initial values. See the helper
+#' function \link{get.init}.
+#' @param fixed A data structure that specifies which coefficients should
+#' remain fixed in the maximum likelihood procedure. See the helper function
+#' \link{get.fixed}.
+#' @param control A control data structure. See the helper function
+#' \link{get.control}. If \code{NULL}, a global default will be used.
 #' @param ... other arguments, such as \code{subset} and \code{na.action}.
 #' 
 #' @return
-#' \code{glm.cmp} produces an object of either class 'cmp' or 'zicmp', depending
-#' on whether zero-inflation is used in the model. From this object, coefficients
-#' and other information can be extracted.
+#' \code{glm.cmp} produces an object of either class \code{cmpfit} or
+#' \code{zicmpfit}, depending on whether zero-inflation is used in the model.
+#' From this object, coefficients and other information can be extracted.
 #' 
 #' @details 
 #' The COM-Poisson regression model is
@@ -72,18 +76,15 @@ NULL
 #' @param X Design matrix for the `lambda` regression.
 #' @param S Design matrix for the `nu` regression.
 #' @param W Design matrix for the `p` regression.
-#' @param off.x Offset term for the `lambda` regression. If \code{NULL}, offsets
-#' are taken to be zeros.
-#' @param off.s Offset term for the `nu` regression. If \code{NULL}, offsets
-#' are taken to be zeros.
-#' @param off.w Offset term for the `p` regression. If \code{NULL}, offsets
-#' are taken to be zeros.
-#' @param beta.init Initial value for `beta`. If \code{NULL}, initial value
-#' is taken to be a vector of zeros.
-#' @param gamma.init Initial value for `gamma`. If \code{NULL}, initial value
-#' is taken to be a vector of zeros.
-#' @param zeta.init Initial value for `zeta`. If \code{NULL}, initial value
-#' is taken to be a vector of zeros.
+#' @param offset A data structure that specifies offsets. See the helper
+#' function \link{get.offset}.
+#' @param init A data structure that specifies initial values. See the helper
+#' function \link{get.init}.
+#' @param fixed A data structure that specifies which coefficients should
+#' remain fixed in the maximum likelihood procedure. See the helper function
+#' \link{get.fixed}.
+#' @param control A control data structure. See the helper function
+#' \link{get.control}.
 #' 
 #' @return
 #' See the \link{glm.cmp}.
@@ -91,9 +92,19 @@ NULL
 #' @name glm.cmp-raw
 NULL
 
-# TBD: Don't export this after we've done some testing
-#' @export
-#' @name glm.cmp
+#' Extract model elements from a formula to use with the raw interface
+#' 
+#' @param formula.lambda regression formula linked to \code{log(lambda)}.
+#' The response should be specified here.
+#' @param formula.nu regression formula linked to \code{log(nu)}. The
+#' default, is taken to be only an intercept.
+#' @param formula.p regression formula linked to \code{logit(p)}. If NULL
+#' (the default), zero-inflation term is excluded from the model.#'
+#' @param data An optional data.frame with variables to be used with regression
+#'   formulas. Variables not found here are read from the envionment.
+#' @param ... other arguments, such as \code{subset} and \code{na.action}.
+#'
+#' @noRd
 formula2raw = function(formula.lambda, formula.nu, formula.p, data = NULL, ...)
 {
 	# Parse formula.lambda. This one should have the response.

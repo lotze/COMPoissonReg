@@ -26,25 +26,20 @@ glm.zicmp.raw(
 
 \item{S}{Design matrix for the `nu` regression.}
 
+\item{offset}{A data structure that specifies offsets. See the helper
+function \link{get.offset}.}
+
+\item{init}{A data structure that specifies initial values. See the helper
+function \link{get.init}.}
+
+\item{fixed}{A data structure that specifies which coefficients should
+remain fixed in the maximum likelihood procedure. See the helper function
+\link{get.fixed}.}
+
+\item{control}{A control data structure. See the helper function
+\link{get.control}.}
+
 \item{W}{Design matrix for the `p` regression.}
-
-\item{off.x}{Offset term for the `lambda` regression. If \code{NULL}, offsets
-are taken to be zeros.}
-
-\item{off.s}{Offset term for the `nu` regression. If \code{NULL}, offsets
-are taken to be zeros.}
-
-\item{off.w}{Offset term for the `p` regression. If \code{NULL}, offsets
-are taken to be zeros.}
-
-\item{beta.init}{Initial value for `beta`. If \code{NULL}, initial value
-is taken to be a vector of zeros.}
-
-\item{gamma.init}{Initial value for `gamma`. If \code{NULL}, initial value
-is taken to be a vector of zeros.}
-
-\item{zeta.init}{Initial value for `zeta`. If \code{NULL}, initial value
-is taken to be a vector of zeros.}
 }
 \value{
 See the \link{glm.cmp}.

@@ -70,6 +70,15 @@ summary.cmpfit = function(object, ...)
 		sprintf("S:%s", colnames(object$S))
 	)
 
+	# Add a column to indicate fixed components if anything is fixed
+	if (length(unlist(fixed)) > 0) {
+		fixed.beta = rep("F", d1)
+		fixed.gamma = rep("F", d2)
+		fixed.beta[fixed$beta] = "T"
+		fixed.gamma[fixed$gamma] = "T"
+		DF$Fixed = c(fixed.beta, fixed.gamma)
+	}
+
 	# If X, S, or W are intercept only, compute results for non-regression parameters
 	DF.lambda = NULL
 	DF.nu = NULL
@@ -176,7 +185,8 @@ logLik.cmpfit = function(object, ...)
 #' @export
 AIC.cmpfit= function(object, ..., k=2)
 {
-	-2*object$loglik + 2*length(coef(object))
+	d = length(unlist(object$unfixed))
+	-2*object$loglik + 2*d
 }
 
 #' @name glm.cmp, CMP support
@@ -184,7 +194,8 @@ AIC.cmpfit= function(object, ..., k=2)
 BIC.cmpfit = function(object, ...)
 {
 	n = length(object$y)
-	-2*object$loglik + log(n)*length(coef(object))
+	d = length(unlist(object$unfixed))
+	-2*object$loglik + log(n)*d
 }
 
 #' @name glm.cmp, CMP support

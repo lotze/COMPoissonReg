@@ -83,12 +83,11 @@ qzicmp = function(q, lambda, nu, p, log.p = FALSE, control = NULL)
 	idx_warn = which(lq > log((1 - truncate.tol)*(1 - prep$p) + prep$p))
 	if (length(idx_warn) > 0) {
 		msg = sprintf(paste(
-			"At least one requested quantile was very close to 1 In",
+			"At least one requested quantile was very close to 1. In",
 			"particular, %d of the given probabilities were greater than",
 			"(1 - truncate.tol) * (1-p) + p, where truncate_tol = %g.",
-			"Associated results may be a consequence of truncation and not",
-			"actual quantiles. Consider adjusting the controls",
-			"ymax and truncate.tol or reducing logq"),
+			"Associated results may be affected by truncation. Consider",
+			"adjusting the controls ymax and truncate.tol or reducing logq."),
 			length(idx_warn), truncate.tol)
 		warning(msg)
 	}

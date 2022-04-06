@@ -34,7 +34,7 @@ The main order of functions for COM-Poisson regression is as follows:
 From here, there are many ways to proceed, so order is irrelevant:
 \itemize{
 \item Perform a hypothesis test to assess for statistically significant
-      dispersion (using equitest or parametric.bootstrap).
+      dispersion (using \code{equitest} or \code{parametric.bootstrap}).
 \item Compute leverage (using leverage) and deviance (using deviance).
 \item Predict the outcome for new examples, using predict.
 }

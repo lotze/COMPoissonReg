@@ -26,7 +26,6 @@ Arguments are expected to be vectors of integers. These are interpreted as
 the indices to keep fixed during optimization. For example,
 \code{beta = c(1L, 1L, 2L)} indicates that the first and second elements of
 \code{beta} should remain fixed. Note that duplicate indices are ignored.
-Also, if beta contains only one coefficient, the entry \code{2L} has no
-effect. The default value is the empty vector \code{integer(0)}, which
-requests that no elements of the given coefficient vector should be fixed.
+The default value is the empty vector \code{integer(0)}, which requests that
+no elements of the given coefficient vector should be fixed.
 }

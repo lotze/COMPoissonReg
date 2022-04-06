@@ -76,6 +76,17 @@ summary.zicmpfit = function(object, ...)
 		sprintf("W:%s", colnames(object$W))
 	)
 
+	# Add a column to indicate fixed components if anything is fixed
+	if (length(unlist(fixed)) > 0) {
+		fixed.beta = rep("F", d1)
+		fixed.gamma = rep("F", d2)
+		fixed.zeta = rep("F", d3)
+		fixed.beta[fixed$beta] = "T"
+		fixed.gamma[fixed$gamma] = "T"
+		fixed.zeta[fixed$zeta] = "T"
+		DF$Fixed = c(fixed.beta, fixed.gamma, fixed.zeta)
+	}
+
 	# If X, S, or W are intercept only, compute results for non-regression parameters
 	# Exclude offsets from these calculations
 	DF.lambda = NULL
@@ -199,7 +210,8 @@ logLik.zicmpfit = function(object, ...)
 #' @export
 AIC.zicmpfit = function(object, ..., k = 2)
 {
-	-2*object$loglik + 2*length(coef(object))
+	d = length(unlist(object$unfixed))
+	-2*object$loglik + 2*d
 }
 
 #' @name glm.cmp, ZICMP support
@@ -207,7 +219,8 @@ AIC.zicmpfit = function(object, ..., k = 2)
 BIC.zicmpfit = function(object, ...)
 {
 	n = length(object$y)
-	-2*object$loglik + log(n)*length(coef(object))
+	d = length(unlist(object$unfixed))
+	-2*object$loglik + log(n)*d
 }
 
 #' @name glm.cmp, ZICMP support

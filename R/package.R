@@ -29,7 +29,7 @@
 #' From here, there are many ways to proceed, so order is irrelevant:
 #' \itemize{
 #' \item Perform a hypothesis test to assess for statistically significant
-#'       dispersion (using equitest or parametric.bootstrap).
+#'       dispersion (using \code{equitest} or \code{parametric.bootstrap}).
 #' \item Compute leverage (using leverage) and deviance (using deviance).
 #' \item Predict the outcome for new examples, using predict.
 #' }
@@ -195,31 +195,12 @@ NULL
 #' 
 #' @details
 #' \itemize{
-#' \item \code{options(COMPoissonReg.optim.method = 'L-BFGS-B')}
-#' \item \code{options(COMPoissonReg.optim.control = list(maxit = 150))}
-#' \item \code{options(COMPoissonReg.grad.eps = 1e-5)}
-#' \item \code{options(COMPoissonReg.hess.eps = 1e-2)}
-#' \item \code{options(COMPoissonReg.ymax = 1e6)}
-#' \item \code{options(COMPoissonReg.hybrid.tol = 1e-2)}
-#' \item \code{options(COMPoissonReg.truncate.tol = 1e-6)}
+#' \item \code{getOption("COMPoissonReg.control")}
 #' }
 #' 
-#' @param COMPoissonReg.optim.method Optim method to use when computing
-#' maximum likelihood estimates.
-#' @param COMPoissonReg.optim.control A list to be passed to \code{control}
-#' when calling \code{optim}. \code{fnscale} will be ignored if specified.
-#' @param COMPoissonReg.grad.eps Distance to be used when finite differences
-#' are taken.
-#' @param COMPoissonReg.hess.eps Distance to be used when finite second
-#' differences are taken.
-#' @param COMPoissonReg.ymax Maximum count value to be considered. Larger
-#' values are truncated.
-#' @param COMPoissonReg.hybrid.tol Determines whether asymptotic approximation
-#' or truncation approach will be used will be used for expressions based on
-#' the CMP normalizing constant. See details.
-#' @param COMPoissonReg.truncate.tol Tolerance for truncation approach.
-#' 
-#' @details TBD
+#' @param COMPoissonReg.control A default control data structure for the
+#' package. See the helper function \link{get.control} for a description of
+#' contents.
 #' 
 #' @name COMPoissonReg-options
 NULL

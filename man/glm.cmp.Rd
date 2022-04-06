@@ -2,11 +2,8 @@
 % Please edit documentation in R/glm.R
 \name{glm.cmp}
 \alias{glm.cmp}
-\alias{formula2raw}
 \title{COM-Poisson and Zero-Inflated COM-Poisson Regression}
 \usage{
-formula2raw(formula.lambda, formula.nu, formula.p, data = NULL, ...)
-
 glm.cmp(
   formula.lambda,
   formula.nu = ~1,
@@ -31,21 +28,25 @@ default, is taken to be only an intercept.}
 \item{data}{An optional data.frame with variables to be used with regression
 formulas. Variables not found here are read from the envionment.}
 
+\item{init}{A data structure that specifies initial values. See the helper
+function \link{get.init}.}
+
+\item{fixed}{A data structure that specifies which coefficients should
+remain fixed in the maximum likelihood procedure. See the helper function
+\link{get.fixed}.}
+
+\item{control}{A control data structure. See the helper function
+\link{get.control}. If \code{NULL}, a global default will be used.}
+
 \item{...}{other arguments, such as \code{subset} and \code{na.action}.}
 
-\item{control}{a \code{COMPoissonReg.control} object from \code{get.control}
-or \code{NULL} to use global default.}
-
-\item{beta.init}{initial values for regression coefficients of \code{lambda}.}
-
-\item{gamma.init}{initial values for regression coefficients of \code{nu}.}
-
-\item{zeta.init}{initial values for regression coefficients of \code{p}.}
+\item{offset}{A data structure that specifies offsets. See the helper
+function \link{get.offset}.}
 }
 \value{
-\code{glm.cmp} produces an object of either class 'cmp' or 'zicmp', depending
-on whether zero-inflation is used in the model. From this object, coefficients
-and other information can be extracted.
+\code{glm.cmp} produces an object of either class \code{cmpfit} or
+\code{zicmpfit}, depending on whether zero-inflation is used in the model.
+From this object, coefficients and other information can be extracted.
 }
 \description{
 Fit COM-Poisson regression using maximum likelihood estimation.

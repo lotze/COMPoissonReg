@@ -14,9 +14,8 @@
 #' the indices to keep fixed during optimization. For example,
 #' \code{beta = c(1L, 1L, 2L)} indicates that the first and second elements of
 #' \code{beta} should remain fixed. Note that duplicate indices are ignored.
-#' Also, if beta contains only one coefficient, the entry \code{2L} has no
-#' effect. The default value is the empty vector \code{integer(0)}, which
-#' requests that no elements of the given coefficient vector should be fixed. 
+#' The default value is the empty vector \code{integer(0)}, which requests that
+#' no elements of the given coefficient vector should be fixed. 
 #'
 #' @return List of vectors indicating fixed indices.
 #' @export
@@ -122,8 +121,6 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' @param optim.method Optimization method for maximum likelihood. See the
 #' \code{method} argument in \link{stats::optim}.
 #' @param optim.control \code{control} argument for \link{stats::optim}.
-#' @param grad.eps TBD: remove?
-#' @param hess.eps TBD: remove?
 #' @param hybrid.tol Tolerance for \code{z.method = "hybrid"} to use
 #' approximation or truncation approaches to compute normalizing constant and
 #' related quantities. See package vignette for details.
@@ -133,14 +130,13 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' @return List of controls.
 #' @export
 get.control = function(ymax = 1e6, z.method = "hybrid", optim.method = 'L-BFGS-B',
-	optim.control = list(maxit = 150), grad.eps = 1e-5, hess.eps = 1e-2,
-	hybrid.tol = 1e-2, truncate.tol = 1e-6)
+	optim.control = list(maxit = 150), hybrid.tol = 1e-2, truncate.tol = 1e-6)
 {
 	stopifnot(z.method %in% c("hybrid", "approx",  "trunc"))
 
 	out = list(ymax = ymax, z.method = z.method, optim.method = optim.method,
-		optim.control = optim.control, grad.eps = grad.eps, hess.eps = hess.eps,
-		hybrid.tol = hybrid.tol, truncate.tol = truncate.tol)
+		optim.control = optim.control, hybrid.tol = hybrid.tol,
+		truncate.tol = truncate.tol)
 	class(out) = "COMPoissonReg.control"
 	return(out)
 }

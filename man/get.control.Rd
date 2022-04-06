@@ -10,8 +10,6 @@ get.control(
   z.method = "hybrid",
   optim.method = "L-BFGS-B",
   optim.control = list(maxit = 150),
-  grad.eps = 1e-05,
-  hess.eps = 0.01,
   hybrid.tol = 0.01,
   truncate.tol = 1e-06
 )
@@ -27,10 +25,6 @@ See details.}
 \code{method} argument in \link{stats::optim}.}
 
 \item{optim.control}{\code{control} argument for \link{stats::optim}.}
-
-\item{grad.eps}{TBD: remove?}
-
-\item{hess.eps}{TBD: remove?}
 
 \item{hybrid.tol}{Tolerance for \code{z.method = "hybrid"} to use
 approximation or truncation approaches to compute normalizing constant and
