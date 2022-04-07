@@ -11,6 +11,7 @@
 \alias{nu.cmpfit}
 \alias{sdev.cmpfit}
 \alias{vcov.cmpfit}
+\alias{equitest.cmpfit}
 \alias{leverage.cmpfit}
 \alias{deviance.cmpfit}
 \alias{residuals.cmpfit}
@@ -35,6 +36,8 @@
 \method{sdev}{cmpfit}(object, type = c("vector", "list"), ...)
 
 \method{vcov}{cmpfit}(object, ...)
+
+\method{equitest}{cmpfit}(object, ...)
 
 \method{leverage}{cmpfit}(object, ...)
 

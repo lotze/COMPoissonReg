@@ -290,7 +290,7 @@ vcov.zicmpfit = function(object, ...)
 	-solve(object$H)
 }
 
-#' @name equitest
+#' @name glm.cmp, ZICMP support
 #' @export
 equitest.zicmpfit = function(object, ...)
 {

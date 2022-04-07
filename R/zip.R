@@ -12,12 +12,12 @@
 #' 
 #' @return 
 #' \describe{
-#' \item{dzip}{the density,}
-#' \item{pzip}{the cumulative probability,}
-#' \item{qzip}{the quantile function,}
-#' \item{rzip}{generates random values,}
-#' \item{ezip}{the expected value,}
-#' \item{vzip}{the variance,}
+#' \item{dzip}{density,}
+#' \item{pzip}{cumulative probability,}
+#' \item{qzip}{quantiles,}
+#' \item{rzip}{generate random variates,}
+#' \item{ezip}{expected value,}
+#' \item{vzip}{variance,}
 #' }
 #' 
 #' @author Kimberly Sellers

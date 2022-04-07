@@ -13,7 +13,7 @@ get.modelmatrix(X = NULL, S = NULL, W = NULL, offset = NULL)
 
 \item{W}{A \code{W} matrix to use with \code{zeta}.}
 
-\item{offset}{An offset object constructed from \code{get.offset}.}
+\item{offset}{An offset object. See helper function \link{get.offset}.}
 }
 \value{
 List of model matrix terms.

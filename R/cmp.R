@@ -14,14 +14,14 @@
 #' 
 #' @return 
 #' \describe{
-#' \item{dcmp}{the density,}
-#' \item{pcmp}{the cumulative probability,}
-#' \item{qcmp}{the quantile function,}
-#' \item{rcmp}{generates random values,}
-#' \item{ecmp}{the expected value,}
-#' \item{vcmp}{the variance,}
-#' \item{ncmp}{the value of the normalizing constant, and}
-#' \item{tcmp}{the upper value used to compute the normalizing constant under
+#' \item{dcmp}{density,}
+#' \item{pcmp}{cumulative probability,}
+#' \item{qcmp}{quantiles,}
+#' \item{rcmp}{generate random variates,}
+#' \item{ecmp}{expected value,}
+#' \item{vcmp}{variance,}
+#' \item{ncmp}{value of the normalizing constant, and}
+#' \item{tcmp}{upper value used to compute the normalizing constant under
 #' truncation method.}
 #' }
 #' 

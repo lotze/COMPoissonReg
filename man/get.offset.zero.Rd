@@ -10,7 +10,7 @@ get.offset.zero(n)
 \item{n}{Number of observations.}
 }
 \value{
-List of offset terms.
+List of offset terms containing all zeros.
 }
 \description{
 Construct zero values for offsets.

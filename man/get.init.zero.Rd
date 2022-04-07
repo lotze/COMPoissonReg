@@ -14,7 +14,7 @@ get.init.zero(d1 = 0, d2 = 0, d3 = 0)
 \item{d3}{Dimension of \code{zeta}.}
 }
 \value{
-List of initial value terms.
+List of initial value terms containing all zeros.
 }
 \description{
 Construct initial values for coefficients with zeros.

@@ -39,7 +39,7 @@ get.fixed = function(beta = integer(0), gamma = integer(0), zeta = integer(0))
 #' @param d2 Dimension of \code{gamma}.
 #' @param d3 Dimension of \code{zeta}.
 #'
-#' @return List of initial value terms.
+#' @return List of initial value terms containing all zeros.
 #' @export
 get.init.zero = function(d1 = 0, d2 = 0, d3 = 0)
 {
@@ -72,7 +72,7 @@ get.init = function(beta = NULL, gamma = NULL, zeta = NULL)
 #'
 #' @param n Number of observations.
 #'
-#' @return List of offset terms.
+#' @return List of offset terms containing all zeros.
 #' @export
 get.offset.zero = function(n)
 {
@@ -114,19 +114,35 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' Construct a control object to pass additional arguments to a number of
 #' functions in the package.
 #' 
-#' @param ymax Truncate counts to maximum value of \code{y}. Protects against
-#' very long computations.
+#' @param ymax Truncate counts to maximum value of \code{y}.
 #' @param z.method One of: \code{"hybrid"}, \code{"approx"}, or \code{"trunc"}.
 #' See details.
 #' @param optim.method Optimization method for maximum likelihood. See the
 #' \code{method} argument in \link{stats::optim}.
 #' @param optim.control \code{control} argument for \link{stats::optim}.
-#' @param hybrid.tol Tolerance for \code{z.method = "hybrid"} to use
-#' approximation or truncation approaches to compute normalizing constant and
-#' related quantities. See package vignette for details.
-#' @param truncate.tol Tolerance for truncation approach to compute normalizing
-#' constant and related quantities.
-#'
+#' @param hybrid.tol Tolerance for \code{z.method = "hybrid"}. See details.
+#' @param truncate.tol Tolerance for \code{z.method = "trunc"}. See details.
+#' 
+#' @details
+#' The element \code{z.method} specifies how the CMP normalizing constant and
+#' related quantities are computed.
+#' \itemize{
+#' \item \code{z.method = "approx"}: use an approximation which is easy to
+#' compute but suitable when \eqn{\lambda^{-1/\nu}} is small.
+#' 
+#' \item \code{z.method = "trunc"}: the infinite series for the normalizing
+#' constant is truncated based on \code{truncate.tol}. The procedure is
+#' described in the package vignette.
+#' 
+#' \item \code{z.method = "hybrid"}: use the \code{approx} method when
+#' \eqn{\lambda^{-1/\nu}} is smaller than \code{hybrid.tol}; otherwise use the
+#' \code{trunc} method.
+#' }
+#' 
+#' The element \code{ymax} protects against very long computations. Users
+#' should beware when increasing this significantly beyond the default, as it
+#' may result in a session which needs to be terminated.
+#' 
 #' @return List of controls.
 #' @export
 get.control = function(ymax = 1e6, z.method = "hybrid", optim.method = 'L-BFGS-B',
@@ -146,7 +162,7 @@ get.control = function(ymax = 1e6, z.method = "hybrid", optim.method = 'L-BFGS-B
 #' @param X An \code{X} matrix to use with \code{beta}.
 #' @param S An \code{S} matrix to use with \code{gamma}.
 #' @param W A \code{W} matrix to use with \code{zeta}.
-#' @param offset An offset object constructed from \code{get.offset}.
+#' @param offset An offset object. See helper function \link{get.offset}.
 #'
 #' @return List of model matrix terms.
 #' @export

@@ -11,6 +11,7 @@
 \alias{nu.zicmpfit}
 \alias{sdev.zicmpfit}
 \alias{vcov.zicmpfit}
+\alias{equitest.zicmpfit}
 \alias{deviance.zicmpfit}
 \alias{residuals.zicmpfit}
 \alias{predict.zicmpfit}
@@ -34,6 +35,8 @@
 \method{sdev}{zicmpfit}(object, type = c("vector", "list"), ...)
 
 \method{vcov}{zicmpfit}(object, ...)
+
+\method{equitest}{zicmpfit}(object, ...)
 
 \method{deviance}{zicmpfit}(object, ...)
 

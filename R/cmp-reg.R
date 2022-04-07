@@ -261,7 +261,7 @@ vcov.cmpfit = function(object, ...)
 	-solve(object$H)
 }
 
-#' @name equitest
+#' @name glm.cmp, CMP support
 #' @export
 equitest.cmpfit = function(object, ...)
 {

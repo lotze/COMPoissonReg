@@ -15,8 +15,7 @@ get.control(
 )
 }
 \arguments{
-\item{ymax}{Truncate counts to maximum value of \code{y}. Protects against
-very long computations.}
+\item{ymax}{Truncate counts to maximum value of \code{y}.}
 
 \item{z.method}{One of: \code{"hybrid"}, \code{"approx"}, or \code{"trunc"}.
 See details.}
@@ -26,12 +25,9 @@ See details.}
 
 \item{optim.control}{\code{control} argument for \link{stats::optim}.}
 
-\item{hybrid.tol}{Tolerance for \code{z.method = "hybrid"} to use
-approximation or truncation approaches to compute normalizing constant and
-related quantities. See package vignette for details.}
+\item{hybrid.tol}{Tolerance for \code{z.method = "hybrid"}. See details.}
 
-\item{truncate.tol}{Tolerance for truncation approach to compute normalizing
-constant and related quantities.}
+\item{truncate.tol}{Tolerance for \code{z.method = "trunc"}. See details.}
 }
 \value{
 List of controls.
@@ -39,4 +35,24 @@ List of controls.
 \description{
 Construct a control object to pass additional arguments to a number of
 functions in the package.
+}
+\details{
+The element \code{z.method} specifies how the CMP normalizing constant and
+related quantities are computed.
+\itemize{
+\item \code{z.method = "approx"}: use an approximation which is easy to
+compute but suitable when \eqn{\lambda^{-1/\nu}} is small.
+
+\item \code{z.method = "trunc"}: the infinite series for the normalizing
+constant is truncated based on \code{truncate.tol}. The procedure is
+described in the package vignette.
+
+\item \code{z.method = "hybrid"}: use the \code{approx} method when
+\eqn{\lambda^{-1/\nu}} is smaller than \code{hybrid.tol}; otherwise use the
+\code{trunc} method.
+}
+
+The element \code{ymax} protects against very long computations. Users
+should beware when increasing this significantly beyond the default, as it
+may result in a session which needs to be terminated.
 }

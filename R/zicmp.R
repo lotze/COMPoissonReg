@@ -16,12 +16,12 @@
 #' 
 #' @return
 #' \describe{
-#' \item{dzicmp}{the density,}
-#' \item{pzicmp}{the cumulative probability,}
-#' \item{qzicmp}{the quantile value, and}
-#' \item{rzicmp}{generates random numbers,}
-#' \item{ezicmp}{the expected value.}
-#' \item{vzicmp}{the variance.}
+#' \item{dzicmp}{density,}
+#' \item{pzicmp}{cumulative probability,}
+#' \item{qzicmp}{quantiles,}
+#' \item{rzicmp}{generate random variates,}
+#' \item{ezicmp}{expected value. and}
+#' \item{vzicmp}{variance.}
 #' }
 #' 
 #' @references

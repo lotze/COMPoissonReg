@@ -1,6 +1,6 @@
 #' Equidispersion Test
 #' 
-#' Likelihood ratio test for Equidispersion
+#' Likelihood ratio test for equidispersion
 #' 
 #' @param object a model object
 #' @param ... other parameters which might be required by the model
@@ -11,8 +11,8 @@
 #' particular methods which depend on the class of the first argument.
 #' 
 #' @return
-#' Returns the test statistic and p-value determined from the \eqn{\chi.1^2}
-#' distribution.
+#' Returns the test statistic and p-value determined from a \eqn{\chi^2}
+#' distribution with \eqn{d_2} degrees of freedom.
 #' 
 #' @author Thomas Lotze
 #' @name equitest
