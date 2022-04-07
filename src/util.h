@@ -17,18 +17,31 @@
 #define logadd(logx, logy) (logx + log1p(exp(logy - logx)))
 
 /*
-* Compute quantiles of a discrete distribution with values 0, 1, ..., k-1 and
-* associated *cumulative* probabilities cp(0), cp(1), ..., cp(k-1). Use a
-* bisection search in case cp is a large vector . q and cp can be given on
-* the log-scale or probability scale, but they are expected to be compatible.
+* Solaris gave errors on CRAN if we did not define this.
 */
-// [[Rcpp::export]]
-unsigned int q_discrete(double q, const Rcpp::NumericVector& cp);
-
-// Solaris gave errors on CRAN if we do not define this.
 double log(unsigned int x);
 
-// A version of R `which` function for Rcpp
+/*
+* A version of R `which` function for Rcpp.
+*/
 Rcpp::IntegerVector which(const Rcpp::LogicalVector& x);
+
+//' Compute quantiles of a discrete / finite distribution.
+//' 
+//' @param q Probability of the desired quantile.
+//' @param cp vector of cumulative probabilities.
+//' 
+//' @details
+//' Compute a quantile for the discrete distribution with values
+//' \code{0, 1, ..., k-1} and associated *cumulative* probabilities
+//' \code{cp(0), cp(1), ..., cp(k-1)}. Use a bisection search in case \code{cp}
+//' is a large vector. \code{q} and \code{cp} can be given on the log-scale or
+//' probability scale, but they are expected to be compatible.
+//' 
+//' @return The desired quantile.
+//' 
+//' @noRd
+// [[Rcpp::export]]
+unsigned int q_discrete(double q, const Rcpp::NumericVector& cp);
 
 #endif

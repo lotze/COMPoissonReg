@@ -69,7 +69,6 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 		double lcp = -lnormconst;
 		for (unsigned int j = 1; j <= x(i) && j <= x_max; j++) {
 			// Do summation on the log-scale.
-			// Use the property: log(a + b) = log(a) + log(1 + b/a).
 			double lp = j*log(lambda) - nu*lgamma(j + 1) - lnormconst;
 			lcp = logadd(lcp, lp);
 
@@ -106,7 +105,6 @@ Rcpp::NumericVector q_cmp(const Rcpp::NumericVector& logq, double lambda,
 
 	for (unsigned int j = 1; j <= M; j++) {
 		// Do summation on the log-scale.
-		// Use the property: log(a + b) = log(a) + log(1 + b/a).
 		double lp = j*log(lambda) - nu*lgamma(j+1) - lnormconst;
 		lcp = logadd(lcp, lp);
 		all_lcp_vec.push_back(lcp);

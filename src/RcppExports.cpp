@@ -104,45 +104,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// z_prodj
-Rcpp::NumericVector z_prodj(const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, unsigned int max);
-RcppExport SEXP _COMPoissonReg_z_prodj(SEXP lambdaSEXP, SEXP nuSEXP, SEXP maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type max(maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(z_prodj(lambda, nu, max));
-    return rcpp_result_gen;
-END_RCPP
-}
-// z_prodj2
-Rcpp::NumericVector z_prodj2(const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, unsigned int max);
-RcppExport SEXP _COMPoissonReg_z_prodj2(SEXP lambdaSEXP, SEXP nuSEXP, SEXP maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type max(maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(z_prodj2(lambda, nu, max));
-    return rcpp_result_gen;
-END_RCPP
-}
-// z_prodjlogj
-Rcpp::NumericVector z_prodjlogj(const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, unsigned int max);
-RcppExport SEXP _COMPoissonReg_z_prodjlogj(SEXP lambdaSEXP, SEXP nuSEXP, SEXP maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type max(maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(z_prodjlogj(lambda, nu, max));
-    return rcpp_result_gen;
-END_RCPP
-}
 // z_prodlogj
 Rcpp::NumericVector z_prodlogj(const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, unsigned int max);
 RcppExport SEXP _COMPoissonReg_z_prodlogj(SEXP lambdaSEXP, SEXP nuSEXP, SEXP maxSEXP) {
@@ -153,19 +114,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type max(maxSEXP);
     rcpp_result_gen = Rcpp::wrap(z_prodlogj(lambda, nu, max));
-    return rcpp_result_gen;
-END_RCPP
-}
-// z_prodlogj2
-Rcpp::NumericVector z_prodlogj2(const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, unsigned int max);
-RcppExport SEXP _COMPoissonReg_z_prodlogj2(SEXP lambdaSEXP, SEXP nuSEXP, SEXP maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type max(maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(z_prodlogj2(lambda, nu, max));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -287,11 +235,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_COMPoissonReg_q_cmp", (DL_FUNC) &_COMPoissonReg_q_cmp, 6},
     {"_COMPoissonReg_r_cmp", (DL_FUNC) &_COMPoissonReg_r_cmp, 6},
     {"_COMPoissonReg_q_discrete", (DL_FUNC) &_COMPoissonReg_q_discrete, 2},
-    {"_COMPoissonReg_z_prodj", (DL_FUNC) &_COMPoissonReg_z_prodj, 3},
-    {"_COMPoissonReg_z_prodj2", (DL_FUNC) &_COMPoissonReg_z_prodj2, 3},
-    {"_COMPoissonReg_z_prodjlogj", (DL_FUNC) &_COMPoissonReg_z_prodjlogj, 3},
     {"_COMPoissonReg_z_prodlogj", (DL_FUNC) &_COMPoissonReg_z_prodlogj, 3},
-    {"_COMPoissonReg_z_prodlogj2", (DL_FUNC) &_COMPoissonReg_z_prodlogj2, 3},
     {"_COMPoissonReg_z_trunc", (DL_FUNC) &_COMPoissonReg_z_trunc, 5},
     {"_COMPoissonReg_z_approx", (DL_FUNC) &_COMPoissonReg_z_approx, 3},
     {"_COMPoissonReg_z_hybrid", (DL_FUNC) &_COMPoissonReg_z_hybrid, 6},

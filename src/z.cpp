@@ -137,8 +137,8 @@ Rcpp::NumericVector z_approx(const Rcpp::NumericVector& lambda,
 }
 
 Rcpp::NumericVector z_hybrid(const Rcpp::NumericVector& lambda,
-	const Rcpp::NumericVector& nu, bool take_log,
-	double hybrid_tol, double truncate_tol, double ymax)
+	const Rcpp::NumericVector& nu, bool take_log, double hybrid_tol,
+	double truncate_tol, double ymax)
 {
 	unsigned int n = lambda.size();
 	if (n != nu.size()) {

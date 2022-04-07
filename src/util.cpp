@@ -31,8 +31,6 @@ double log(unsigned int x)
 	return log(double(x));
 }
 
-// A version of the "which" function, since it does not appear to be
-// provided in Rcpp Sugar yet.
 Rcpp::IntegerVector which(const Rcpp::LogicalVector& x)
 {
 	std::vector<int> idx;
