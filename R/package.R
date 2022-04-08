@@ -73,6 +73,7 @@
 #' @useDynLib COMPoissonReg, .registration = TRUE
 #' @import Rcpp
 #' @import stats
+#' @importFrom utils head
 #' @importFrom numDeriv grad hessian
 #' @docType package
 NULL

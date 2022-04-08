@@ -1,72 +1,3 @@
-#' COM-Poisson and Zero-Inflated COM-Poisson Regression
-#' 
-#' Fit COM-Poisson regression using maximum likelihood estimation.
-#' Zero-Inflated COM-Poisson can be fit by specifying a regression for the
-#' overdispersion parameter.
-#' 
-#' @param formula.lambda regression formula linked to \code{log(lambda)}.
-#'   The response should be specified here.
-#' @param formula.nu regression formula linked to \code{log(nu)}. The
-#'   default, is taken to be only an intercept.
-#' @param formula.p regression formula linked to \code{logit(p)}. If NULL
-#'   (the default), zero-inflation term is excluded from the model.
-#' @param data An optional data.frame with variables to be used with regression
-#'   formulas. Variables not found here are read from the envionment.
-#' @param offset A data structure that specifies offsets. See the helper
-#' function \link{get.offset}.
-#' @param init A data structure that specifies initial values. See the helper
-#' function \link{get.init}.
-#' @param fixed A data structure that specifies which coefficients should
-#' remain fixed in the maximum likelihood procedure. See the helper function
-#' \link{get.fixed}.
-#' @param control A control data structure. See the helper function
-#' \link{get.control}. If \code{NULL}, a global default will be used.
-#' @param ... other arguments, such as \code{subset} and \code{na.action}.
-#' 
-#' @return
-#' \code{glm.cmp} produces an object of either class \code{cmpfit} or
-#' \code{zicmpfit}, depending on whether zero-inflation is used in the model.
-#' From this object, coefficients and other information can be extracted.
-#' 
-#' @details 
-#' The COM-Poisson regression model is
-#' \deqn{
-#' y_i \sim \rm{CMP}(\lambda_i, \nu_i), \;\;\;
-#' \log \lambda_i = \bm{x}_i^\top \beta, \;\;\;
-#' \log \nu_i = \bm{s}_i^\top \gamma.
-#' }{
-#' y_i ~ CMP(lambda_i, nu_i),
-#' log lambda_i = x_i^T beta,
-#' log nu_i = s_i^T gamma.
-#' }
-#' 
-#' The Zero-Inflated COM-Poisson regression model assumes that \eqn{y_i} is 0
-#' with probability \eqn{p_i} or \eqn{y_i^*} with probability \eqn{1 - p_i},
-#' where
-#' \deqn{
-#' y_i^* \sim \rm{CMP}(\lambda_i, \nu_i), \;\;\;
-#' \log \lambda_i = \bm{x}_i^\top \beta, \;\;\;
-#' \log \nu_i = \bm{s}_i^\top \gamma, \;\;\;
-#' \rm{logit} \, p_i = \bm{w}_i^\top \zeta.
-#' }{
-#' y_i^* ~ CMP(lambda_i, nu_i),
-#' log lambda_i = x_i^T beta,
-#' log nu_i = s_i^T gamma,
-#' logit p_i = w_i^T zeta.
-#' }
-#'
-#' @references
-#' Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
-#' Count Data. Annals of Applied Statistics, 4(2), 943-961.
-#' 
-#' Kimberly F. Sellers and Andrew M. Raim (2016). A Flexible Zero-Inflated Model
-#' to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
-#' 68-80.
-#'
-#' @author Kimberly Sellers, Thomas Lotze, Andrew Raim
-#' @name glm.cmp
-NULL
-
 #' Raw Interface to COM-Poisson and Zero-Inflated COM-Poisson Regression
 #' 
 #' Fit COM-Poisson and Zero-Inflated COM-Poisson regression using a "raw"
@@ -159,7 +90,71 @@ formula2raw = function(formula.lambda, formula.nu, formula.p, data = NULL, ...)
 	return(res)
 }
 
-#' @name glm.cmp
+#' COM-Poisson and Zero-Inflated COM-Poisson Regression
+#' 
+#' Fit COM-Poisson regression using maximum likelihood estimation.
+#' Zero-Inflated COM-Poisson can be fit by specifying a regression for the
+#' overdispersion parameter.
+#' 
+#' @param formula.lambda regression formula linked to \code{log(lambda)}.
+#'   The response should be specified here.
+#' @param formula.nu regression formula linked to \code{log(nu)}. The
+#'   default, is taken to be only an intercept.
+#' @param formula.p regression formula linked to \code{logit(p)}. If NULL
+#'   (the default), zero-inflation term is excluded from the model.
+#' @param data An optional data.frame with variables to be used with regression
+#'   formulas. Variables not found here are read from the envionment.
+#' @param init A data structure that specifies initial values. See the helper
+#' function \link{get.init}.
+#' @param fixed A data structure that specifies which coefficients should
+#' remain fixed in the maximum likelihood procedure. See the helper function
+#' \link{get.fixed}.
+#' @param control A control data structure. See the helper function
+#' \link{get.control}. If \code{NULL}, a global default will be used.
+#' @param ... other arguments, such as \code{subset} and \code{na.action}.
+#' 
+#' @return
+#' \code{glm.cmp} produces an object of either class \code{cmpfit} or
+#' \code{zicmpfit}, depending on whether zero-inflation is used in the model.
+#' From this object, coefficients and other information can be extracted.
+#' 
+#' @details 
+#' The COM-Poisson regression model is
+#' \deqn{
+#' y_i \sim \rm{CMP}(\lambda_i, \nu_i), \;\;\;
+#' \log \lambda_i = \bm{x}_i^\top \beta, \;\;\;
+#' \log \nu_i = \bm{s}_i^\top \gamma.
+#' }{
+#' y_i ~ CMP(lambda_i, nu_i),
+#' log lambda_i = x_i^T beta,
+#' log nu_i = s_i^T gamma.
+#' }
+#' 
+#' The Zero-Inflated COM-Poisson regression model assumes that \eqn{y_i} is 0
+#' with probability \eqn{p_i} or \eqn{y_i^*} with probability \eqn{1 - p_i},
+#' where
+#' \deqn{
+#' y_i^* \sim \rm{CMP}(\lambda_i, \nu_i), \;\;\;
+#' \log \lambda_i = \bm{x}_i^\top \beta, \;\;\;
+#' \log \nu_i = \bm{s}_i^\top \gamma, \;\;\;
+#' \rm{logit} \, p_i = \bm{w}_i^\top \zeta.
+#' }{
+#' y_i^* ~ CMP(lambda_i, nu_i),
+#' log lambda_i = x_i^T beta,
+#' log nu_i = s_i^T gamma,
+#' logit p_i = w_i^T zeta.
+#' }
+#'
+#' @references
+#' Kimberly F. Sellers & Galit Shmueli (2010). A Flexible Regression Model for
+#' Count Data. Annals of Applied Statistics, 4(2), 943-961.
+#' 
+#' Kimberly F. Sellers and Andrew M. Raim (2016). A Flexible Zero-Inflated Model
+#' to Address Data Dispersion. Computational Statistics and Data Analysis, 99,
+#' 68-80.
+#'
+#' @author Kimberly Sellers, Thomas Lotze, Andrew Raim
+#' 
 #' @export
 glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	data = NULL, init = NULL, fixed = NULL, control = NULL, ...)

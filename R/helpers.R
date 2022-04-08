@@ -118,8 +118,8 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' @param z.method One of: \code{"hybrid"}, \code{"approx"}, or \code{"trunc"}.
 #' See details.
 #' @param optim.method Optimization method for maximum likelihood. See the
-#' \code{method} argument in \link{stats::optim}.
-#' @param optim.control \code{control} argument for \link{stats::optim}.
+#' \code{method} argument in \link[stats]{optim}.
+#' @param optim.control \code{control} argument for \link[stats]{optim}.
 #' @param hybrid.tol Tolerance for \code{z.method = "hybrid"}. See details.
 #' @param truncate.tol Tolerance for \code{z.method = "trunc"}. See details.
 #' 

@@ -21,9 +21,9 @@ get.control(
 See details.}
 
 \item{optim.method}{Optimization method for maximum likelihood. See the
-\code{method} argument in \link{stats::optim}.}
+\code{method} argument in \link[stats]{optim}.}
 
-\item{optim.control}{\code{control} argument for \link{stats::optim}.}
+\item{optim.control}{\code{control} argument for \link[stats]{optim}.}
 
 \item{hybrid.tol}{Tolerance for \code{z.method = "hybrid"}. See details.}
 

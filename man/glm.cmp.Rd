@@ -39,9 +39,6 @@ remain fixed in the maximum likelihood procedure. See the helper function
 \link{get.control}. If \code{NULL}, a global default will be used.}
 
 \item{...}{other arguments, such as \code{subset} and \code{na.action}.}
-
-\item{offset}{A data structure that specifies offsets. See the helper
-function \link{get.offset}.}
 }
 \value{
 \code{glm.cmp} produces an object of either class \code{cmpfit} or

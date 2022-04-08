@@ -337,13 +337,12 @@ equitest.zicmpfit = function(object, ...)
 #' @export
 deviance.zicmpfit = function(object, ...)
 {
-	browser()
-
 	y = object$y
 	X = object$X
 	S = object$S
 	W = object$W
 	n = length(y)
+	d2 = ncol(S)
 	fixed = object$fixed
 	offset = object$offset
 	control = object$control
