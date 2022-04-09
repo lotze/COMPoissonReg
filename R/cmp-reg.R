@@ -144,7 +144,7 @@ print.cmpfit = function(x, ...)
 	printf("CMP coefficients\n")
 	s = summary(x)
 	print(s$DF)
-	
+
 	if (length(x$fixed$gamma) > 0) {
 		tt = paste(collapse = " ", c(
 			"Some elements of gamma were fixed.",

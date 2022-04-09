@@ -31,9 +31,9 @@ std::pair<double, unsigned int> truncate(double lambda, double nu, double tol,
 			diff = log_delta - log_z_trunc;
 		}
 
-	 	if (y % 10000 == 0) {
-	 		R_CheckUserInterrupt();
-	 	}
+		if (y % 10000 == 0) {
+			R_CheckUserInterrupt();
+		}
 	}
 
 	if (std::isinf(diff)) {
@@ -93,7 +93,7 @@ double z_hybrid(double lambda, double nu, bool take_log, double hybrid_tol,
 	// Use the asymptotic approximation if lambda^(-1/nu) < hybrid_tol
 	bool use_approx = -1/nu * log(lambda) < log(hybrid_tol);
 	double out;
-	
+
 	if (use_approx) {
 		out = z_approx(lambda, nu, take_log);
 	} else {

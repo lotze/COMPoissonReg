@@ -96,7 +96,7 @@ summary.zicmpfit = function(object, ...)
 	# In each block below, make sure to consider only the non-fixed variables
 	# for the Jacobian and Hessian. If one of the intercepts was fixed, it should
 	# result in an SE of zero.
-	
+
 	if (is.intercept.only(object$X) && is.zero.matrix(object$offset$x)) {
 		if (length(fixed$beta) > 0) {
 			se = 0
@@ -104,7 +104,7 @@ summary.zicmpfit = function(object, ...)
 			J = c(exp(object$beta), numeric(length(idx.par2)), numeric(length(idx.par3)))
 			se = sqrt(t(J) %*% V %*% J)
 		}
-		est = exp(object$beta)		
+		est = exp(object$beta)
 		DF.lambda = data.frame(
 			Estimate = round(est, 4),
 			SE = round(se, 4)
@@ -169,7 +169,7 @@ print.zicmpfit = function(x, ...)
 	printf("ZICMP coefficients\n")
 	s = summary(x)
 	print(s$DF)
-	
+
 	if (length(x$fixed$gamma) > 0) {
 		tt = paste(collapse = " ", c(
 			"Some elements of gamma were fixed.",

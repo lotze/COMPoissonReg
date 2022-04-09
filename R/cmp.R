@@ -239,7 +239,7 @@ vcmp = function(lambda, nu, control = NULL)
 			# that we use `method = hybrid` for ncmp itself. This can be changed
 			# via the global options, if desired.
 			dd = prep$lambda[i]^2 * hessian(ncmp, prep$lambda[i],
-			 	nu = prep$nu[i], log = TRUE, control = control)
+				nu = prep$nu[i], log = TRUE, control = control)
 			out[i] = dd + ev[i]
 		} else if (method == "trunc" || (method == "hybrid" && !is.approx.valid[i])) {
 			# Compute the expected value by a simple truncated sum

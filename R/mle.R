@@ -68,7 +68,7 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 
 	# The following functions transform back and forth between the "par" and
 	# "theta" representations.
-	
+
 	par2theta = function(par) {
 		beta = rep(NA, d1)
 		beta[fixed$beta] = init$beta[fixed$beta]
@@ -116,7 +116,7 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 	# The Hessian from the optimizer only has entries corresponding to the
 	# optimization variables. To apply labels from the design matrices, we
 	# must pick out the non-fixed variables from each.
-	
+
 	H = res$hessian
 	colnames(H) = rownames(H) = c(
 		sprintf("X:%s", colnames(X)[unfixed$beta]),
