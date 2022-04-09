@@ -1,5 +1,7 @@
 ---
 title: "A Vignette for the COMPoissonReg Package"
+bibliography: references.bib
+date: "`r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
 output: 
   pdf_document: 
     citation_package: natbib
@@ -8,12 +10,10 @@ output:
     extra_dependencies:
       common: null
     keep_tex: yes
-date: "`r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
-bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{A Vignette for the COMPoissonReg Package}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
