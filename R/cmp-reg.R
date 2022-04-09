@@ -131,10 +131,26 @@ summary.cmpfit = function(object, ...)
 
 fitted.cmp.internal = function(X, S, beta, gamma, off.x, off.s)
 {
-	list(
-		lambda = as.numeric(exp(X %*% beta + off.x)),
+	n = nrow(X)
+	stopifnot(n == nrow(S))
+	stopifnot(n == length(off.x))
+	stopifnot(n == length(off.s))
+	stopifnot(ncol(X) == length(beta))
+	stopifnot(ncol(S) == length(gamma))
+
+	if (length(beta) > 0) {
+		lambda = as.numeric(exp(X %*% beta + off.x))
+	} else {
+		lambda = rep(0, n)
+	}
+
+	if (length(gamma) > 0) {
 		nu = as.numeric(exp(S %*% gamma + off.s))
-	)
+	} else {
+		nu = rep(0, n)
+	}
+
+	list(lambda = lambda, nu = nu)
 }
 
 #' @name glm.cmp, CMP support

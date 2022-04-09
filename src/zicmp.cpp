@@ -69,7 +69,7 @@ double loglik_zicmp(const Rcpp::IntegerVector& x,
 	double out = 0;
 
 	for (unsigned int i = 0; i < n; i++) {
-		out +=  d_zicmp(x(i), lambda(i), nu(i), p(i), true, hybrid_tol, truncate_tol, ymax);
+		out += d_zicmp(x(i), lambda(i), nu(i), p(i), true, hybrid_tol, truncate_tol, ymax);
 	}
 
 	return out;

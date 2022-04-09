@@ -155,11 +155,35 @@ summary.zicmpfit = function(object, ...)
 
 fitted.zicmp.internal = function(X, S, W, beta, gamma, zeta, off.x, off.s, off.w)
 {
-	list(
-		lambda = as.numeric(exp(X %*% beta + off.x)),
-		nu = as.numeric(exp(S %*% gamma + off.s)),
+	n = nrow(X)
+	stopifnot(n == nrow(S))
+	stopifnot(n == nrow(W))
+	stopifnot(n == length(off.x))
+	stopifnot(n == length(off.s))
+	stopifnot(n == length(off.w))
+	stopifnot(ncol(X) == length(beta))
+	stopifnot(ncol(S) == length(gamma))
+	stopifnot(ncol(W) == length(zeta))
+
+	if (length(beta) > 0) {
+		lambda = as.numeric(exp(X %*% beta + off.x))
+	} else {
+		lambda = rep(0, n)
+	}
+
+	if (length(gamma) > 0) {
+		nu = as.numeric(exp(S %*% gamma + off.s))
+	} else {
+		nu = rep(0, n)
+	}
+
+	if (length(zeta) > 0) {
 		p = as.numeric(plogis(W %*% zeta + off.w))
-	)
+	} else {
+		p = rep(0, n)
+	}
+
+	list(lambda = lambda, nu = nu, p = p)
 }
 
 #' @name glm.cmp, ZICMP support

@@ -451,13 +451,13 @@ a. Finally, $p = 0$ yields $\text{CMP}(\lambda, \nu)$.
 
 ## Density, Generation, CDF, and Quantile Functions
 
-There is a close relationship between the CMP and ZICMP distributions, as we have seen from construction of ZICMP. The relationship between the densities and variate generation mechanisms was given earlier in this section. Denote $F(x \mid \lambda, \nu)$ and $F(x \mid \lambda, \nu, p)$ as the CDFs of $\text{CMP}(\lambda, \nu)$ and $\text{ZICMP}(\lambda, \nu, p)$, respectively. We have
+There is a close relationship between the CMP and ZICMP distributions, as we have seen from construction of ZICMP. The relationship between the CMP densities and variate generation mechanisms was given earlier in this section. Denote $F(x \mid \lambda, \nu)$ and $F(x \mid \lambda, \nu, p)$ as the CDFs of $\text{CMP}(\lambda, \nu)$ and $\text{ZICMP}(\lambda, \nu, p)$, respectively. We have
 <!-- -->
 \begin{align*}
 F(x \mid \lambda, \nu, p) = (1-p) F(x \mid \lambda, \nu) + p \cdot \ind(x \geq 0).
 \end{align*}
 <!-- -->
-For a given probability $\phi \in [0,1]$, the associated CMP and ZICMP quantile functions can related via
+For a given probability $\phi \in [0,1]$, the associated CMP and ZICMP quantile functions are related via
 <!-- -->
 \begin{align}
 F^{-}(\phi \mid \lambda, \nu, p)
@@ -468,7 +468,7 @@ F^{-}(\phi \mid \lambda, \nu, p)
 \label{eqn:zicmp-quantiles}
 \end{align}
 
-The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. They make use of the CMP implementation described in Section \ref{sec:cmp} such as the criteria to either truncate or approximation the normalizing constant.
+The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. They make use of the CMP implementation described in Section \ref{sec:cmp} such as the criteria to either truncate or approximate the normalizing constant.
 
 ```{r}
 qq = seq(0, 0.95, length.out = 20)
@@ -686,15 +686,15 @@ cmp.out = glm.cmp(broken ~ transfers, data = freight)
 print(cmp.out)
 ```
 
-Notice that the coefficients used in the $\lambda_i$ formula are prefixed with an `X:` label, while an `S:` label is used for coefficients of the $\nu_i$ formula. Similarly to the `glm` output, the output of `glm.cmp` displays several quantities for each coefficient $\theta_j$, $j = 1, \ldots, d$: a point estimate $\hat{\theta}_j$, an associated standard error $\widehat{\text{SE}}(\hat{\theta}_j)$, a z-value $z_j = \hat{\theta}_j / \widehat{\text{SE}}(\hat{\theta}_j)$, and a p-value $2\Phi(-|z_j|)$ for the test $H_0: \theta_j = 0$ versus $H_1: \theta_j \neq 0$. Here, $\Phi$ is the CDF of the standard normal distribution. Because an intercept-only formula was specified for $\nu_i$, $\hat{\nu} = \exp(\hat{\gamma})$ does not vary with $i$ and its estimate and associated standard error are added to the display. Here we see evidence of underdispersion with $\hat{\nu} > 1$. A test for equidispersion is displayed to determine whether there is a significant amount of over or underdispersion in the data. In particular, a likelihood ratio test is used to decide whether $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. The test statistic is displayed along with the degrees of freedom and associated p-value. Here we have fairly strong evidence to reject the null hypthesis of equidispersion.
+Notice that the coefficients used in the $\lambda_i$ formula are prefixed with an `X:` label, while an `S:` label is used for coefficients of the $\nu_i$ formula. Similarly to the `glm` output, the output of `glm.cmp` displays several quantities for each coefficient $\theta_j$, $j = 1, \ldots, d$: a point estimate $\hat{\theta}_j$, an associated standard error $\widehat{\text{SE}}(\hat{\theta}_j)$, a z-value $z_j = \hat{\theta}_j / \widehat{\text{SE}}(\hat{\theta}_j)$, and a p-value $2\Phi(-|z_j|)$ for the test $H_0: \theta_j = 0$ versus $H_1: \theta_j \neq 0$. Here, $\Phi$ is the CDF of the standard normal distribution. Because an intercept-only formula was specified for $\nu_i$, $\hat{\nu} = \exp(\hat{\gamma})$ does not vary with $i$ and its estimate and associated standard error are added to the display. Here we see evidence of underdispersion with $\hat{\nu} > 1$. A test for equidispersion is displayed to determine whether there is a significant amount of over or underdispersion in the data. In particular, a likelihood ratio test is used to decide whether $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. The test statistic is displayed along with the degrees of freedom and associated p-value. Here we have fairly strong evidence to reject the null hypothesis of equidispersion.
 
-The CMP model shows a good improvement in AIC over the Poisson model. We may alternatively fit
+The AIC for the CMP model `cmp.out` shows some improvement over that of `glm.out`. Let us also consider a slope coefficient for the $\nu$ component using
 <!-- -->
 \begin{align*}
 \log \nu_i = \gamma_0 + \gamma_1 \cdot \text{transfers}_i.
 \end{align*}
 <!-- -->
-using the following call to `glm.cmp`.
+via the following call to `glm.cmp`.
 
 ```{r}
 cmp2.out = glm.cmp(broken ~ transfers, formula.nu = ~ transfers, data = freight)
@@ -764,6 +764,8 @@ predict(cmp.out)
 predict(cmp.out, type = "link")
 ```
 
+Note that the estimated `nu` values are equal for all observations because the model assumed only an intercept term for the dispersion component.
+
 We can also use `predict` on new covariate values. Note that models fit with the formula interface expect the new data to be provided as a `data.frame` which is interpreted using the formula used to fit the model. If the raw interface was used to fit the model, use the `get.modelmatrix` function to specify design matrices to use for prediction.
 
 ```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt=FALSE}
@@ -825,8 +827,8 @@ For each type of residual---raw, Pearson, and quantile---we now plot fitted valu
 plot.fit.res = function(y.hat, res) {
 	ggplot(data.frame(y = y.hat, res = res)) +
 		geom_point(aes(y, res)) +
-		xlab("Fitted") +
-		ylab("Residual") +
+		xlab("Fitted Value") +
+		ylab("Residual Value") +
 		theme_bw()
 }
 
@@ -839,13 +841,13 @@ plot.qq.res = function(res) {
 
 y.hat = predict(cmp.out)
 
-plot.fit.res(y.hat, res.raw) + ggtitle("Fitted vs Raw Residuals")
+plot.fit.res(y.hat, res.raw) + ggtitle("Fitted Values vs. Raw Residuals")
 plot.qq.res(res.raw) + ggtitle("Q-Q Plot of Raw Residuals")
 
-plot.fit.res(y.hat, res.pearson) + ggtitle("Fitted vs Pearson Residuals")
+plot.fit.res(y.hat, res.pearson) + ggtitle("Fitted Values vs. Pearson Residuals")
 plot.qq.res(res.pearson) + ggtitle("Q-Q Plot of Pearson Residuals")
 
-plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted vs Quantile Residuals")
+plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted Values vs. Quantile Residuals")
 plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
 ```
 
@@ -883,7 +885,7 @@ t(apply(cmp.boot, 2, quantile, c(0.025,0.975)))
 ## ZICMP Regression
 \label{sec:zicmp-reg}
 
-The `couple` dataset [@LoeysEtAl2012] was analyzed with ZICMP regression in @SellersRaim2016 and found to exhibit overdispersion. The data concern separation trajectories of $n = 387$ couples. The variable `UPB` records the number of unwanted pursuit behavior perpetrations and is considered the outcome of interest. Included covariates are the binary variable `EDUCATION`, which is 1 if at least a bachelor's degree was attained, and a continuous variable `ANXIETY` which measures anxious attachment. A zero-inflated count model is considered for this data because 246 of the 387 records have an outcome of zero.
+The `couple` dataset [@LoeysEtAl2012] was analyzed with ZICMP regression in @SellersRaim2016 and found to exhibit overdispersion. The data concern separation trajectories of $n = 387$ couples. The variable `UPB` records the number of unwanted pursuit behavior perpetrations and is considered the outcome of interest. Included covariates are the binary variable `EDUCATION`, which is 1 if at least a bachelor's degree was attained, and a continuous variable `ANXIETY` which measures anxious attachment. A zero-inflated count model is considered for these data because 246 of the 387 records have an outcome of zero.
 
 Let us load and view the first few records in the dataset.
 
@@ -968,7 +970,7 @@ zicmp0.out = glm.zicmp.raw(y, X, S, W,
 print(zicmp0.out)
 ```
 
-Notice that an additional `Fixed` column has been added to the display, indicating that the coefficient `gamma` is fixed. Furthermore, its `Estimate` column is set to the initial value and the columns `SE`, `z-value`, and `p-value` are set to `NA`. This model achieves a similiar log-likelihood value as our first attempt using `L-BFGS-B` but does not exhibit signs of numerical issues.
+Notice that an additional `Fixed` column has been added to the display, indicating that the coefficient `gamma` is fixed. Furthermore, its `Estimate` column is set to the initial value and the columns `SE`, `z-value`, and `p-value` are set to `NA`. This model achieves a similar log-likelihood value as our first attempt using `L-BFGS-B` but does not exhibit signs of numerical issues.
 
 Here are several of the accessors provided to extract model outputs.
 
@@ -1004,10 +1006,10 @@ In this example, we can see the benefit of using quantile residuals rather than 
 res.raw = residuals(zicmp.out, type = "raw")
 res.qtl = residuals(zicmp.out, type = "quantile")
 
-plot.fit.res(y.hat, res.raw) + ggtitle("Fitted vs Raw Residuals")
+plot.fit.res(y.hat, res.raw) + ggtitle("Fitted Values vs. Raw Residuals")
 plot.qq.res(res.raw) + ggtitle("Q-Q Plot of Raw Residuals")
 
-plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted vs Quantile Residuals")
+plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted Values vs. Quantile Residuals")
 plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
 ```
 
