@@ -189,6 +189,10 @@ glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, contro
 	d1 = ncol(X)
 	d2 = ncol(S)
 
+	# Make sure design matrices have column names
+	if (is.null(colnames(X))) { colnames(X) = seq_len(d1) }
+	if (is.null(colnames(S))) { colnames(S) = seq_len(d2) }
+
 	# Initialize NULL arguments
 	if (is.null(offset)) { offset = get.offset.zero(n) }
 	if (is.null(init)) { init = get.init.zero(d1, d2) }
@@ -236,6 +240,11 @@ glm.zicmp.raw = function(y, X, S, W, offset = NULL, init = NULL, fixed = NULL, c
 	d1 = ncol(X)
 	d2 = ncol(S)
 	d3 = ncol(W)
+
+	# Make sure design matrices have column names
+	if (is.null(colnames(X))) { colnames(X) = seq_len(d1) }
+	if (is.null(colnames(S))) { colnames(S) = seq_len(d2) }
+	if (is.null(colnames(W))) { colnames(W) = seq_len(d3) }
 
 	# Initialize NULL arguments
 	if (is.null(offset)) { offset = get.offset.zero(n) }

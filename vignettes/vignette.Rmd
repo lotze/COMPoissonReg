@@ -7,6 +7,7 @@ output:
     citation_package: natbib
     number_sections: yes
     toc: yes
+    toc_depth: 3
     extra_dependencies:
       common: null
     keep_tex: yes
@@ -190,18 +191,16 @@ Many of the functions in the user interface of `COMPoissonReg` take an optional 
 ```{r}
 control = get.control(
 	ymax = 100000,
-	z.method = "hybrid",
 	hybrid.tol = 1e-2,
 	truncate.tol = 1e-6
 )
 ```
 
-The tolerances $\delta$ and $\epsilon$ are specified as `hybrid.tol` and `truncate.tol` respectively. The `z.method` argument specifies how the computation will be carried out: the argument `method = "approx"` corresponds to \eqref{eqn:z-approx}, while `method = "trunc"` uses the truncated sum $Z^{(M)}(\lambda, \nu)$, and the default `method = "hybrid"` uses the hybrid strategy. The argument `ymax` specifies upper limit $M$; this is a safety measure which prevents very large computations unless the user opts to allow them. When no control object is specified, a global default (via option `COMPoissonReg.control`) is used.
+The tolerances $\delta$ and $\epsilon$ are specified as `hybrid.tol` and `truncate.tol` respectively. Taking `hybrid.tol` to be a very small positive number results in use of the truncated sum $Z^{(M)}(\lambda, \nu)$, while `hybrid.tol = Inf` uses the approximation method \eqref{eqn:z-approx}, except in extreme cases where $\lambda^{-1/\nu}$ evaluates to zero or $\infty$ numerically. The argument `ymax` specifies upper limit $M$; this is a safety measure which prevents very large computations unless the user opts to allow them. When no control object is specified, a global default (via option `COMPoissonReg.control`) is used.
 
 ```{r}
 control = getOption("COMPoissonReg.control")
 control$ymax
-control$z.method
 control$hybrid.tol
 control$truncate.tol
 ```
@@ -219,8 +218,8 @@ The `ncmp` function computes the normalizing constant $Z(\lambda, \nu)$ and retu
 ```{r}
 ncmp(lambda = 1.5, nu = 1.2)
 ncmp(lambda = 1.5, nu = 1.2, log = TRUE)
-ncmp(lambda = 1.5, nu = 1.2, log = TRUE, control = get.control(z.method = "approx"))
-ncmp(lambda = 1.5, nu = 1.2, log = TRUE, control = get.control(z.method = "trunc"))
+ncmp(lambda = 1.5, nu = 1.2, log = TRUE, control = get.control(hybrid.tol = 1e10))
+ncmp(lambda = 1.5, nu = 1.2, log = TRUE, control = get.control(hybrid.tol = 1e-10))
 ```
 
 Before proceeding, let us define a function to display errors and warnings which are intentionally triggered in the remainder of the vignette.
@@ -395,22 +394,22 @@ For the second derivative,
 &\iff \Var(Y) = \lambda^2 \frac{\partial^2}{\partial \lambda^2} \log Z(\lambda, \nu) + \E(Y).
 \end{align*}
 <!-- -->
-Therefore, we may use first and second derivatives of $\log Z(\lambda, \nu)$, taken with respect to $\lambda$, to compute $\E(Y)$ and $\Var(Y)$. The `ecmp` and `vcmp` functions implement this computation of the expectation and variance, respectively. The control object is used to determine whether to use the truncation or differentiation approach. With `z.method = "hybrid"`, condition \eqref{eqn:can_approx} is used to determine whether to use the truncation approach (if false) or differentiation approach (if true). Otherwise, `z.method = "approx"` explicitly requests the differentiation approach and `z.method = "trunc"` requests truncation.
+Therefore, we may use first and second derivatives of $\log Z(\lambda, \nu)$, taken with respect to $\lambda$, to compute $\E(Y)$ and $\Var(Y)$. The `ecmp` and `vcmp` functions implement this computation of the expectation and variance, respectively. The control object is used to determine whether to use the truncation or differentiation approach. Condition \eqref{eqn:can_approx} is used to determine whether to use the truncation approach (if false) or differentiation approach (if true).
 
 ```{r}
 ecmp(lambda = 10, nu = 1.2)
 ecmp(lambda = 1.5, nu = 0.5)
 ecmp(lambda = 1.5, nu = 0.05)
-ecmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "trunc"))
-ecmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "approx"))
+ecmp(lambda = 1.5, nu = 0.05, control = get.control(hybrid.tol = 1e-10))
+ecmp(lambda = 1.5, nu = 0.05, control = get.control(hybrid.tol = 1e10))
 ```
 
 ```{r}
 vcmp(lambda = 10, nu = 1.2)
 vcmp(lambda = 1.5, nu = 0.5)
 vcmp(lambda = 1.5, nu = 0.05)
-vcmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "trunc"))
-vcmp(lambda = 1.5, nu = 0.05, control = get.control(z.method = "approx"))
+vcmp(lambda = 1.5, nu = 0.05, control = get.control(hybrid.tol = 1e-10))
+vcmp(lambda = 1.5, nu = 0.05, control = get.control(hybrid.tol = 1e10))
 ```
 
 Provided that an enormously large truncation value $M$ is not required, we may compute other moments by truncated sums using `tcmp`.
@@ -650,6 +649,9 @@ We will now illustrate use of the regression tools using two examples whose data
 ## CMP Regression
 \label{sec:cmp-reg}
 
+### Freight Dataset
+\label{sec:cmp-reg-freight}
+
 The `freight` dataset [@KutnerEtAl2003] was analyzed using CMP regression by @SellersShmueli2010 and found to exhibit underdispersion. The data describe $n = 10$ instances where 1,000 ampules were transported via air shipment. The outcome of interest is the variable `broken` which describes the number of broken ampules in each shipment. The covariate `transfers` describes the number of times the carton was transferred from one aircraft to another during the shipment.
 
 Let us load and view the dataset.
@@ -671,6 +673,9 @@ This can be carried out with the standard `glm` function.
 glm.out = glm(broken ~ transfers, data = freight, family = poisson)
 summary(glm.out)
 ```
+
+### CMP Regression
+\label{sec:cmp-reg-initial}
 
 Next, let us fit a similar CMP regression model with
 <!-- -->
@@ -703,6 +708,9 @@ print(cmp2.out)
 
 Model `cmp2.out` provides a slight improvement over `cmp.out` in AIC and BIC, but we may prefer `cmp.out` in the interest of simplicity.
 
+### Adjustments to Optim
+\label{sec:cmp-reg-optim}
+
 To gain some insight into the optimization, we may wish to increase the trace level, which can be done as follows.
 
 ```{r}
@@ -717,6 +725,9 @@ y = freight$broken
 x = freight$transfers
 glm.cmp(y ~ x)
 ```
+
+### Offset Term
+\label{sec:cmp-reg-offset}
 
 In a count regression model, it may be desirable to include offset terms such as
 <!-- -->
@@ -743,6 +754,9 @@ S = model.matrix(~ 1, data = freight)
 offs = get.offset(x = rep(13, nrow(freight)), s = rep(1, nrow(freight)))
 cmp.raw.out = glm.cmp.raw(y, X, S, offset = offs)
 ```
+
+### Accessor Functions
+\label{sec:cmp-reg-accessors}
 
 Several accessors are provided to extract results from the output object.
 
@@ -882,8 +896,117 @@ We used $R = `r nrow(cmp.boot)`$ in the display above to keep vignette computati
 t(apply(cmp.boot, 2, quantile, c(0.025,0.975)))
 ```
 
+### Large Covariates
+\label{sec:cmp-reg-large-covariates}
+
+Large covariates can present numerical difficulties in fitting CMP regression. We will briefly demonstrate the difficulties and some possible workarounds. First let us generate a new dataset based on a large covariate in the regression for $\lambda_i$.
+
+```{r, prompt=FALSE}
+set.seed(1234)
+n = 200
+x = rnorm(n, 500, 10)
+X = cbind(intercept = 1, slope = x)
+S = matrix(1, n, 1)
+beta_true = c(-0.05, 0.05)
+gamma_true = 2
+lambda_true = exp(X %*% beta_true)
+nu_true = exp(S %*% gamma_true)
+y = rcmp(n, lambda_true, nu_true)
+```
+
+Notice that the generated counts $y_1, \ldots, y_n$ are relatively small compared to the covariate $x_1, \ldots, x_n$.
+
+```{r}
+summary(x)
+summary(y)
+```
+
+An initial attempt to fit the true data-generating model fails.
+
+```{r}
+tryCatch({
+	glm.cmp(y ~ x, formula.nu = ~ 1)
+}, error = print_warning)
+```
+
+Internally, the linked rate parameter $\lambda_i = \exp(\beta_0 + \beta_1 x_i)$ may evaluate to `Inf` or become very close to zero as the optimizer moves $\beta_1$ away from zero in a positive or negative direction, respectively. Some possible ways to address this are as follows.
+
+Standardize the covariate to have mean zero and variance one.
+
+```{r}
+glm.cmp(y ~ scale(x), formula.nu = ~ 1)
+```
+
+Use a logarithmic transformation on the covariate.
+
+```{r}
+glm.cmp(y ~ log(x), formula.nu = ~ 1)
+```
+
+Change optimization method or other `optim` arguments.
+
+```{r}
+control = get.control(optim.method = "BFGS", optim.control = list(maxit = 200))
+suppressWarnings({
+	cmp.out = glm.cmp(y ~ x, formula.nu = ~ 1, control = control)
+	print(cmp.out)
+})
+```
+
+In this case, standardization and logarithmic transformation produce a usable fit. Changing the optimization method to `BFGS` allows the optimization to finish, but there are further numerical problems in computing the Hessian for standard errors.
+
+### Large Outcomes
+\label{sec:cmp-reg-large-outcomes}
+
+Now consider a generated dataset with large outcomes but a relatively small covariate. This situation can also present numerical difficulties.
+
+```{r, prompt=FALSE}
+set.seed(1234)
+n = 200
+x = runif(n, 1, 2)
+X = cbind(intercept = 1, slope = x)
+S = matrix(1, n, 1)
+beta_true = c(1, 1)
+gamma_true = -0.95
+lambda_true = exp(X %*% beta_true)
+nu_true = exp(S %*% gamma_true)
+y = rcmp(n, lambda_true, nu_true)
+```
+
+```{r}
+summary(x)
+summary(y)
+```
+
+An initial attempt to fit the data-generating model fails.
+
+```{r}
+tryCatch({
+	glm.cmp(y ~ x, formula.nu = ~ 1)
+}, error = print_warning)
+```
+
+Informative starting values help the optimizer to initially make progress. True data-generating parameters will not be available in a real data analysis situation but help to illustrate the idea.
+
+```{r}
+init = get.init(beta = beta_true, gamma = gamma_true)
+glm.cmp(y ~ x, formula.nu = ~ 1, init = init)
+```
+
+Without choosing an initial value, changing the optimization method to `Nelder-Mead` and increasing the maximum number of iterations also helps the optimizer find a solution.
+
+```{r}
+control = get.control(optim.method = "Nelder-Mead", optim.control = list(maxit = 1000))
+glm.cmp(y ~ x, formula.nu = ~ 1, control = control)
+```
+
+Note that this solution is different from the previous one; the log-likelihood of the previous one is slightly better.
+
 ## ZICMP Regression
 \label{sec:zicmp-reg}
+
+### Couple Dataset
+\label{sec:zicmp-reg-couple}
 
 The `couple` dataset [@LoeysEtAl2012] was analyzed with ZICMP regression in @SellersRaim2016 and found to exhibit overdispersion. The data concern separation trajectories of $n = 387$ couples. The variable `UPB` records the number of unwanted pursuit behavior perpetrations and is considered the outcome of interest. Included covariates are the binary variable `EDUCATION`, which is 1 if at least a bachelor's degree was attained, and a continuous variable `ANXIETY` which measures anxious attachment. A zero-inflated count model is considered for these data because 246 of the 387 records have an outcome of zero.
 
@@ -907,6 +1030,9 @@ glm.out = glm(UPB ~ EDUCATION + ANXIETY, data = couple, family = poisson)
 summary(glm.out)
 ```
 
+### ZICMP Regression
+\label{sec:zicmp-reg-initial}
+
 Now consider a ZICMP regression with
 <!-- -->
 \begin{align*}
@@ -927,6 +1053,9 @@ glm.cmp(UPB ~ EDUCATION + ANXIETY,
 There are now three sets of coefficients reported in the output: the `X:`, `S:`, and `W:` prefixes label estimates for the $\lambda_i$, $\nu_i$, and $p_i$ formulas respectively.
 
 The AIC of the ZICMP model is drastically smaller than the Poisson model, indicating a greatly improved fit. The estimate for $\gamma_0$ is a large negative number, which can sometimes lead to issues with infinite values when using the `L-BFGS-B` optimization method. Another apparent numerical issue is the extremely large value of the SE associated with $\gamma_0$, despite $\nu$ having an estimate of zero with a small SE.
+
+### Adjustments to Optim
+\label{sec:zicmp-reg-optim}
 
 Let us change several options to avoid these numerical issues. We will switch to the derivative-free `Nelder-Mead` optimizer and increase the maximum number of iterations to allow for its slower convergence. We will also request a smaller tolerance for the truncation method of computing the normalizing constant; this is needed because criteria \eqref{eqn:can_approx} may not be satisfied as the estimate for $\nu$ is rather small but estimates for $\lambda_i$ are also not much larger than 1.
 
@@ -953,6 +1082,9 @@ print(zicmp.out$opt.res$convergence)
 print(zicmp.out$opt.res$message)
 ```
 
+### Fixed Coefficients
+\label{sec:zicmp-reg-fixed}
+
 The previous models strongly suggest the presence of overdispersion; it would be interesting to fix $\gamma_0$ at the extreme $-\infty$ and fit the remaining coefficients. Let us use the raw interface to do this.
 
 ```{r, prompt=FALSE}
@@ -971,6 +1103,9 @@ print(zicmp0.out)
 ```
 
 Notice that an additional `Fixed` column has been added to the display, indicating that the coefficient `gamma` is fixed. Furthermore, its `Estimate` column is set to the initial value and the columns `SE`, `z-value`, and `p-value` are set to `NA`. This model achieves a similar log-likelihood value as our first attempt using `L-BFGS-B` but does not exhibit signs of numerical issues.
+
+### Accessor Functions
+\label{sec:zicmp-reg-accessors}
 
 Here are several of the accessors provided to extract model outputs.
 

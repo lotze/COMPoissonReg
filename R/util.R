@@ -15,7 +15,7 @@ format.difftime = function(x) {
 	} else if (mm > 0) {
 		fmt = sprintf("%02dm:%02ds", mm, ss)
 	} else {
-		fmt = sprintf("%0.2f sec", ss)
+		fmt = sprintf("%0.2f sec", s)
 	}
 
 	return(fmt)

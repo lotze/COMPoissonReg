@@ -7,7 +7,6 @@ functions in the package.}
 \usage{
 get.control(
   ymax = 1e+06,
-  z.method = "hybrid",
   optim.method = "L-BFGS-B",
   optim.control = list(maxit = 150),
   hybrid.tol = 0.01,
@@ -17,17 +16,16 @@ get.control(
 \arguments{
 \item{ymax}{Truncate counts to maximum value of \code{y}.}
 
-\item{z.method}{One of: \code{"hybrid"}, \code{"approx"}, or \code{"trunc"}.
-See details.}
-
 \item{optim.method}{Optimization method for maximum likelihood. See the
 \code{method} argument in \link[stats]{optim}.}
 
 \item{optim.control}{\code{control} argument for \link[stats]{optim}.}
 
-\item{hybrid.tol}{Tolerance for \code{z.method = "hybrid"}. See details.}
+\item{hybrid.tol}{Tolerance to decide when to use truncation method versus
+approximation method to compute quantities based on the normalizing constant.
+See details.}
 
-\item{truncate.tol}{Tolerance for \code{z.method = "trunc"}. See details.}
+\item{truncate.tol}{Tolerance for truncation method. See details.}
 }
 \value{
 List of controls.
@@ -37,20 +35,11 @@ Construct a control object to pass additional arguments to a number of
 functions in the package.
 }
 \details{
-The element \code{z.method} specifies how the CMP normalizing constant and
-related quantities are computed.
-\itemize{
-\item \code{z.method = "approx"}: use an approximation which is easy to
-compute but suitable when \eqn{\lambda^{-1/\nu}} is small.
-
-\item \code{z.method = "trunc"}: the infinite series for the normalizing
-constant is truncated based on \code{truncate.tol}. The procedure is
-described in the package vignette.
-
-\item \code{z.method = "hybrid"}: use the \code{approx} method when
-\eqn{\lambda^{-1/\nu}} is smaller than \code{hybrid.tol}; otherwise use the
-\code{trunc} method.
-}
+A hybrid method is used throughout the package to compute the CMP normalizing
+constant and related quantities. When \eqn{\lambda^{-1/\nu}} is smaller than
+\code{hybrid.tol}, an asymptotic approximation is used; otherwise, infinite
+series are truncated to finite summations. More information is given in the
+\code{COMPoissonReg} vignette.
 
 The element \code{ymax} protects against very long computations. Users
 should beware when increasing this significantly beyond the default, as it

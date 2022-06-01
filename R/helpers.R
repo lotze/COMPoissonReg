@@ -115,29 +115,20 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' functions in the package.
 #' 
 #' @param ymax Truncate counts to maximum value of \code{y}.
-#' @param z.method One of: \code{"hybrid"}, \code{"approx"}, or \code{"trunc"}.
-#' See details.
 #' @param optim.method Optimization method for maximum likelihood. See the
 #' \code{method} argument in \link[stats]{optim}.
 #' @param optim.control \code{control} argument for \link[stats]{optim}.
-#' @param hybrid.tol Tolerance for \code{z.method = "hybrid"}. See details.
-#' @param truncate.tol Tolerance for \code{z.method = "trunc"}. See details.
+#' @param hybrid.tol Tolerance to decide when to use truncation method versus
+#' approximation method to compute quantities based on the normalizing constant.
+#' See details.
+#' @param truncate.tol Tolerance for truncation method. See details.
 #' 
 #' @details
-#' The element \code{z.method} specifies how the CMP normalizing constant and
-#' related quantities are computed.
-#' \itemize{
-#' \item \code{z.method = "approx"}: use an approximation which is easy to
-#' compute but suitable when \eqn{\lambda^{-1/\nu}} is small.
-#' 
-#' \item \code{z.method = "trunc"}: the infinite series for the normalizing
-#' constant is truncated based on \code{truncate.tol}. The procedure is
-#' described in the package vignette.
-#' 
-#' \item \code{z.method = "hybrid"}: use the \code{approx} method when
-#' \eqn{\lambda^{-1/\nu}} is smaller than \code{hybrid.tol}; otherwise use the
-#' \code{trunc} method.
-#' }
+#' A hybrid method is used throughout the package to compute the CMP normalizing
+#' constant and related quantities. When \eqn{\lambda^{-1/\nu}} is smaller than
+#' \code{hybrid.tol}, an asymptotic approximation is used; otherwise, infinite
+#' series are truncated to finite summations. More information is given in the
+#' \code{COMPoissonReg} vignette.
 #' 
 #' The element \code{ymax} protects against very long computations. Users
 #' should beware when increasing this significantly beyond the default, as it
@@ -145,12 +136,10 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' 
 #' @return List of controls.
 #' @export
-get.control = function(ymax = 1e6, z.method = "hybrid", optim.method = 'L-BFGS-B',
+get.control = function(ymax = 1e6, optim.method = 'L-BFGS-B',
 	optim.control = list(maxit = 150), hybrid.tol = 1e-2, truncate.tol = 1e-6)
 {
-	stopifnot(z.method %in% c("hybrid", "approx",  "trunc"))
-
-	out = list(ymax = ymax, z.method = z.method, optim.method = optim.method,
+	out = list(ymax = ymax, optim.method = optim.method,
 		optim.control = optim.control, hybrid.tol = hybrid.tol,
 		truncate.tol = truncate.tol)
 	class(out) = "COMPoissonReg.control"

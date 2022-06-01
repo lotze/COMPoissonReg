@@ -70,7 +70,6 @@ qzicmp = function(q, lambda, nu, p, log.p = FALSE, control = NULL)
 
 	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
 	stopifnot("COMPoissonReg.control" %in% class(control))
-	method = control$z.method
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
 	truncate.tol = control$truncate.tol

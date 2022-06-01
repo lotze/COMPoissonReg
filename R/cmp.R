@@ -178,32 +178,27 @@ ecmp = function(lambda, nu, control = NULL)
 
 	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
 	stopifnot("COMPoissonReg.control" %in% class(control))
-	method = control$z.method
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
 	truncate.tol = control$truncate.tol
 
-	# For hybrid method, use asymptotic approximation if this is true.
-	# Otherwise use truncated sum.
+	# If the following is true, use asymptotic approximation. Otherwise use
+	# truncated sum.
 	is.approx.valid = -1/prep$nu * log(prep$lambda) < log(hybrid.tol)
 
 	out = numeric(n)
 	for (i in 1:n) {
-		if (method == "approx" || (method == "hybrid" && is.approx.valid[i])) {
+		if (is.approx.valid[i]) {
 			# Use 1st derivative of the log-normalizing constant to compute the
 			# expected value.
 			out[i] = prep$lambda[i] * grad(ncmp, prep$lambda[i],
 				nu = prep$nu[i], log = TRUE, control = control)
-		} else if (method == "trunc" || (method == "hybrid" && !is.approx.valid[i])) {
+		} else {
 			# Compute the expected value by a simple truncated sum
 			x.seq = seq(0, tcmp(prep$lambda[i], prep$nu[i], control = control))
 			out[i] = sum(x.seq * dcmp(x.seq, prep$lambda[i], prep$nu[i], control = control))
-		} else {
-			msg = sprintf("Method not recognized: %s", method)
-			stop(msg)
 		}
 	}
-
 
 	return(out)
 }
@@ -219,13 +214,12 @@ vcmp = function(lambda, nu, control = NULL)
 
 	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
 	stopifnot("COMPoissonReg.control" %in% class(control))
-	method = control$z.method
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
 	truncate.tol = control$truncate.tol
 
-	# For hybrid method, use asymptotic approximation if this is true.
-	# Otherwise use truncated sum.
+	# If the following is true, use asymptotic approximation. Otherwise use
+	# truncated sum.
 	is.approx.valid = -1/prep$nu * log(prep$lambda) < log(hybrid.tol)
 
 	# Compute expected value
@@ -233,22 +227,17 @@ vcmp = function(lambda, nu, control = NULL)
 
 	out = numeric(n)
 	for (i in 1:n) {
-		if (method == "approx" || (method == "hybrid" && is.approx.valid[i])) {
+		if (is.approx.valid[i]) {
 			# Use 2nd derivative of the log-normalizing constant to compute the
-			# variance. The expression for dd is equal to Var(X) - E(X). Note
-			# that we use `method = hybrid` for ncmp itself. This can be changed
-			# via the global options, if desired.
+			# variance. The expression for dd is equal to Var(X) - E(X).
 			dd = prep$lambda[i]^2 * hessian(ncmp, prep$lambda[i],
 				nu = prep$nu[i], log = TRUE, control = control)
 			out[i] = dd + ev[i]
-		} else if (method == "trunc" || (method == "hybrid" && !is.approx.valid[i])) {
+		} else {
 			# Compute the expected value by a simple truncated sum
 			x.seq = seq(0, tcmp(prep$lambda[i], prep$nu[i], control = control))
 			f.seq = dcmp(x.seq, prep$lambda[i], prep$nu[i], control = control)
 			out[i] = sum(x.seq^2 * f.seq) - ev[i]^2
-		} else {
-			msg = sprintf("Method not recognized: %s", method)
-			stop(msg)
 		}
 	}
 
@@ -266,23 +255,12 @@ ncmp = function(lambda, nu, log = FALSE, control = NULL)
 
 	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
 	stopifnot("COMPoissonReg.control" %in% class(control))
-	method = control$z.method
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
 	truncate.tol = control$truncate.tol
 
-	if (method == "trunc") {
-		out = z_trunc(prep$lambda, prep$nu, tol = truncate.tol, take_log = log,
-			ymax = ymax)
-	} else if (method == "approx") {
-		out = z_approx(prep$lambda, prep$nu, take_log = log)
-	} else if (method == "hybrid") {
-		out = z_hybrid(prep$lambda, prep$nu, take_log = log,
-			hybrid_tol = hybrid.tol, truncate_tol = truncate.tol, ymax = ymax)
-	} else {
-		msg = sprintf("Method not recognized: %s", method)
-		stop(msg)
-	}
+	out = z_hybrid(prep$lambda, prep$nu, take_log = log,
+		hybrid_tol = hybrid.tol, truncate_tol = truncate.tol, ymax = ymax)
 
 	return(out)
 }
