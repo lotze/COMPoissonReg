@@ -37,7 +37,7 @@ set.seed(1235)
 
 The `COMPoissonReg` package supports Conway-Maxwell Poisson (CMP) and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models for analysis of count data in a flexible manner, to account for data dispersion relative to a Poisson model. The package provides regression functionality in addition to basic distribution functions. Interested users can refer to @SellersShmueli2010 and @SellersRaim2016 regarding the underlying theoretical developments for the CMP and ZICMP regressions, respectively. One of the challenges of working with CMP and ZICMP lies in computing the normalizing constant and related quantities. The normalizing constant does not have a simple closed form in general and can quickly increase or decrease magnitude as parameters are varied. `COMPoissonReg` takes a hybrid approach of either truncating the infinite series or making use of an approximation, depending on parameter values. A full specification of the public `COMPoissonReg` interface can be found in the manual. In addition to package prerequisites `Rcpp` [@Eddelbuettel2013] and `numDeriv` [@numDeriv], `ggplot2` [@Wickham2016] is also used in this vignette.
 
-The remainder of the vignette proceeds as follows. Sections \ref{sec:cmp} describes functions to support the CMP distribution, including numerical handling of the normalizing constant. Section \ref{sec:zicmp} describes functions for ZICMP. Finally, Section \ref{sec:reg} demonstrates regression functions; Sections \ref{sec:cmp-reg} and \ref{sec:zicmp-reg} give specific examples based on CMP and ZICMP outcomes, respectively. The `COMPoissonReg` package is on CRAN at <https://cran.r-project.org/package=COMPoissonReg> and the source code is on Github at <https://github.com/lotze/COMPoissonReg>.
+The remainder of the vignette proceeds as follows. Section \ref{sec:cmp} describes functions to support the CMP distribution, including numerical handling of the normalizing constant. Section \ref{sec:zicmp} describes functions for ZICMP. Finally, Section \ref{sec:reg} demonstrates regression functions; Sections \ref{sec:cmp-reg} and \ref{sec:zicmp-reg} give specific examples based on CMP and ZICMP outcomes, respectively. The `COMPoissonReg` package is on CRAN at <https://cran.r-project.org/package=COMPoissonReg> and the source code is on Github at <https://github.com/lotze/COMPoissonReg>.
 
 # Conway Maxwell Poisson Distribution
 \label{sec:cmp}
@@ -843,26 +843,34 @@ plot.fit.res = function(y.hat, res) {
 		geom_point(aes(y, res)) +
 		xlab("Fitted Value") +
 		ylab("Residual Value") +
-		theme_bw()
+		theme_bw() +
+		theme(plot.title = element_text(size = 10))
 }
 
 plot.qq.res = function(res) {
 	ggplot(data.frame(res = res), aes(sample = res)) +
 		stat_qq() +
 		stat_qq_line() +
-		theme_bw()
+		theme_bw() +
+		theme(plot.title = element_text(size = 10))
 }
 
 y.hat = predict(cmp.out)
 
-plot.fit.res(y.hat, res.raw) + ggtitle("Fitted Values vs. Raw Residuals")
-plot.qq.res(res.raw) + ggtitle("Q-Q Plot of Raw Residuals")
+plot.fit.res(y.hat, res.raw) +
+	ggtitle("Fitted Values vs. Raw Residuals")
+plot.qq.res(res.raw) +
+	ggtitle("Q-Q Plot of Raw Residuals")
 
-plot.fit.res(y.hat, res.pearson) + ggtitle("Fitted Values vs. Pearson Residuals")
-plot.qq.res(res.pearson) + ggtitle("Q-Q Plot of Pearson Residuals")
+plot.fit.res(y.hat, res.pearson) +
+	ggtitle("Fitted Values vs. Pearson Residuals")
+plot.qq.res(res.pearson) +
+	ggtitle("Q-Q Plot of Pearson Residuals")
 
-plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted Values vs. Quantile Residuals")
-plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
+plot.fit.res(y.hat, res.qtl) +
+	ggtitle("Fitted Values vs. Quantile Residuals")
+plot.qq.res(res.qtl) +
+	ggtitle("Q-Q Plot of Quantile Residuals")
 ```
 
 In this example, with only `r nrow(freight)` observations, it is difficult to see an advantage of using quantile residuals; the benefit will be more apparent in Section \ref{sec:zicmp-reg}. One benefit of raw residuals is that they may be used to compute a mean-squared error.
@@ -883,7 +891,7 @@ The `deviance` function computes the deviance quantities $D_i = -2 [\log L_i(\ha
 deviance(cmp.out)
 ```
 
-The `parametric.bootstrap` function carries out a parametric bootstrap with $R$ repetitions. Using the fitted MLE $\hat{\btheta}$, bootstrap samples $\vec{y}^{(r)} = (y_1^{(r)}, \ldots, y_n^{(r)})$ are drawn from likelihood $L(\hat{\btheta})$ for $r = 1, \ldots, R$. Estimate $\hat{\btheta}^{(r)}$ is fitted from bootstrap sample $\vec{y}^{(r)}$. An $R \times d$ matrix is returned whose $r$th row is $\hat{\btheta}^{(r)}$.
+The `parametric.bootstrap` function carries out a parametric bootstrap with $R$ repetitions. Using the fitted MLE $\hat{\btheta}$, bootstrap samples $\vec{y}^{(r)} = (y_1^{(r)}, \ldots, y_n^{(r)})$ are drawn from the likelihood $L(\hat{\btheta})$ for $r = 1, \ldots, R$. Estimate $\hat{\btheta}^{(r)}$ is fitted from bootstrap sample $\vec{y}^{(r)}$. An $R \times d$ matrix is returned whose $r$th row is $\hat{\btheta}^{(r)}$.
 
 ```{r}
 cmp.boot = parametric.bootstrap(cmp.out, reps = 100)
@@ -1085,7 +1093,7 @@ print(zicmp.out$opt.res$message)
 ### Fixed Coefficients
 \label{sec:zicmp-reg-fixed}
 
-The previous models strongly suggest the presence of overdispersion; it would be interesting to fix $\gamma_0$ at the extreme $-\infty$ and fit the remaining coefficients. Let us use the raw interface to do this.
+The previous models strongly suggest the presence of overdispersion; it would be interesting to fix $\gamma_0$ at the extreme $-\infty$ and fit the remaining coefficients. This amounts to fitting a Zero-Inflated Geometric regression model. Let us use the raw interface to do this.
 
 ```{r, prompt=FALSE}
 init = coef(zicmp.out, type = "list")
@@ -1141,11 +1149,15 @@ In this example, we can see the benefit of using quantile residuals rather than 
 res.raw = residuals(zicmp.out, type = "raw")
 res.qtl = residuals(zicmp.out, type = "quantile")
 
-plot.fit.res(y.hat, res.raw) + ggtitle("Fitted Values vs. Raw Residuals")
-plot.qq.res(res.raw) + ggtitle("Q-Q Plot of Raw Residuals")
+plot.fit.res(y.hat, res.raw) +
+	ggtitle("Fitted Values vs. Raw Residuals")
+plot.qq.res(res.raw) +
+	ggtitle("Q-Q Plot of Raw Residuals")
 
-plot.fit.res(y.hat, res.qtl) + ggtitle("Fitted Values vs. Quantile Residuals")
-plot.qq.res(res.qtl) + ggtitle("Q-Q Plot of Quantile Residuals")
+plot.fit.res(y.hat, res.qtl) +
+	ggtitle("Fitted Values vs. Quantile Residuals")
+plot.qq.res(res.qtl) +
+	ggtitle("Q-Q Plot of Quantile Residuals")
 ```
 
 Here is an example of computing fitted values for new covariate data.
