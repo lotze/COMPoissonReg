@@ -457,7 +457,11 @@ predict.zicmpfit = function(object, newdata = NULL, type = c("response", "link")
 	} else if (object$interface == "raw") {
 		# If the model was fit with the raw interface, attempt to process
 		# newdata as a list
-		stopifnot("COMPoissonReg.modelmatrix" %in% class(newdata))
+		if (!("COMPoissonReg.modelmatrix" %in% class(newdata))) {
+			msg = paste("Model was fit using raw interface. Use",
+				"get.modelmatrix to construct design matrices for prediction.")
+			stop(msg)
+		}
 		X = newdata$X
 		S = newdata$S
 		W = newdata$W

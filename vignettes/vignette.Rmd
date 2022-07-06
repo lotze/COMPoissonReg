@@ -1052,62 +1052,90 @@ Now consider a ZICMP regression with
 We use the `glm.cmp` function as follows.
 
 ```{r}
-glm.cmp(UPB ~ EDUCATION + ANXIETY,
+zicmp0.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
 	formula.nu = ~ 1,
 	formula.p = ~ EDUCATION + ANXIETY,
  	data = couple)
+print(zicmp0.out)
 ```
 
 There are now three sets of coefficients reported in the output: the `X:`, `S:`, and `W:` prefixes label estimates for the $\lambda_i$, $\nu_i$, and $p_i$ formulas respectively.
 
-The AIC of the ZICMP model is drastically smaller than the Poisson model, indicating a greatly improved fit. The estimate for $\gamma_0$ is a large negative number, which can sometimes lead to issues with infinite values when using the `L-BFGS-B` optimization method. Another apparent numerical issue is the extremely large value of the SE associated with $\gamma_0$, despite $\nu$ having an estimate of zero with a small SE.
+### Comments about Results
 
-### Adjustments to Optim
-\label{sec:zicmp-reg-optim}
+The AIC of the ZICMP model is drastically smaller than the Poisson model, indicating a greatly improved fit. However, there are signs of possible numerical issues. The estimate for $\gamma_0$ is a large negative number, but with an extremely large associated SE, which suggests that the effect may not be statistically significant. On the other hand, the estimate of $\nu$ is nearly zero with a small SE, which suggests that the dispersion parameter is indeed statistically significant. On the surface, this seems to be a contradiction.
 
-Let us change several options to avoid these numerical issues. We will switch to the derivative-free `Nelder-Mead` optimizer and increase the maximum number of iterations to allow for its slower convergence. We will also request a smaller tolerance for the truncation method of computing the normalizing constant; this is needed because criteria \eqref{eqn:can_approx} may not be satisfied as the estimate for $\nu$ is rather small but estimates for $\lambda_i$ are also not much larger than 1.
+The issue is that the Hessian of the log-likelihood becomes insensitive to small changes in $\gamma_0$ when $\lambda_i < 1$ and $\gamma_0$ is a large negative number. Let us first verify that the estimates for $\lambda_i$ are indeed smaller than 1.
 
+```{r}
+pred.out = predict(zicmp0.out, type = "link")
+summary(pred.out$lambda)
+```
+
+To show the insensitivity of the Hessian, let us consider a simpler setting with $Y \sim \text{CMP}(\lambda, \nu)$, $\lambda = \exp\{-0.25\} \approx 0.7788$ fixed, and $\nu = \exp\{\gamma_0\}$. We then have log-density
+<!-- -->
+\begin{align*}
+\log f(y \mid \gamma_0) = y \log \lambda - e^{\gamma_0} \log(y!) - \log Z(\lambda, e^{\gamma_0}),
+\end{align*}
+<!-- -->
+with first derivative and second derivatives, respectively,
+<!-- -->
+\begin{align*}
+&\frac{\partial}{\partial \gamma_0} \log f(y \mid \gamma_0)
+= -e^{\gamma_0} \log(y!) - \frac{\partial}{\partial \gamma_0} \log Z(\lambda, e^{\gamma_0}), \\
+&\frac{\partial^2}{\partial \gamma_0^2} \log f(y \mid \gamma_0)
+= -e^{\gamma_0} \log(y!) - \frac{\partial^2}{\partial \gamma_0^2} \log Z(\lambda, e^{\gamma_0}).
+\end{align*}
+<!-- -->
+For a given value of $y$, $-e^{\gamma_0} \log(y!)$ approaches zero as $\gamma_0$ decreases. Therefore, let us focus on the function
+<!-- -->
+\(
+g(\gamma_0) = -\log Z(\lambda, e^{\gamma_0})
+\)
+<!-- -->
+and its first and second derivatives. The following code illustrates their behavior.
 
 ```{r, prompt=FALSE}
-control = get.control(truncate.tol = 1e-7,
-	optim.method = 'Nelder-Mead',
-	optim.control = list(maxit = 10000))
-zicmp.out = glm.cmp(UPB ~ EDUCATION + ANXIETY,
-	formula.nu = ~ 1,
-	formula.p = ~ EDUCATION + ANXIETY,
-	data = couple, control = control)
+library(numDeriv)
+g = function(gamma0) {
+	-ncmp(lambda = exp(-0.25), nu = exp(gamma0), log = TRUE)
+}
+dat = data.frame(gamma0 = seq(0, -13), g = NA, d_g = NA, d2_g = NA)
+for (j in 1:nrow(dat)) {
+	gamma0 = dat$gamma0[j]
+	dat$g[j] = g(gamma0)
+	dat$d_g[j] = numDeriv::grad(func = g, x = gamma0)
+	dat$d2_g[j] = numDeriv::hessian(func = g, x = gamma0)
+}
 ```
+
+Here is the result.
 
 ```{r}
-print(zicmp.out)
+print(dat)
 ```
 
-Now the coefficient $\gamma_0$ is highly significant, which makes more sense in the context of the other outputs. However, the log-likelihood value is somewhat larger than in the previous attempt which may further be a sign of difficulty with optimization. We may access the optimizer output to ensure convergence was reported.
-
-```{r}
-print(zicmp.out$opt.res$counts)
-print(zicmp.out$opt.res$convergence)
-print(zicmp.out$opt.res$message)
-```
+Notice that $g(\gamma_0)$ approaches a limit as $\gamma_0 \rightarrow -\infty$, which coincides with the CMP distribution approaching a Geometric distribution. It may not be surprising that the first and second derivatives approach zero accordingly. This explains the large SE for $\gamma_0$ in the model `zicmp0.out`. With estimates tending to this region of the parameter space, it may be preferable to fix fix $\gamma_0$ at a value such as $-\infty$, which will be done in the next section.
 
 ### Fixed Coefficients
 \label{sec:zicmp-reg-fixed}
 
-The previous models strongly suggest the presence of overdispersion; it would be interesting to fix $\gamma_0$ at the extreme $-\infty$ and fit the remaining coefficients. This amounts to fitting a Zero-Inflated Geometric regression model. Let us use the raw interface to do this.
+Our attempt to fit the previous model strongly tended to the Zero-Inflated Geometric special case of ZICMP, but SEs computed via the Hessian become large in this region. In this section, we fix $\gamma_0$ at the extreme $-\infty$ and fit the remaining coefficients. Let us use the raw interface to do this.
 
 ```{r, prompt=FALSE}
-init = coef(zicmp.out, type = "list")
+init = coef(zicmp0.out, type = "list")
 y = couple$UPB
 X = model.matrix(~ EDUCATION + ANXIETY, data = couple)
 S = model.matrix(~ 1, data = couple)
 W = model.matrix(~ EDUCATION + ANXIETY, data = couple)
-zicmp0.out = glm.zicmp.raw(y, X, S, W,
+control = get.control(optim.method = "BFGS")
+zicmp.out = glm.zicmp.raw(y, X, S, W,
 	init = get.init(beta = c(-1,0,0), gamma = -Inf, zeta = c(-1,0,0)),
 	fixed = get.fixed(gamma = 1L), control = control)
 ```
 
 ```{r}
-print(zicmp0.out)
+print(zicmp.out)
 ```
 
 Notice that an additional `Fixed` column has been added to the display, indicating that the coefficient `gamma` is fixed. Furthermore, its `Estimate` column is set to the initial value and the columns `SE`, `z-value`, and `p-value` are set to `NA`. This model achieves a similar log-likelihood value as our first attempt using `L-BFGS-B` but does not exhibit signs of numerical issues.
@@ -1118,17 +1146,17 @@ Notice that an additional `Fixed` column has been added to the display, indicati
 Here are several of the accessors provided to extract model outputs.
 
 ```{r}
-logLik(zicmp.out)               ## Log-likelihood evaluated at MLE.
-AIC(zicmp.out)                  ## AIC evaluated at MLE.
-BIC(zicmp.out)                  ## BIC evaluated at MLE.
+logLik(zicmp.out)               ## Log-likelihood evaluated at MLE
+AIC(zicmp.out)                  ## AIC evaluated at MLE
+BIC(zicmp.out)                  ## BIC evaluated at MLE
 coef(zicmp.out)                 ## Estimates of theta as a flat vector
 coef(zicmp.out, type = "list")  ## Estimates of theta as a named list
 vcov(zicmp.out)                 ## Estimated covariance matrix of theta hat
 sdev(zicmp.out)                 ## Standard deviations from vcov(...) diagonals
 sdev(zicmp.out, type = "list")  ## Standard deviations as a named list
-equitest(zicmp.out)             ## Likelihood ratio test for H_0: gamma = 0
-tryCatch({                      ## Try again on model without fixed gamma
-	equitest(zicmp0.out)
+equitest(zicmp0.out)            ## Likelihood ratio test for H_0: gamma = 0
+tryCatch({                      ## An error is thrown for model with fixed gamma
+	equitest(zicmp.out)
 }, error = print_warning)
 ```
 
@@ -1163,20 +1191,19 @@ plot.qq.res(res.qtl) +
 Here is an example of computing fitted values for new covariate data.
 
 ```{r, prompt = FALSE}
-# Prepare new data to model fit by formula interface
 new.df = data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
-
-# Prepare new data to model fit by raw interface
 X.new = model.matrix(~ EDUCATION + ANXIETY, data = new.df)
 S.new = model.matrix(~ 1, data = new.df)
 W.new = model.matrix(~ EDUCATION + ANXIETY, data = new.df)
 new.data = get.modelmatrix(X.new, S.new, W.new)
 
-# For the formula interface
-y.hat.new = predict(zicmp.out, newdata = new.df)
+# For model fit using raw interface, use get.modelmatrix to prepare new design
+# matrices, offsets, etc
+y.hat.new = predict(zicmp.out, newdata = new.data)
 
-# For the raw interface
-y.hat.new = predict(zicmp0.out, newdata = new.data)
+# For models fit with the formula interface, pass a data.frame with the same
+# structure as used in the fit.
+y.hat.new = predict(zicmp0.out, newdata = new.df)
 ```
 
 ```{r}
