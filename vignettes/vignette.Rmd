@@ -1,5 +1,19 @@
 ---
 title: "A Vignette for the COMPoissonReg Package"
+author:
+  - Andrew M. Raim^[
+    <andrew.raim@gmail.com>,
+    Center for Statistical Research & Methodology,
+    U.S. Census Bureau,
+    Washington, DC, 20233, U.S.A.
+    ]
+  - Kimberly F. Sellers^[
+    <kfs7@georgetown.edu>,
+    Center for Statistical Research & Methodology,
+    U.S. Census Bureau and
+    Department of Mathematics and Statistics,
+    Georgetown University.
+    ]
 bibliography: references.bib
 date: "`r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
 output: 
@@ -11,6 +25,9 @@ output:
     extra_dependencies:
       common: null
     keep_tex: yes
+urlcolor: blue
+linkcolor: blue
+citecolor: blue
 vignette: >
   %\VignetteIndexEntry{A Vignette for the COMPoissonReg Package}
   %\VignetteEngine{knitr::rmarkdown}
@@ -30,12 +47,15 @@ library(COMPoissonReg)
 set.seed(1235)
 ```
 
+### Disclaimer and Acknowledgements {.unlisted .unnumbered}
+This vignette is released to inform interested parties of ongoing research and to encourage discussion of work in progress. Any views expressed are those of the authors and not those of the U.S. Census Bureau. We acknowledge Thomas Lotze for significant contributions to the initial development of the `COMPoissonReg` package and for service as initial maintainer on CRAN.
+
 \newpage
 
 # Introduction
 \label{sec:intro}
 
-The `COMPoissonReg` package supports Conway-Maxwell Poisson (CMP) and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models for analysis of count data in a flexible manner, to account for data dispersion relative to a Poisson model. The package provides regression functionality in addition to basic distribution functions. Interested users can refer to @SellersShmueli2010 and @SellersRaim2016 regarding the underlying theoretical developments for the CMP and ZICMP regressions, respectively. One of the challenges of working with CMP and ZICMP lies in computing the normalizing constant and related quantities. The normalizing constant does not have a simple closed form in general and can quickly increase or decrease magnitude as parameters are varied. `COMPoissonReg` takes a hybrid approach of either truncating the infinite series or making use of an approximation, depending on parameter values. A full specification of the public `COMPoissonReg` interface can be found in the manual. In addition to package prerequisites `Rcpp` [@Eddelbuettel2013] and `numDeriv` [@numDeriv], `ggplot2` [@Wickham2016] is also used in this vignette.
+The R package `COMPoissonReg` supports Conway-Maxwell Poisson (CMP) and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models for analysis of count data in a flexible manner, to account for data dispersion relative to a Poisson model. The package provides regression functionality in addition to basic distribution functions. Interested users can refer to @SellersShmueli2010 and @SellersRaim2016 regarding the underlying theoretical developments for the CMP and ZICMP regressions, respectively. One of the challenges of working with CMP and ZICMP lies in computing the normalizing constant and related quantities. The normalizing constant does not have a simple closed form in general and can quickly increase or decrease magnitude as parameters are varied. `COMPoissonReg` takes a hybrid approach of either truncating the infinite series or making use of an approximation, depending on parameter values. A full specification of the public `COMPoissonReg` interface can be found in the manual. In addition to package prerequisites `Rcpp` [@Eddelbuettel2013] and `numDeriv` [@numDeriv], `ggplot2` [@Wickham2016] is also used in this vignette.
 
 The remainder of the vignette proceeds as follows. Section \ref{sec:cmp} describes functions to support the CMP distribution, including numerical handling of the normalizing constant. Section \ref{sec:zicmp} describes functions for ZICMP. Finally, Section \ref{sec:reg} demonstrates regression functions; Sections \ref{sec:cmp-reg} and \ref{sec:zicmp-reg} give specific examples based on CMP and ZICMP outcomes, respectively. The `COMPoissonReg` package is on CRAN at <https://cran.r-project.org/package=COMPoissonReg> and the source code is on Github at <https://github.com/lotze/COMPoissonReg>.
 
@@ -90,20 +110,20 @@ Z(\lambda, \nu) &\approx \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\
 <!-- -->
 as an approximation. Otherwise, the series is computed by truncating to a finite number of terms, which is described next. In either case, computations are kept on the log-scale as much as possible to accommodate numbers with potentially very large and very small magnitudes.
 
-We approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$ if condition \eqref{eqn:can_approx} fails. The general approach for this is described in Appendix B of @ShmueliEtAl2005. For an adequately large $M$, Stirling's approximation can be applied to obtain bounds for the remainder with a closed form. @Feller1968 [, Section 2.9] gives the bound
+We approximate $Z(\lambda, \nu)$ by a finite summation $Z^{(M)}(\lambda, \nu) = \sum_{r=0}^M \lambda^r / (r!)^\nu$ if condition \eqref{eqn:can_approx} fails, so that the remainder is smaller than a given tolerance. The general approach is described in Appendix B of @ShmueliEtAl2005. @Robbins1955 gives bounds for Stirling's approximation as
 <!-- -->
 \begin{align*}
 \sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n + 1)} < n! <
 \sqrt{2\pi} n^{n + 1/2} e^{-n} e^{1 / (12n)}.
 \end{align*}
 <!-- -->
-Now we can obtain bounds
+Noting that $e^{1 / (12n + 1)} \geq 1$ for $n \geq 1$ and $\sqrt{2\pi} e^{1 / (12n)} \leq e$ for $n \geq 2$, we obtain simpler bounds
 <!-- -->
 \begin{align*}
 \sqrt{2\pi} n^{n + 1/2} e^{-n} \leq n! \leq e n^{n + 1/2} e^{-n},
 \end{align*}
 <!-- -->
-which will be convenient in the following calculations, by noting that $e^{1 / (12n + 1)} \geq 1$ for $n \geq 1$ and $\sqrt{2\pi} e^{1 / (12n)} \leq e$ for $n \geq 2$.^[These bounds are stated at <https://en.wikipedia.org/wiki/Stirling\%27s_approximation>, last accessed May 17, 2021.] We may then bound the truncation error for $Z^{(M)}(\lambda, \nu)$ using
+which will be convenient in the following calculations.^[These bounds are also stated at <https://en.wikipedia.org/wiki/Stirling\%27s_approximation>, last accessed 2022-10-09.] We may then bound the truncation error for $Z^{(M)}(\lambda, \nu)$ using
 <!-- -->
 \begin{align}
 \lvert Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \rvert &= Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \nonumber \\
