@@ -1,5 +1,5 @@
 ---
-title: "A Vignette for the COMPoissonReg Package"
+title: "COMPoissonReg: Usage and Computations"
 author:
   - Andrew M. Raim^[
     <andrew.raim@gmail.com>,
@@ -48,7 +48,7 @@ set.seed(1235)
 ```
 
 ### Disclaimer and Acknowledgements {.unlisted .unnumbered}
-This vignette is released to inform interested parties of ongoing research and to encourage discussion of work in progress. Any views expressed are those of the authors and not those of the U.S. Census Bureau. We acknowledge Thomas Lotze for significant contributions to the initial development of the `COMPoissonReg` package and for service as initial maintainer on CRAN.
+This document is released to inform interested parties of ongoing research and to encourage discussion of work in progress. Any views expressed are those of the authors and not those of the U.S. Census Bureau. We acknowledge Thomas Lotze for significant contributions to the initial development of the `COMPoissonReg` package and for service as initial maintainer on CRAN.
 
 \newpage
 
