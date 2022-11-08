@@ -12,7 +12,8 @@ author:
     Center for Statistical Research & Methodology,
     U.S. Census Bureau and
     Department of Mathematics and Statistics,
-    Georgetown University.
+    Georgetown University,
+    Washington, DC, 20057, U.S.A.
     ]
 abstract: >
   `COMPoissonReg` is an R package which supports Conway-Maxwell Poisson (CMP)
@@ -24,7 +25,7 @@ abstract: >
   Primary `COMPoissonReg` functions are demonstrated with examples, including
   those implementing basic distribution functions and regression modeling.
 bibliography: references.bib
-date: "`r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: 
   pdf_document: 
     citation_package: natbib
@@ -59,7 +60,7 @@ set.seed(1235)
 \newpage
 
 ### Disclaimer and Acknowledgements {.unlisted .unnumbered}
-This document is released to inform interested parties of ongoing research and to encourage discussion of work in progress. Any views expressed are those of the authors and not those of the U.S. Census Bureau. We acknowledge Thomas Lotze for significant contributions to the initial development of the `COMPoissonReg` package and for service as initial maintainer on CRAN.
+This document is released to inform interested parties of ongoing research and to encourage discussion of work in progress. Any views expressed are those of the authors and not those of the U.S. Census Bureau. We acknowledge Thomas Lotze for significant contributions to the initial development of the `COMPoissonReg` package and for service as initial maintainer on CRAN. We thank Darcy Steeg Morris for providing a review of the manuscript.
 
 # Introduction
 \label{sec:intro}
@@ -70,10 +71,10 @@ One of the challenges of working with CMP and ZICMP lies in computing the normal
 
 The remainder of the vignette proceeds as follows. Section \ref{sec:cmp} describes functions to support the CMP distribution, including numerical handling of the normalizing constant. Section \ref{sec:zicmp} describes functions for ZICMP. Finally, Section \ref{sec:reg} demonstrates regression functions; Sections \ref{sec:cmp-reg} and \ref{sec:zicmp-reg} give specific examples based on CMP and ZICMP outcomes, respectively. The `COMPoissonReg` package is on CRAN at <https://cran.r-project.org/package=COMPoissonReg> and the source code is on Github at <https://github.com/lotze/COMPoissonReg>.
 
-# Conway Maxwell Poisson Distribution
+# Conway-Maxwell Poisson Distribution
 \label{sec:cmp}
 
-Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway Maxwell Poisson (CMP) random variable with density
+Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway-Maxwell Poisson (CMP) random variable with density
 <!-- -->
 \begin{align*}
 f(y \mid \lambda, \nu) = \frac{\lambda^y}{(y!)^\nu Z(\lambda, \nu)}, \quad y \in \mathbb{N}, \quad
@@ -94,11 +95,11 @@ The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the pract
 <!-- -->
 \begin{align}
 Z(\lambda, \nu) &= \frac{ \exp(\nu \lambda^{1/\nu}) }{ \lambda^{(\nu-1)/2\nu} (2\pi)^{(\nu-1)/2} \nu^{1/2} }
-\left\{ 1 + O(\lambda^{-1/\nu}) \right\}.
+\left\{ 1 + O(\lambda^{-1/\nu}) \right\},
 \label{eqn:approx}
 \end{align}
 <!-- -->
-Approximations have been further studied and refined in subsequent literature; see for example @GillispieGreen2015, @DalyGaunt2016, and @GauntEtAl2019. The expression in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes as $\nu \rightarrow 0$ when $\lambda > 1$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
+where the $O(\cdot)$ term vanishes as $\lambda^{-1/\nu}$ becomes small. Approximations have been further studied and refined in subsequent literature; see for example @GillispieGreen2015, @DalyGaunt2016, and @GauntEtAl2019. The expression in \eqref{eqn:approx} emphasizes that the magnitude of $Z(\lambda, \nu)$ explodes as $\nu \rightarrow 0$ when $\lambda > 1$. For example, $Z(2, 0.075) \approx e^{780.515}$ is too large to store as a double-precision floating point number, and may evaluate to infinity if care is not taken. In contrast, $Z(\lambda, \nu) \rightarrow 1/(1 - \lambda)$ when $\lambda < 1$ and $\nu \rightarrow 0$.
 
 In practice, the `COMPoissonReg` package does not place constraints on $\lambda$ and $\nu$, except to ensure that they are positive, so that their values are driven by the data or the user's selection. A hybrid strategy motivated by \eqref{eqn:approx} is taken by `COMPoissonReg`. 
 
@@ -453,10 +454,10 @@ sum(xx^3 * dcmp(xx, lambda, nu))    # E(X^3)
 sum(xx^4 * dcmp(xx, lambda, nu))    # E(X^4)
 ```
 
-# Zero-Inflated Conway Maxwell Poisson Distribution
+# Zero-Inflated Conway-Maxwell Poisson Distribution
 \label{sec:zicmp}
 
-Let $S \sim \text{Bernoulli}(p)$ and $T \sim \text{CMP}(\lambda, \nu)$ be independent random variables. Then $Y = (1-S) T$ follows a Zero-Inflated Conway Maxwell Poisson distribution $\text{ZICMP}(\lambda, \nu, p)$ with density
+Let $S \sim \text{Bernoulli}(p)$ and $T \sim \text{CMP}(\lambda, \nu)$ be independent random variables. Then $Y = (1-S) T$ follows a Zero-Inflated Conway-Maxwell Poisson distribution $\text{ZICMP}(\lambda, \nu, p)$ with density
 <!-- -->
 \begin{align*}
 f(y \mid \lambda, \nu, p) =  (1 - p) \frac{\lambda^{y}}{(y!)^{\nu} Z(\lambda, \nu)}
@@ -722,7 +723,7 @@ cmp.out = glm.cmp(broken ~ transfers, data = freight)
 print(cmp.out)
 ```
 
-Notice that the coefficients used in the $\lambda_i$ formula are prefixed with an `X:` label, while an `S:` label is used for coefficients of the $\nu_i$ formula. Similarly to the `glm` output, the output of `glm.cmp` displays several quantities for each coefficient $\theta_j$, $j = 1, \ldots, d$: a point estimate $\hat{\theta}_j$, an associated standard error $\widehat{\text{SE}}(\hat{\theta}_j)$, a z-value $z_j = \hat{\theta}_j / \widehat{\text{SE}}(\hat{\theta}_j)$, and a p-value $2\Phi(-|z_j|)$ for the test $H_0: \theta_j = 0$ versus $H_1: \theta_j \neq 0$. Here, $\Phi$ is the CDF of the standard normal distribution. Because an intercept-only formula was specified for $\nu_i$, $\hat{\nu} = \exp(\hat{\gamma})$ does not vary with $i$ and its estimate and associated standard error are added to the display. Here we see evidence of underdispersion with $\hat{\nu} > 1$. A test for equidispersion is displayed to determine whether there is a significant amount of over or underdispersion in the data. In particular, a likelihood ratio test is used to decide whether $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. The test statistic is displayed along with the degrees of freedom and associated p-value. Here we have fairly strong evidence to reject the null hypothesis of equidispersion.
+The coefficients used in the $\lambda_i$ formula are prefixed with an `X:` label, while an `S:` label is used for coefficients of the $\nu_i$ formula. Notice that estimates for `X:` coefficients from the CMP fit are dissimilar to those from the Poisson fit; this may occur when the estimate of $\nu$ deviates from the value of 1. Similarly to the `glm` output, the output of `glm.cmp` displays several quantities for each coefficient $\theta_j$, $j = 1, \ldots, d$: a point estimate $\hat{\theta}_j$, an associated standard error $\widehat{\text{SE}}(\hat{\theta}_j)$, a z-value $z_j = \hat{\theta}_j / \widehat{\text{SE}}(\hat{\theta}_j)$, and a p-value $2\Phi(-|z_j|)$ for the test $H_0: \theta_j = 0$ versus $H_1: \theta_j \neq 0$. Here, $\Phi$ is the CDF of the standard normal distribution. Because an intercept-only formula was specified for $\nu_i$, $\hat{\nu} = \exp(\hat{\gamma})$ does not vary with $i$ and its estimate and associated standard error are added to the display. Here we see evidence of underdispersion with $\hat{\nu} > 1$. A test for equidispersion is displayed to determine whether there is a significant amount of over or underdispersion in the data. In particular, a likelihood ratio test is used to decide whether $H_0: \vec{\gamma} = \vec{0}$ versus $H_0: \vec{\gamma} \neq \vec{0}$. The test statistic is displayed along with the degrees of freedom and associated p-value. Here we have fairly strong evidence to reject the null hypothesis of equidispersion.
 
 The AIC for the CMP model `cmp.out` shows some improvement over that of `glm.out`. Let us also consider a slope coefficient for the $\nu$ component using
 <!-- -->
