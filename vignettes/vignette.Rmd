@@ -6,6 +6,9 @@ author:
     Center for Statistical Research & Methodology,
     U.S. Census Bureau,
     Washington, DC, 20233, U.S.A.
+    **Disclaimer**`:` This document is released to inform interested parties of
+    ongoing research and to encourage discussion of work in progress. Any views
+    expressed are those of the authors and not those of the U.S. Census Bureau.
     ]
   - Kimberly F. Sellers^[
     <kfs7@georgetown.edu>,
@@ -58,9 +61,6 @@ set.seed(1235)
 ```
 
 \newpage
-
-### Disclaimer and Acknowledgements {.unlisted .unnumbered}
-This document is released to inform interested parties of ongoing research and to encourage discussion of work in progress. Any views expressed are those of the authors and not those of the U.S. Census Bureau. We acknowledge Thomas Lotze for significant contributions to the initial development of the `COMPoissonReg` package and for service as initial maintainer on CRAN. We thank Darcy Steeg Morris for providing a review of the manuscript.
 
 # Introduction
 \label{sec:intro}
@@ -1249,5 +1249,8 @@ zicmp.boot = parametric.bootstrap(zicmp.out, reps = 100)
 head(zicmp.boot)
 apply(zicmp.boot, 2, quantile, c(0.025,0.975))
 ```
+
+# Acknowledgements {.unlisted .unnumbered}
+We acknowledge Thomas Lotze for significant contributions to the initial development of the `COMPoissonReg` package and for service as initial maintainer on CRAN. We thank Darcy Steeg Morris, Eric Slud, and Tommy Wright for reviewing the manuscript. We are grateful to the users of `COMPoissonReg` for their interest and for bringing to light some of the issues which have been considered in this work.
 
 # References
