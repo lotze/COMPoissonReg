@@ -42,7 +42,7 @@ urlcolor: blue
 linkcolor: blue
 citecolor: blue
 vignette: >
-  %\VignetteIndexEntry{A Vignette for the COMPoissonReg Package}
+  %\VignetteIndexEntry{COMPoissonReg: Usage, the Normalizing Constant, and Other Computational Details}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
