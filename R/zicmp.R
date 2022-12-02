@@ -68,7 +68,9 @@ qzicmp = function(q, lambda, nu, p, log.p = FALSE, control = NULL)
 	n = length(q)
 	prep = prep.zicmp(length(q), lambda, nu, p)
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())                                                                        
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
