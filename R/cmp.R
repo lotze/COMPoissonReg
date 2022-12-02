@@ -41,7 +41,9 @@ dcmp = function(x, lambda, nu, log = FALSE, control = NULL)
 	n = length(x)
 	prep = prep.zicmp(n, lambda, nu)
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
@@ -70,7 +72,9 @@ rcmp = function(n, lambda, nu, control = NULL)
 {
 	prep = prep.zicmp(n, lambda, nu)
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
@@ -97,7 +101,9 @@ pcmp = function(x, lambda, nu, control = NULL)
 	n = length(x)
 	prep = prep.zicmp(n, lambda, nu)
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
@@ -127,7 +133,9 @@ qcmp = function(q, lambda, nu, log.p = FALSE, control = NULL)
 	n = length(q)
 	prep = prep.zicmp(n, lambda, nu)
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
@@ -176,7 +184,9 @@ ecmp = function(lambda, nu, control = NULL)
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
@@ -212,7 +222,9 @@ vcmp = function(lambda, nu, control = NULL)
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
@@ -253,7 +265,9 @@ ncmp = function(lambda, nu, log = FALSE, control = NULL)
 	n = max(length(lambda), length(nu))
 	prep = prep.zicmp(n, lambda, nu)
 
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	hybrid.tol = control$hybrid.tol
@@ -269,7 +283,9 @@ ncmp = function(lambda, nu, log = FALSE, control = NULL)
 #' @export
 tcmp = function(lambda, nu, control = NULL)
 {
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())
+	}
 	stopifnot("COMPoissonReg.control" %in% class(control))
 	ymax = control$ymax
 	truncate.tol = control$truncate.tol

@@ -197,7 +197,9 @@ glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, contro
 	if (is.null(offset)) { offset = get.offset.zero(n) }
 	if (is.null(init)) { init = get.init.zero(d1, d2) }
 	if (is.null(fixed)) { fixed = get.fixed() }
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())                                                                        
+	}
 
 	# Fit the CMP regression model
 	fit.out = fit.cmp.reg(y, X, S, init = init, offset = offset, fixed = fixed,
@@ -250,7 +252,9 @@ glm.zicmp.raw = function(y, X, S, W, offset = NULL, init = NULL, fixed = NULL, c
 	if (is.null(offset)) { offset = get.offset.zero(n) }
 	if (is.null(init)) { init = get.init.zero(d1, d2, d3) }
 	if (is.null(fixed)) { fixed = get.fixed() }
-	if (is.null(control)) { control = getOption("COMPoissonReg.control") }
+	if (is.null(control)) {
+		control = getOption("COMPoissonReg.control", default = get.control())                                                                        
+	}
 
 	# Fit the ZICMP regression model
 	fit.out = fit.zicmp.reg(y, X, S, W, init = init, offset = offset,
