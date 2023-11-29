@@ -13,7 +13,7 @@ fim.cmp = function(lambda, nu)
 		z_hybrid(theta[1], theta[2], take_log = TRUE)
 	}
 	hess.eps = getOption("COMPoissonReg.hess.eps", default = 1e-2)
-	H = hess.fwd(f, c(lambda, nu), h = hess.eps)
+	H = hess_fwd(f, c(lambda, nu), h = hess.eps)
 	H[1,1] = H[1,1] + ecmp(lambda, nu) / lambda^2
 	return(H)
 }
@@ -33,7 +33,7 @@ fim.cmp.mc = function(lambda, nu, reps)
 	FIM = matrix(0, 2, 2)
 	x = rcmp(reps, lambda, nu)
 	for (r in 1:reps) {
-		S = grad.fwd(f, x = c(lambda, nu), h = grad.eps, data = x[r])
+		S = grad_fwd(f, x = c(lambda, nu), h = grad.eps, data = x[r])
 		FIM = FIM + S %*% t(S)
 	}
 
@@ -65,8 +65,8 @@ fim.zicmp = function(lambda, nu, p)
 	# to avoid issues at the boundary when lambda or nu is near 0.
 	grad.eps = getOption("COMPoissonReg.grad.eps", default = 1e-5)
 	hess.eps = getOption("COMPoissonReg.hess.eps", default = 1e-2)
-	Dlogz = grad.fwd(f, c(lambda, nu), h = grad.eps)
-	Hlogz = hess.fwd(f, c(lambda, nu), h = hess.eps)
+	Dlogz = grad_fwd(f, c(lambda, nu), h = grad.eps)
+	Hlogz = hess_fwd(f, c(lambda, nu), h = hess.eps)
 
 	dlogzdlambda = Dlogz[1]
 	dlogzdnu = Dlogz[2]
@@ -113,7 +113,7 @@ fim.zicmp.mc = function(lambda, nu, p, reps)
 	FIM = matrix(0, 3, 3)
 	x = rzicmp(reps, lambda, nu, p)
 	for (r in 1:reps) {
-		S = grad.fwd(f, x = c(lambda, nu, p), h = grad.eps, data = x[r])
+		S = grad_fwd(f, x = c(lambda, nu, p), h = grad.eps, data = x[r])
 		FIM = FIM + S %*% t(S)
 	}
 
