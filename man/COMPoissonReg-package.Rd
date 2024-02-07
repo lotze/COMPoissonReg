@@ -2,6 +2,7 @@
 % Please edit documentation in R/package.R
 \docType{package}
 \name{COMPoissonReg-package}
+\alias{COMPoissonReg}
 \alias{COMPoissonReg-package}
 \title{Estimate parameters for COM-Poisson regression}
 \description{
@@ -71,6 +72,13 @@ Galit Shmueli, Thomas P. Minka, Joseph B. Kadane, Sharad Borle, and Peter
 Boatwright (2005). A useful distribution for fitting discrete data: revival
 of the Conway-Maxwell-Poisson distribution. Journal of Royal Statistical
 Society C, 54, 127-142.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/lotze/COMPoissonReg}
+}
+
 }
 \author{
 Kimberly Sellers, Thomas Lotze, Andrew M. Raim
