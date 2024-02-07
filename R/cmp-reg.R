@@ -129,7 +129,7 @@ summary.cmpfit = function(object, ...)
 	)
 }
 
-fitted.cmp.internal = function(X, S, beta, gamma, off.x, off.s)
+fitted_cmp_internal = function(X, S, beta, gamma, off.x, off.s)
 {
 	n = nrow(X)
 	stopifnot(n == nrow(S))
@@ -325,7 +325,7 @@ leverage.cmpfit = function(object, ...)
 	y = object$y
 	n = length(y)
 
-	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
+	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
 		object$offset$x, object$offset$s)
 
 	# 1) Some quantities corresponding to parameters lambda and nu: Normalizing
@@ -400,7 +400,7 @@ deviance.cmpfit = function(object, ...)
 
 	# Compute exact deviances
 	ll = numeric(n)
-	out = fitted.cmp.internal(X, S, object$beta, object$gamma, offset$x, offset$s)
+	out = fitted_cmp_internal(X, S, object$beta, object$gamma, offset$x, offset$s)
 	for (i in 1:n) {
 		ll[i] = dcmp(y[i], out$lambda[i], out$nu[i], log = TRUE, control = control)
 	}
@@ -415,7 +415,7 @@ deviance.cmpfit = function(object, ...)
 #' @export
 residuals.cmpfit = function(object, type = c("raw", "quantile"), ...)
 {
-	out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
+	out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
 		object$offset$x, object$offset$s)
 
 	type = match.arg(type)
@@ -471,7 +471,7 @@ predict.cmpfit = function(object, newdata = NULL, type = c("response", "link"), 
 		stop("Don't recognize value of interface")
 	}
 
-	link = fitted.cmp.internal(X, S, object$beta, object$gamma, off.x, off.s)
+	link = fitted_cmp_internal(X, S, object$beta, object$gamma, off.x, off.s)
 	switch(match.arg(type),
 		response = ecmp(link$lambda, link$nu, control = object$control),
 		link = data.frame(lambda = link$lambda, nu = link$nu)
@@ -490,7 +490,7 @@ parametric.bootstrap.cmpfit = function(object, reps = 1000, report.period = reps
 	out = matrix(NA, nrow = reps, ncol = qq)
 	colnames(out) = c(colnames(object$X), colnames(object$S), recursive=TRUE)
 
-	fitted.out = fitted.cmp.internal(object$X, object$S, object$beta, object$gamma,
+	fitted.out = fitted_cmp_internal(object$X, object$S, object$beta, object$gamma,
 		object$offset$x, object$offset$s)
 	lambda.hat = fitted.out$lambda
 	nu.hat = fitted.out$nu

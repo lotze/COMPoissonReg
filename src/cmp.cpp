@@ -73,7 +73,7 @@ Rcpp::NumericVector p_cmp(const Rcpp::NumericVector& x, double lambda, double nu
 			lcp = logadd(lcp, lp);
 
 		 	if (j % 10000 == 0) {
-		 		R_CheckUserInterrupt();
+				Rcpp::checkUserInterrupt();
 	 		}
 		}
 		out(i) = lcp;
@@ -110,7 +110,7 @@ Rcpp::NumericVector q_cmp(const Rcpp::NumericVector& logq, double lambda,
 		all_lcp_vec.push_back(lcp);
 
 	 	if (j % 10000 == 0) {
-	 		R_CheckUserInterrupt();
+			Rcpp::checkUserInterrupt();
 	 	}
 
 	 	if (lcp > logq_max) {

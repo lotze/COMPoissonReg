@@ -153,7 +153,7 @@ summary.zicmpfit = function(object, ...)
 	)
 }
 
-fitted.zicmp.internal = function(X, S, W, beta, gamma, zeta, off.x, off.s, off.w)
+fitted_zicmp_internal = function(X, S, W, beta, gamma, zeta, off.x, off.s, off.w)
 {
 	n = nrow(X)
 	stopifnot(n == nrow(S))
@@ -388,7 +388,7 @@ deviance.zicmpfit = function(object, ...)
 
 	# Compute exact deviances
 	ll = numeric(n)
-	out = fitted.zicmp.internal(X, S, W, object$beta, object$gamma,
+	out = fitted_zicmp_internal(X, S, W, object$beta, object$gamma,
 		object$zeta, offset$x, offset$s, offset$w)
 	for (i in 1:n) {
 		ll[i] = dzicmp(y[i], out$lambda[i], out$nu[i], out$p[i], log = TRUE,
@@ -405,7 +405,7 @@ deviance.zicmpfit = function(object, ...)
 #' @export
 residuals.zicmpfit = function(object, type = c("raw", "quantile"), ...)
 {
-	out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
+	out = fitted_zicmp_internal(object$X, object$S, object$W, object$beta,
 		object$gamma, object$zeta, object$offset$x, object$offset$s,
 		object$offset$w)
 
@@ -472,7 +472,7 @@ predict.zicmpfit = function(object, newdata = NULL, type = c("response", "link")
 		stop("Don't recognize value of interface")
 	}
 
-	link = fitted.zicmp.internal(X, S, W, object$beta,
+	link = fitted_zicmp_internal(X, S, W, object$beta,
 		object$gamma, object$zeta, off.x, off.s, off.w)
 	switch(match.arg(type),
 		response = ezicmp(link$lambda, link$nu, link$p, control = object$control),
@@ -494,7 +494,7 @@ parametric.bootstrap.zicmpfit = function(object, reps = 1000, report.period = re
 		sprintf("W:%s", colnames(object$W))
 	)
 
-	fitted.out = fitted.zicmp.internal(object$X, object$S, object$W, object$beta,
+	fitted.out = fitted_zicmp_internal(object$X, object$S, object$W, object$beta,
 		object$gamma, object$zeta, object$offset$x, object$offset$s,
 		object$offset$w)
 	lambda.hat = fitted.out$lambda

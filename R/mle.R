@@ -93,7 +93,7 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 
 	loglik = function(par) {
 		theta = par2theta(par)
-		out = fitted.zicmp.internal(X, S, W, theta$beta, theta$gamma,
+		out = fitted_zicmp_internal(X, S, W, theta$beta, theta$gamma,
 			theta$zeta, offset$x, offset$s, offset$w)
 		loglik_zicmp(y, out$lambda, out$nu, out$p, hybrid.tol, truncate.tol, ymax)
 	}
