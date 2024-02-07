@@ -75,8 +75,7 @@
 #' @import stats
 #' @importFrom utils head
 #' @importFrom numDeriv grad hessian
-#' @docType package
-NULL
+"_PACKAGE"
 
 #' Package options
 #' 

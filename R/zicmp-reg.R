@@ -218,7 +218,7 @@ print.zicmpfit = function(x, ...)
 		printf("p-value = %0.4e\n", tt$pvalue)
 	}
 	printf("--\n")
-	printf("Elapsed: %s   ", format.difftime(s$elapsed.sec))
+	printf("Elapsed: %s   ", format_elapsed(s$elapsed.sec))
 	printf("Sample size: %d   ", s$n)
 	printf("%s interface\n", x$interface)
 	printf("LogLik: %0.4f   ", s$loglik)

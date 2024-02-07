@@ -1,4 +1,4 @@
-format.difftime = function(x) {
+format_elapsed = function(x) {
 	s = as.numeric(x, units = "secs")
 	dd = floor(s / (60^2 * 24))
 	dd.resid = s / (60^2 * 24) - dd
