@@ -6,18 +6,19 @@
 #' @param x Vector of observed counts.
 #' @param lambda Vector of lambda parameters.
 #' @param nu Vector of nu parameters.
+#' @param weights Vector of weights.
 #' @param hybrid_tol Tolerance for truncation.
 #' @param truncate_tol Tolerance for when to use approximation vs. truncation.
 #' @param ymax Maximum value of y to consider.
 #' 
 #' @details
-#' The vectors \code{x}, \code{lambda}, and \code{nu} must ne the same length.
+#' The vectors \code{x}, \code{lambda}, \code{nu}, and \code{weights} must be the same length.
 #' 
 #' @return Value of loglikelihood.
 #' 
 #' @noRd
-loglik_cmp <- function(x, lambda, nu, hybrid_tol, truncate_tol, ymax) {
-    .Call(`_COMPoissonReg_loglik_cmp`, x, lambda, nu, hybrid_tol, truncate_tol, ymax)
+loglik_cmp <- function(x, lambda, nu, weights, hybrid_tol, truncate_tol, ymax) {
+    .Call(`_COMPoissonReg_loglik_cmp`, x, lambda, nu, weights, hybrid_tol, truncate_tol, ymax)
 }
 
 #' Density function for CMP.
@@ -216,18 +217,19 @@ y_trunc <- function(lambda, nu, tol, ymax) {
 #' @param lambda Vector of lambda parameters.
 #' @param nu Vector of nu parameters.
 #' @param p Vector of p parameters.
+#' @param weights Vector of weights.
 #' @param hybrid_tol Tolerance for truncation.
 #' @param truncate_tol Tolerance for when to use approximation vs. truncation.
 #' @param ymax Maximum value of y to consider.
 #' 
 #' @details
-#' The vectors \code{x}, \code{lambda}, and \code{nu} must ne the same length.
+#' The vectors \code{x}, \code{lambda}, \code{nu}, and \code{weights} must be the same length.
 #' 
 #' @return Value of loglikelihood.
 #' 
 #' @noRd
-loglik_zicmp <- function(x, lambda, nu, p, hybrid_tol, truncate_tol, ymax) {
-    .Call(`_COMPoissonReg_loglik_zicmp`, x, lambda, nu, p, hybrid_tol, truncate_tol, ymax)
+loglik_zicmp <- function(x, lambda, nu, p, weights, hybrid_tol, truncate_tol, ymax) {
+    .Call(`_COMPoissonReg_loglik_zicmp`, x, lambda, nu, p, weights, hybrid_tol, truncate_tol, ymax)
 }
 
 #' Density function for ZICMP.

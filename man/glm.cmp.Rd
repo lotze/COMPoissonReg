@@ -9,6 +9,7 @@ glm.cmp(
   formula.nu = ~1,
   formula.p = NULL,
   data = NULL,
+  weights = NULL,
   init = NULL,
   fixed = NULL,
   control = NULL,

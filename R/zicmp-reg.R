@@ -328,6 +328,7 @@ equitest.zicmpfit = function(object, ...)
 	W = object$W
 	init = object$init
 	offset = object$offset
+	weights = object$weights
 	fixed = object$fixed
 	control = object$control
 	ll = object$loglik
@@ -346,7 +347,7 @@ equitest.zicmpfit = function(object, ...)
 
 	# Null model is ZICMP with nu determined by the offset off.s. If off.s happens
 	# to be zeros, this simplifies to a Poisson regression.
-	fit0.out = fit.zicmp.reg(y, X, S, W, offset = offset,
+	fit0.out = fit.zicmp.reg(y, X, S, W, offset = offset, weights = weights,
 		init = get.init(beta = object$beta, gamma = numeric(d2), zeta = object$zeta),
 		fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2), zeta = fixed$zeta),
 		control = control)
@@ -370,6 +371,7 @@ deviance.zicmpfit = function(object, ...)
 	fixed = object$fixed
 	offset = object$offset
 	control = object$control
+	weights = object$weights
 
 	ll.star = numeric(n)
 
@@ -381,6 +383,7 @@ deviance.zicmpfit = function(object, ...)
 			W = W[i,,drop = FALSE],
 			init = get.init(beta = object$beta, gamma = numeric(d2), zeta = object$zeta),
 			offset = get.offset(x = offset$x[i], s = offset$s[i], w = offset$w[i]),
+			weights = weights,
 			fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2), zeta = fixed$zeta),
 			control = control)
 		ll.star[i] = glm.out$opt.res$value
@@ -515,7 +518,7 @@ parametric.bootstrap.zicmpfit = function(object, reps = 1000, report.period = re
 		# estimates
 		tryCatch({
 			fit.boot = fit.zicmp.reg(y = y.boot, X = object$X, S = object$S,
-				W = object$W, init = init, offset = object$offset,
+				W = object$W, init = init, offset = object$offset, weights = object$weights,
 				fixed = object$fixed, control = object$control)
 			out[r,] = unlist(fit.boot$theta.hat)
 		},

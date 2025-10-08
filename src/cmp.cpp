@@ -5,7 +5,7 @@
 #include "util.h"
 
 double loglik_cmp(const Rcpp::NumericVector& x,
-	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
+	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, const Rcpp::NumericVector& weights,
 	double hybrid_tol, double truncate_tol, double ymax)
 {
 	unsigned int n = x.size();
@@ -14,7 +14,7 @@ double loglik_cmp(const Rcpp::NumericVector& x,
 	for (unsigned int i = 0; i < n; i++) {
 		Rcpp::NumericVector lp_vec = d_cmp(Rcpp::NumericVector::create(x(i)),
 			lambda(i), nu(i), true, true, hybrid_tol, truncate_tol, ymax);
-		out += lp_vec(0);
+		out += weights(i) * lp_vec(0);
 	}
 
 	return out;
