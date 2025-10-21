@@ -11,18 +11,19 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // loglik_cmp
-double loglik_cmp(const Rcpp::NumericVector& x, const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, double hybrid_tol, double truncate_tol, double ymax);
-RcppExport SEXP _COMPoissonReg_loglik_cmp(SEXP xSEXP, SEXP lambdaSEXP, SEXP nuSEXP, SEXP hybrid_tolSEXP, SEXP truncate_tolSEXP, SEXP ymaxSEXP) {
+double loglik_cmp(const Rcpp::NumericVector& x, const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, const Rcpp::NumericVector& weights, double hybrid_tol, double truncate_tol, double ymax);
+RcppExport SEXP _COMPoissonReg_loglik_cmp(SEXP xSEXP, SEXP lambdaSEXP, SEXP nuSEXP, SEXP weightsSEXP, SEXP hybrid_tolSEXP, SEXP truncate_tolSEXP, SEXP ymaxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type weights(weightsSEXP);
     Rcpp::traits::input_parameter< double >::type hybrid_tol(hybrid_tolSEXP);
     Rcpp::traits::input_parameter< double >::type truncate_tol(truncate_tolSEXP);
     Rcpp::traits::input_parameter< double >::type ymax(ymaxSEXP);
-    rcpp_result_gen = Rcpp::wrap(loglik_cmp(x, lambda, nu, hybrid_tol, truncate_tol, ymax));
+    rcpp_result_gen = Rcpp::wrap(loglik_cmp(x, lambda, nu, weights, hybrid_tol, truncate_tol, ymax));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -176,8 +177,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // loglik_zicmp
-double loglik_zicmp(const Rcpp::IntegerVector& x, const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, const Rcpp::NumericVector& p, double hybrid_tol, double truncate_tol, double ymax);
-RcppExport SEXP _COMPoissonReg_loglik_zicmp(SEXP xSEXP, SEXP lambdaSEXP, SEXP nuSEXP, SEXP pSEXP, SEXP hybrid_tolSEXP, SEXP truncate_tolSEXP, SEXP ymaxSEXP) {
+double loglik_zicmp(const Rcpp::IntegerVector& x, const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu, const Rcpp::NumericVector& p, const Rcpp::NumericVector& weights, double hybrid_tol, double truncate_tol, double ymax);
+RcppExport SEXP _COMPoissonReg_loglik_zicmp(SEXP xSEXP, SEXP lambdaSEXP, SEXP nuSEXP, SEXP pSEXP, SEXP weightsSEXP, SEXP hybrid_tolSEXP, SEXP truncate_tolSEXP, SEXP ymaxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -185,10 +186,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type nu(nuSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type weights(weightsSEXP);
     Rcpp::traits::input_parameter< double >::type hybrid_tol(hybrid_tolSEXP);
     Rcpp::traits::input_parameter< double >::type truncate_tol(truncate_tolSEXP);
     Rcpp::traits::input_parameter< double >::type ymax(ymaxSEXP);
-    rcpp_result_gen = Rcpp::wrap(loglik_zicmp(x, lambda, nu, p, hybrid_tol, truncate_tol, ymax));
+    rcpp_result_gen = Rcpp::wrap(loglik_zicmp(x, lambda, nu, p, weights, hybrid_tol, truncate_tol, ymax));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -229,7 +231,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_COMPoissonReg_loglik_cmp", (DL_FUNC) &_COMPoissonReg_loglik_cmp, 6},
+    {"_COMPoissonReg_loglik_cmp", (DL_FUNC) &_COMPoissonReg_loglik_cmp, 7},
     {"_COMPoissonReg_d_cmp", (DL_FUNC) &_COMPoissonReg_d_cmp, 8},
     {"_COMPoissonReg_p_cmp", (DL_FUNC) &_COMPoissonReg_p_cmp, 6},
     {"_COMPoissonReg_q_cmp", (DL_FUNC) &_COMPoissonReg_q_cmp, 6},
@@ -240,7 +242,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_COMPoissonReg_z_approx", (DL_FUNC) &_COMPoissonReg_z_approx, 3},
     {"_COMPoissonReg_z_hybrid", (DL_FUNC) &_COMPoissonReg_z_hybrid, 6},
     {"_COMPoissonReg_y_trunc", (DL_FUNC) &_COMPoissonReg_y_trunc, 4},
-    {"_COMPoissonReg_loglik_zicmp", (DL_FUNC) &_COMPoissonReg_loglik_zicmp, 7},
+    {"_COMPoissonReg_loglik_zicmp", (DL_FUNC) &_COMPoissonReg_loglik_zicmp, 8},
     {"_COMPoissonReg_d_zicmp", (DL_FUNC) &_COMPoissonReg_d_zicmp, 8},
     {"_COMPoissonReg_q_zicmp", (DL_FUNC) &_COMPoissonReg_q_zicmp, 7},
     {NULL, NULL, 0}

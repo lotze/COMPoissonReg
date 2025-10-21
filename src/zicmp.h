@@ -16,21 +16,22 @@ double d_zicmp(unsigned int x, double lambda, double nu, double p,
 //' @param lambda Vector of lambda parameters.
 //' @param nu Vector of nu parameters.
 //' @param p Vector of p parameters.
+//' @param weights Vector of weights.
 //' @param hybrid_tol Tolerance for truncation.
 //' @param truncate_tol Tolerance for when to use approximation vs. truncation.
 //' @param ymax Maximum value of y to consider.
 //' 
 //' @details
-//' The vectors \code{x}, \code{lambda}, and \code{nu} must ne the same length.
+//' The vectors \code{x}, \code{lambda}, \code{nu}, and \code{weights} must be the same length.
 //' 
 //' @return Value of loglikelihood.
 //' 
 //' @noRd
 // [[Rcpp::export]]
 double loglik_zicmp(const Rcpp::IntegerVector& x,
-	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
-	const Rcpp::NumericVector& p, double hybrid_tol, double truncate_tol,
-	double ymax);
+                    const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
+                    const Rcpp::NumericVector& p, const Rcpp::NumericVector& weights, double hybrid_tol, double truncate_tol,
+                    double ymax);
 
 //' Density function for ZICMP.
 //' 

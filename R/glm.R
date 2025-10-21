@@ -32,27 +32,31 @@ NULL
 #' @param formula.p regression formula linked to \code{logit(p)}. If NULL
 #' (the default), zero-inflation term is excluded from the model.#'
 #' @param data An optional data.frame with variables to be used with regression
-#'   formulas. Variables not found here are read from the envionment.
+#'   formulas. Variables not found here are read from the environment.
+#' @param weights An optional vector with weights to be used with regression
+#'   formulas. If NULL (the default), unweighted regression is used.
 #' @param ... other arguments, such as \code{subset} and \code{na.action}.
 #'
 #' @noRd
 formula2raw = function(formula.lambda, formula.nu, formula.p, data = NULL, ...)
 {
 	# Parse formula.lambda. This one should have the response.
-	mf = model.frame(formula.lambda, data, ...)
+	mf = model.frame(formula.lambda, data, ...)	 ## Initialize model frame without weights
 	y = model.response(mf)
 	X = model.matrix(formula.lambda, mf)
 	off.x = model.offset(mf)
 	d1 = ncol(X)
 	n = length(y)
-
-	weights = model.weights(mf)
-	if(!is.null(weights)) {
-		stop("weights argument is currently not supported")
-	}
+	if (is.null(weights)) { weights = rep(1, n) } ## Default --> weights = 1 if none supplied
+	
+	# weights = model.weights(mf)
+	# Sarah and Kim removed this on 23 Sept 2025
+	# if(!is.null(weights)) {
+	# 	stop("weights argument is currently not supported")
+	# }
 
 	# Parse formula.nu
-	mf = model.frame(formula.nu, data, ...)
+	mf = model.frame(formula.nu, data, ...)	
 	S = model.matrix(formula.nu, mf)
 	if (nrow(S) == 0) {
 		# A workaround for the case where there is no context in formula.nu
@@ -86,7 +90,7 @@ formula2raw = function(formula.lambda, formula.nu, formula.p, data = NULL, ...)
 	}
 
 	offset = get.offset(x = off.x, s = off.s, w = off.w)
-	res = list(y = y, X = X, S = S, W = W, offset = offset)
+	res = list(y = y, X = X, S = S, W = W, offset = offset, weights = weights)
 	return(res)
 }
 
@@ -157,17 +161,20 @@ formula2raw = function(formula.lambda, formula.nu, formula.p, data = NULL, ...)
 #' 
 #' @export
 glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
-	data = NULL, init = NULL, fixed = NULL, control = NULL, ...)
+	data = NULL, weights = NULL, init = NULL, fixed = NULL, control = NULL, ...)
 {
-
 	raw = formula2raw(formula.lambda, formula.nu, formula.p, data, ...)
 	d3 = ncol(raw$W)
-
+	
+	if (is.null(weights)) {
+		weights = rep(1, length(raw$y))
+	}
+	
 	if (d3 > 0) {
 		res = glm.zicmp.raw(y = raw$y, X = raw$X, S = raw$S, W = raw$W,
-			offset = raw$offset, init = init, fixed = fixed, control = control)
+			offset = raw$offset, weights = weights, init = init, fixed = fixed, control = control)
 	} else {
-		res = glm.cmp.raw(y = raw$y, X = raw$X, S = raw$S, offset = raw$offset,
+		res = glm.cmp.raw(y = raw$y, X = raw$X, S = raw$S, offset = raw$offset, weights = weights,
 			init = init, fixed = fixed, control = control)
 	}
 
@@ -182,7 +189,7 @@ glm.cmp = function(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 
 #' @name glm.cmp-raw
 #' @export
-glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, control = NULL)
+glm.cmp.raw = function(y, X, S, offset = NULL, weights = NULL, init = NULL, fixed = NULL, control = NULL)
 {
 	# Get dimensions
 	n = length(y)
@@ -195,6 +202,7 @@ glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, contro
 
 	# Initialize NULL arguments
 	if (is.null(offset)) { offset = get.offset.zero(n) }
+	# if (is.null(weights)) { weights = rep(1, n) }
 	if (is.null(init)) { init = get.init.zero(d1, d2) }
 	if (is.null(fixed)) { fixed = get.fixed() }
 	if (is.null(control)) {
@@ -202,8 +210,8 @@ glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, contro
 	}
 
 	# Fit the CMP regression model
-	fit.out = fit.cmp.reg(y, X, S, init = init, offset = offset, fixed = fixed,
-		control = control)
+	fit.out = fit.cmp.reg(y, X, S, init = init, offset = offset, weights = weights, 
+						  fixed = fixed, control = control)
 
 	# Construct return value
 	res = list(
@@ -212,6 +220,7 @@ glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, contro
 		S = S,
 		init = init,
 		offset = offset,
+		weights = weights, 
 		beta = fit.out$theta.hat$beta,
 		gamma = fit.out$theta.hat$gamma,
 		H = fit.out$H,
@@ -235,7 +244,7 @@ glm.cmp.raw = function(y, X, S, offset = NULL, init = NULL, fixed = NULL, contro
 
 #' @name glm.cmp-raw
 #' @export
-glm.zicmp.raw = function(y, X, S, W, offset = NULL, init = NULL, fixed = NULL, control = NULL)
+glm.zicmp.raw = function(y, X, S, W, offset = NULL, weights = NULL, init = NULL, fixed = NULL, control = NULL)
 {
 	# Get dimensions
 	n = length(y)
@@ -250,6 +259,7 @@ glm.zicmp.raw = function(y, X, S, W, offset = NULL, init = NULL, fixed = NULL, c
 
 	# Initialize NULL arguments
 	if (is.null(offset)) { offset = get.offset.zero(n) }
+	# if (is.null(weights)) { weights = rep(1, n) }
 	if (is.null(init)) { init = get.init.zero(d1, d2, d3) }
 	if (is.null(fixed)) { fixed = get.fixed() }
 	if (is.null(control)) {
@@ -257,7 +267,7 @@ glm.zicmp.raw = function(y, X, S, W, offset = NULL, init = NULL, fixed = NULL, c
 	}
 
 	# Fit the ZICMP regression model
-	fit.out = fit.zicmp.reg(y, X, S, W, init = init, offset = offset,
+	fit.out = fit.zicmp.reg(y, X, S, W, init = init, offset = offset, weights = weights, 
 		fixed = fixed, control = control)
 
 	# Construct return value
@@ -268,6 +278,7 @@ glm.zicmp.raw = function(y, X, S, W, offset = NULL, init = NULL, fixed = NULL, c
 		W = W,
 		init = init,
 		offset = offset,
+		weights = weights, 
 		beta = fit.out$theta.hat$beta,
 		gamma = fit.out$theta.hat$gamma,
 		zeta = fit.out$theta.hat$zeta,

@@ -62,14 +62,16 @@ Rcpp::NumericVector d_zicmp(const Rcpp::IntegerVector& x, double lambda,
 
 double loglik_zicmp(const Rcpp::IntegerVector& x,
 	const Rcpp::NumericVector& lambda, const Rcpp::NumericVector& nu,
-	const Rcpp::NumericVector& p, double hybrid_tol, double truncate_tol,
+	const Rcpp::NumericVector& p, const Rcpp::NumericVector& weights, double hybrid_tol, double truncate_tol,
 	double ymax)
 {
 	unsigned int n = x.size();
 	double out = 0;
+	double wl = 0;
 
 	for (unsigned int i = 0; i < n; i++) {
-		out += d_zicmp(x(i), lambda(i), nu(i), p(i), true, hybrid_tol, truncate_tol, ymax);
+		wl = weights(i) * d_zicmp(x(i), lambda(i), nu(i), p(i), true, hybrid_tol, truncate_tol, ymax);
+		out += wl;
 	}
 
 	return out;

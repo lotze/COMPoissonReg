@@ -1,4 +1,4 @@
-fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
+fit.zicmp.reg = function(y, X, S, W, init, offset, weights, fixed, control)
 {
 	start = Sys.time()
 	d1 = ncol(X)
@@ -16,6 +16,7 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 	stopifnot(n == nrow(X))
 	stopifnot(n == nrow(S))
 	stopifnot(n == nrow(W))
+	stopifnot(n == length(weights))
 	stopifnot(n == length(offset$x))
 	stopifnot(n == length(offset$s))
 	stopifnot(n == length(offset$w))
@@ -95,7 +96,7 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 		theta = par2theta(par)
 		out = fitted_zicmp_internal(X, S, W, theta$beta, theta$gamma,
 			theta$zeta, offset$x, offset$s, offset$w)
-		loglik_zicmp(y, out$lambda, out$nu, out$p, hybrid.tol, truncate.tol, ymax)
+		loglik_zicmp(y, out$lambda, out$nu, out$p, weights, hybrid.tol, truncate.tol, ymax)
 	}
 
 	if (!is.null(optim.control$fnscale)) {
@@ -134,7 +135,7 @@ fit.zicmp.reg = function(y, X, S, W, init, offset, fixed, control)
 
 # This is just provided as a convenience to call fit.zicmp.reg with some dummy
 # values.
-fit.cmp.reg = function(y, X, S, init, offset, fixed, control)
+fit.cmp.reg = function(y, X, S, init, offset, weights, fixed, control)
 {
 	n = length(y)
 	W = matrix(NA, n, 0)
@@ -142,5 +143,5 @@ fit.cmp.reg = function(y, X, S, init, offset, fixed, control)
 	offset$w = numeric(n)
 	fixed$zeta = integer(0)
 
-	fit.zicmp.reg(y, X, S, W, init, offset, fixed, control)
+	fit.zicmp.reg(y, X, S, W, init, offset, weights, fixed, control)
 }

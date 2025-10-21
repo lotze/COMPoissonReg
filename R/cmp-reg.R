@@ -290,6 +290,7 @@ equitest.cmpfit = function(object, ...)
 	S = object$S
 	init = object$init
 	offset = object$offset
+	weights = object$weights
 	fixed = object$fixed
 	ll = object$loglik
 
@@ -307,7 +308,7 @@ equitest.cmpfit = function(object, ...)
 
 	# Null model is CMP with nu determined by the offset off.s. If off.s happens
 	# to be zeros, this simplifies to a Poisson regression.
-	fit0.out = fit.cmp.reg(y, X, S, offset = offset,
+	fit0.out = fit.cmp.reg(y, X, S, offset = offset, weights = weights,
 		init = get.init(beta = object$beta, gamma = numeric(d2), zeta = numeric(0)),
 		fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2), zeta = fixed$zeta),
 		control = object$control)
@@ -377,6 +378,7 @@ deviance.cmpfit = function(object, ...)
 	# init = object$init
 	fixed = object$fixed
 	offset = object$offset
+	weights = object$weights
 	control = object$control
 	n = length(y)
 	d2 = ncol(S)
@@ -393,6 +395,7 @@ deviance.cmpfit = function(object, ...)
 			S = S[i,,drop = FALSE],
 			init = get.init(beta = object$beta, gamma = numeric(d2)),
 			offset = get.offset(x = offset$x[i], s = offset$s[i], w = offset$w[i]),
+			weights = weights,
 			fixed = get.fixed(beta = fixed$beta, gamma = seq_len(d2), zeta = fixed$zeta),
 			control = control)
 		ll.star[i] = glm.out$opt.res$value
@@ -509,7 +512,7 @@ parametric.bootstrap.cmpfit = function(object, reps = 1000, report.period = reps
 		# estimates
 		tryCatch({
 			fit.boot = fit.cmp.reg(y = y.boot, X = object$X, S = object$S,
-				init = init, offset = object$offset, fixed = object$fixed,
+				init = init, offset = object$offset, weights = object$weights, fixed = object$fixed,
 				control = object$control)
 			out[r,] = unlist(fit.boot$theta.hat)
 		}, error = function(e) {

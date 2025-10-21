@@ -6,7 +6,16 @@
 \alias{glm.zicmp.raw}
 \title{Raw Interface to COM-Poisson and Zero-Inflated COM-Poisson Regression}
 \usage{
-glm.cmp.raw(y, X, S, offset = NULL, init = NULL, fixed = NULL, control = NULL)
+glm.cmp.raw(
+  y,
+  X,
+  S,
+  offset = NULL,
+  weights = NULL,
+  init = NULL,
+  fixed = NULL,
+  control = NULL
+)
 
 glm.zicmp.raw(
   y,
@@ -14,6 +23,7 @@ glm.zicmp.raw(
   S,
   W,
   offset = NULL,
+  weights = NULL,
   init = NULL,
   fixed = NULL,
   control = NULL
