@@ -16,7 +16,6 @@ License: GPL-2 | GPL-3
 LazyLoad: yes
 Depends: stats, Rcpp, numDeriv
 LinkingTo: Rcpp
-RoxygenNote: 7.3.1
 Encoding: UTF-8
 Suggests:
     testthat (>= 3.0.0),
@@ -25,3 +24,4 @@ Suggests:
     ggplot2
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

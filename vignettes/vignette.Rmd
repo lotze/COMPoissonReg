@@ -45,6 +45,8 @@ vignette: >
   %\VignetteIndexEntry{COMPoissonReg: Usage, the Normalizing Constant, and Other Computational Details}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+editor_options:
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
