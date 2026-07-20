@@ -1,31 +1,13 @@
 ---
 title: "COMPoissonReg: Usage, the Normalizing Constant, and Other Computational Details"
-author:
-  - Andrew M. Raim
-#^[
-#    <andrew.raim@gmail.com>,
-#    Center for Statistical Research & Methodology,
-#    U.S. Census Bureau,
-#    Washington, DC, 20233, U.S.A.
-#    **Disclaimer**`:` This document is released to inform interested parties of
-#    ongoing research and to encourage discussion of work in progress. Any views
-#    expressed are those of the authors and not those of the U.S. Census Bureau.
-#    ]
-  - Kimberly F. Sellers
-#^[
-#    <kfs7@georgetown.edu>,
-#    Center for Statistical Research & Methodology,
-#    U.S. Census Bureau and
-#    Department of Mathematics and Statistics,
-#    Georgetown University,
-#    Washington, DC, 20057, U.S.A.
-#    ]
+author: Andrew M. Raim$^1$ and Kimberly F. Sellers$^2$
 thanks: |
-  **For correspondence**`:` <andrew.raim@gmail.com>.
-  Center for Statistical Research & Methodology, U.S. Census Bureau,
-  Washington, DC, 20233, U.S.A.
   Document was compiled `{r} format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")`.
-abstract: >
+  $^1$Center for Statistical Research & Methodology, U.S. Census Bureau,
+  Washington, DC, 20233, U.S.A., `andrew.raim@gmail.com`.
+  $^2$Department of Statistics, NC State University, Raleigh, NC, 27695,
+  U.S.A., `kimberly_sellers@ncsu.edu`.
+abstract: |
   `COMPoissonReg` is an R package which supports Conway-Maxwell Poisson (CMP)
   and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models. This vignette
   describes fundamental computational details, especially those involving the
@@ -35,11 +17,11 @@ abstract: >
   Primary `COMPoissonReg` functions are demonstrated with examples, including
   those implementing basic distribution functions and regression modeling.
 bibliography: references.bib
-date: "`r format(Sys.time(), '%Y-%m-%d')`"
-format: 
+format:
   pdf:
     mathspec: true
     fontsize: 11pt
+    linkcolor: blue
     cite-method: natbib
     biblio-style: plainnat
     natbiboptions:
@@ -54,9 +36,6 @@ format:
       text: |
         \usepackage{common}
 pdf-engine: pdflatex
-urlcolor: blue
-linkcolor: blue
-citecolor: blue
 vignette: >
   %\VignetteIndexEntry{COMPoissonReg}
   %\VignetteEncoding{UTF-8}
@@ -77,11 +56,16 @@ callout-icon: false
 ---
 
 ```{r}
+#| echo: false
+#| warning: false
 library(COMPoissonReg)
 set.seed(1235)
 ```
 
-\newpage
+# Disclaimers {.unnumbered}
+This document is released to inform interested parties of ongoing research and to encourage discussion of work in progress. Any views expressed are those of the authors and not the U.S. Census Bureau.
+
+Although there are no guarantees of correctness of the `COMPoissonReg` package, reasonable efforts will be made to address shortcomings. Comments, questions, corrections, and possible improvements can be communicated through the project’s Github repository (<https://github.com/lotze/COMPoissonReg>).
 
 # Introduction {#sec-intro}
 
@@ -301,6 +285,7 @@ Now that we have a somewhat robust computation for the normalizing constant, let
 
 ```{r}
 #| prompt: false
+#| warning: false
 library(ggplot2)
 
 nu_seq = seq(0.03, 1.5, length.out = 20)
@@ -314,7 +299,7 @@ nc3 = ncmp(lambda = 1.20, nu = nu_seq, log = TRUE)
 #| fig-height: 3
 #| fig-align: "center"
 #| prompt: false
-# fig-cap: "Log of normalizing constant for $\\lambda = 0.5$ ($\\circ$), $\\lambda = 1.05$ ($\\Delta$), and $\\lambda = 1.20$ ($+$)."
+#| fig-cap: "Log of normalizing constant for $\\lambda = 0.5$ ($\\circ$), $\\lambda = 1.05$ ($\\Delta$), and $\\lambda = 1.20$ ($+$)."
 
 ggplot() +
 	geom_point(data = data.frame(x = nu_seq, y = nc1), aes(x = x, y = y), pch = 1) +
@@ -403,7 +388,7 @@ qx_emp = quantile(x, probs = qq)
 #| fig-width: 3
 #| fig-height: 3
 #| prompt: false
-# fig-cap: "Empirical density of draws (histogram) versus density computed via the dcmp function (points)."
+#| fig-cap: "Empirical density of draws (histogram) versus density computed via the dcmp function (points)."
 ggplot() +
 	geom_bar(data = data.frame(x = x), aes(x = x, y = ..prop..), fill = "NA",
 		col = "black") +
@@ -416,7 +401,7 @@ ggplot() +
 #| fig-width: 3
 #| fig-height: 3
 #| prompt: false
-# fig-cap: "Empirical CDF of draws (solid line) versus CDF computed via the pcmp function (points)."
+#| fig-cap: "Empirical CDF of draws (solid line) versus CDF computed via the pcmp function (points)."
 ggplot() +
 	stat_ecdf(data = data.frame(x = x), aes(x), geom = "step") +
 	geom_point(data = data.frame(x = xx, px = px), aes(x, px)) +
@@ -428,7 +413,7 @@ ggplot() +
 #| fig-width: 3
 #| fig-height: 3
 #| prompt: false
-# fig-cap: "Empirical quantiles of draws (`o`) versus quantiles computed via the qcmp function (`+`)."
+#| fig-cap: "Empirical quantiles of draws (`o`) versus quantiles computed via the qcmp function (`+`)."
 ggplot() +
 	geom_point(data = data.frame(x = qq, qx_emp = qx_emp), aes(qq, qx_emp), pch = 1) +
 	geom_point(data = data.frame(x = qq, qx = qx), aes(qq, qx), pch = 3) +
@@ -594,7 +579,7 @@ qx_emp = quantile(x, probs = qq)
 #| fig-width: 3
 #| fig-height: 3
 #| prompt: false
-# fig-cap: "Empirical density of draws (histogram) versus density computed via the dzicmp function (points)."
+#| fig-cap: "Empirical density of draws (histogram) versus density computed via the dzicmp function (points)."
 
 ggplot() +
 	geom_bar(data = data.frame(x = x), aes(x = x, y = ..prop..), fill = "NA",
@@ -608,7 +593,7 @@ ggplot() +
 #| fig-width: 3
 #| fig-height: 3
 #| prompt: false
-# fig-cap: "Empirical CDF of draws (solid line) versus CDF computed via the pzicmp function (points)."
+#| fig-cap: "Empirical CDF of draws (solid line) versus CDF computed via the pzicmp function (points)."
 ggplot() +
 	stat_ecdf(data = data.frame(x = x), aes(x), geom = "step") +
 	geom_point(data = data.frame(x = xx, px = px), aes(x, px)) +
@@ -620,7 +605,7 @@ ggplot() +
 #| fig-width: 3
 #| fig-height: 3
 #| prompt: false
-# fig-cap: "Empirical quantiles of draws (`o`) versus quantiles computed via the qzicmp function (`+`)."
+#| fig-cap: "Empirical quantiles of draws (`o`) versus quantiles computed via the qzicmp function (`+`)."
 ggplot() +
 	geom_point(data = data.frame(x = qq, qx_emp = qx_emp), aes(qq, qx_emp), pch = 1) +
 	geom_point(data = data.frame(x = qq, qx = qx), aes(qq, qx), pch = 3) +
@@ -660,10 +645,10 @@ The CMP regression model assumes that
 Y_i \indep \text{CMP}(\lambda_i, \nu_i), \quad i = 1, \ldots, n,
 \end{align*}
 <!-- -->
-where $\log \lambda_i = \vec{x}_i^\top \vec{\beta}$ and $\log \nu_i = \vec{s}_i^\top \vec{\gamma}$. Writing $\btheta = (\vec{\beta}, \vec{\gamma})$, the likelihood is
+where $\log \lambda_i = \vec{x}_i^\top \vec{\beta}$ and $\log \nu_i = \vec{s}_i^\top \vec{\gamma}$. Writing $\vec{\theta} = (\vec{\beta}, \vec{\gamma})$, the likelihood is
 <!-- -->
 \begin{align}
-L(\btheta) =
+L(\vec{\theta}) =
 \prod_{i=1}^n \left[
 \frac{\lambda_i^{y_i}}{(y_i!)^{\nu_i} Z(\lambda_i, \nu_i)}
 \right].
@@ -676,10 +661,10 @@ The ZICMP regression model assumes that
 Y_i \indep \text{ZICMP}(\lambda_i, \nu_i, p_i), \quad i = 1, \ldots, n,
 \end{align*}
 <!-- -->
-where $\log \lambda_i = \vec{x}_i^\top \vec{\beta}$, $\log \nu_i = \vec{s}_i^\top \vec{\gamma}$, and $\logit p_i = \vec{w}_i^\top \vec{\zeta}$. Writing $\btheta = (\vec{\beta}, \vec{\gamma}, \vec{\zeta})$, the likelihood is
+where $\log \lambda_i = \vec{x}_i^\top \vec{\beta}$, $\log \nu_i = \vec{s}_i^\top \vec{\gamma}$, and $\logit p_i = \vec{w}_i^\top \vec{\zeta}$. Writing $\vec{\theta} = (\vec{\beta}, \vec{\gamma}, \vec{\zeta})$, the likelihood is
 <!-- -->
 \begin{align}
-L(\btheta) =
+L(\vec{\theta}) =
 \prod_{i=1}^n \left[(1 - p_i)
 \frac{\lambda_i^{y_i}}{(y_i!)^{\nu_i} Z(\lambda_i, \nu_i)}
 + p_i \ind(y_i = 0)
@@ -687,7 +672,7 @@ L(\btheta) =
 \label{eqn:likelihood-zicmp}
 \end{align}
 <!-- -->
-We will write $d = d_1 + d_2 + d_3$ for the total dimension of $\btheta$. The $n \times d_1$ design matrix whose rows consist of $\vec{x}_i$ will be denoted $\vec{X}$. Similarly, we will write $\vec{S}$ and $\vec{W}$ as the $n \times d_2$ and $n \times d_3$ design matrices constructed from $\vec{s}_i$ and $\vec{w}_i$, respectively. The `glm.cmp` function provides a formula interface to fit models of both types: \eqref{eqn:likelihood-cmp} and \eqref{eqn:likelihood-zicmp}.
+We will write $d = d_1 + d_2 + d_3$ for the total dimension of $\vec{\theta}$. The $n \times d_1$ design matrix whose rows consist of $\vec{x}_i$ will be denoted $\vec{X}$. Similarly, we will write $\vec{S}$ and $\vec{W}$ as the $n \times d_2$ and $n \times d_3$ design matrices constructed from $\vec{s}_i$ and $\vec{w}_i$, respectively. The `glm.cmp` function provides a formula interface to fit models of both types: \eqref{eqn:likelihood-cmp} and \eqref{eqn:likelihood-zicmp}.
 
 ```{r, eval = FALSE, prompt = FALSE}
 out = glm.cmp(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
@@ -720,7 +705,7 @@ model.matrix(formula.nu, data = data)
 model.matrix(formula.p, data = data)
 ```
 
-The `control` argument has been introduced in @sec-cmp; regression modeling makes use of several additional arguments. `COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\btheta}$ for $\btheta$ under the specified model. Several controls are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
+The `control` argument has been introduced in @sec-cmp; regression modeling makes use of several additional arguments. `COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\vec{\theta}}$ for $\vec{\theta}$ under the specified model. Several controls are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
 
 ```{r}
 control = getOption("COMPoissonReg.control")
@@ -730,7 +715,7 @@ control$optim.control
 
 The element `optim.method` is a string which is passed as the `method` argument to `optim`, while `optim.control` is a list passed as the `control` argument of `optim`. Note that, for the latter, if an entry is given for `fnscale`, it will be ignored and overwritten internally by `COMPoissonReg`.
 
-The covariance of $\hat{\btheta}$ is estimated by $\hat{\vec{V}}(\hat{\btheta}) = -[\vec{H}(\hat{\btheta})]^{-1}$, where $\vec{H}(\btheta) = \partial^2 \log L(\btheta) / [\partial \btheta \partial \btheta^\top]$ is the Hessian of the log-likelihood computed by `optim`. The standard error for coefficient $\theta_j$ in $\btheta$ is then obtained as the square root of the $j$th diagonal of $\hat{\vec{V}}(\hat{\btheta})$.
+The covariance of $\hat{\vec{\theta}}$ is estimated by $\hat{\vec{V}}(\hat{\vec{\theta}}) = -[\vec{H}(\hat{\vec{\theta}})]^{-1}$, where $\vec{H}(\vec{\theta}) = \partial^2 \log L(\vec{\theta}) / [\partial \vec{\theta} \partial \vec{\theta}^\top]$ is the Hessian of the log-likelihood computed by `optim`. The standard error for coefficient $\theta_j$ in $\vec{\theta}$ is then obtained as the square root of the $j$th diagonal of $\hat{\vec{V}}(\hat{\vec{\theta}})$.
 
 We will now illustrate use of the regression tools using two examples whose data are included in the package. Note that these demonstrations are not intended to be complete regression analyses, and results may be slightly different than previously published analyses due to differences in the computations.
 
@@ -855,7 +840,7 @@ sdev(cmp.out)                 ## Standard deviations from vcov(...) diagonals
 sdev(cmp.out, type = "list")  ## Standard deviations as a named list
 ```
 
-The `predict` function computes several useful quantities evaluated at the estimate $\hat{\btheta}$. The argument default `type = "response"` produces a vector of estimates of the response $\hat{y}_i = \E(Y_i)$ for $i = 1, \ldots, n$ using the method described in @sec-cmp-ev. The argument `type = "link"` produces a `data.frame` with columns for the linked parameters $\lambda_i$ and $\nu_i$.
+The `predict` function computes several useful quantities evaluated at the estimate $\hat{\vec{\theta}}$. The argument default `type = "response"` produces a vector of estimates of the response $\hat{y}_i = \E(Y_i)$ for $i = 1, \ldots, n$ using the method described in @sec-cmp-ev. The argument `type = "link"` produces a `data.frame` with columns for the linked parameters $\lambda_i$ and $\nu_i$.
 
 ```{r}
 predict(cmp.out)
@@ -980,13 +965,13 @@ To access the results of the equidispersion test shown in the output of `cmp.out
 equitest(cmp.out)
 ```
 
-The `deviance` function computes the deviance quantities $D_i = -2 [\log L_i(\hat{\btheta}) - \log L_i(\tilde{\btheta}_i)]$ for $i = 1, \ldots, n$, where $L_i(\btheta)$ is the term of the likelihood corresponding to the $i$th observation, $\hat{\btheta}$ is the MLE computed under the full likelihood $L(\btheta) = \prod_{i=1}^n L_i(\btheta)$, and $\tilde{\btheta}_i$ is the maximizer of $L_i(\btheta)$.
+The `deviance` function computes the deviance quantities $D_i = -2 [\log L_i(\hat{\vec{\theta}}) - \log L_i(\tilde{\vec{\theta}}_i)]$ for $i = 1, \ldots, n$, where $L_i(\vec{\theta})$ is the term of the likelihood corresponding to the $i$th observation, $\hat{\vec{\theta}}$ is the MLE computed under the full likelihood $L(\vec{\theta}) = \prod_{i=1}^n L_i(\vec{\theta})$, and $\tilde{\vec{\theta}}_i$ is the maximizer of $L_i(\vec{\theta})$.
 
 ```{r}
 deviance(cmp.out)
 ```
 
-The `parametric.bootstrap` function carries out a parametric bootstrap with $R$ repetitions. Using the fitted MLE $\hat{\btheta}$, bootstrap samples $\vec{y}^{(r)} = (y_1^{(r)}, \ldots, y_n^{(r)})$ are drawn from the likelihood $L(\hat{\btheta})$ for $r = 1, \ldots, R$. Estimate $\hat{\btheta}^{(r)}$ is fitted from bootstrap sample $\vec{y}^{(r)}$. An $R \times d$ matrix is returned whose $r$th row is $\hat{\btheta}^{(r)}$.
+The `parametric.bootstrap` function carries out a parametric bootstrap with $R$ repetitions. Using the fitted MLE $\hat{\vec{\theta}}$, bootstrap samples $\vec{y}^{(r)} = (y_1^{(r)}, \ldots, y_n^{(r)})$ are drawn from the likelihood $L(\hat{\vec{\theta}})$ for $r = 1, \ldots, R$. Estimate $\hat{\vec{\theta}}^{(r)}$ is fitted from bootstrap sample $\vec{y}^{(r)}$. An $R \times d$ matrix is returned whose $r$th row is $\hat{\vec{\theta}}^{(r)}$.
 
 ```{r}
 cmp.boot = parametric.bootstrap(cmp.out, reps = 100)
@@ -1179,13 +1164,14 @@ with first derivative and second derivatives, respectively,
 <!-- -->
 For a given value of $y$, $-e^{\gamma_0} \log(y!)$ approaches zero as $\gamma_0$ decreases. Therefore, let us focus on the function
 <!-- -->
-\(
+\begin{math}
 g(\gamma_0) = -\log Z(\lambda, e^{\gamma_0})
-\)
+\end{math}
 <!-- -->
 and its first and second derivatives. The following code illustrates their behavior.
 
-```{r, prompt=FALSE}
+```{r}
+#| prompt: false
 library(numDeriv)
 g = function(gamma0) {
 	-ncmp(lambda = exp(-0.25), nu = exp(gamma0), log = TRUE)
@@ -1205,7 +1191,7 @@ Here is the result.
 print(dat)
 ```
 
-Notice that $g(\gamma_0)$ approaches a limit as $\gamma_0 \rightarrow -\infty$, which coincides with the CMP distribution approaching a Geometric distribution. It may not be surprising that the first and second derivatives approach zero accordingly. This explains the large SE for $\gamma_0$ in the model `zicmp0.out`. With estimates tending to this region of the parameter space, it may be preferable to fix fix $\gamma_0$ at a value such as $-\infty$, which will be done in the next section.
+Notice that $g(\gamma_0)$ approaches a limit as $\gamma_0 \rightarrow -\infty$, which coincides with the CMP distribution approaching a Geometric distribution. It may not be surprising that the first and second derivatives approach zero accordingly. This explains the large SE for $\gamma_0$ in the model `zicmp0.out`. With estimates tending to this region of the parameter space, it may be preferable to fix $\gamma_0$ at a value such as $-\infty$, which will be done in the next section.
 
 ### Fixed Coefficients {#sec-zicmp-reg-fixed}
 
@@ -1304,7 +1290,7 @@ y.hat.new = predict(zicmp0.out, newdata = new.df)
 print(y.hat.new)
 ```
 
-As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\btheta}^{(r)}$ of $\btheta$ based on the estimate $\hat{\btheta}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. As in @sec-cmp-reg, we consider using the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
+As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\vec{\theta}}^{(r)}$ of $\vec{\theta}$ based on the estimate $\hat{\vec{\theta}}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. As in @sec-cmp-reg, we consider using the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
 
 ```{r, eval = FALSE}
 zicmp.boot = parametric.bootstrap(zicmp.out, reps = 100)
