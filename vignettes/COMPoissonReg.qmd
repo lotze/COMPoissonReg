@@ -1,23 +1,30 @@
 ---
 title: "COMPoissonReg: Usage, the Normalizing Constant, and Other Computational Details"
 author:
-  - Andrew M. Raim^[
-    <andrew.raim@gmail.com>,
-    Center for Statistical Research & Methodology,
-    U.S. Census Bureau,
-    Washington, DC, 20233, U.S.A.
-    **Disclaimer**`:` This document is released to inform interested parties of
-    ongoing research and to encourage discussion of work in progress. Any views
-    expressed are those of the authors and not those of the U.S. Census Bureau.
-    ]
-  - Kimberly F. Sellers^[
-    <kfs7@georgetown.edu>,
-    Center for Statistical Research & Methodology,
-    U.S. Census Bureau and
-    Department of Mathematics and Statistics,
-    Georgetown University,
-    Washington, DC, 20057, U.S.A.
-    ]
+  - Andrew M. Raim
+#^[
+#    <andrew.raim@gmail.com>,
+#    Center for Statistical Research & Methodology,
+#    U.S. Census Bureau,
+#    Washington, DC, 20233, U.S.A.
+#    **Disclaimer**`:` This document is released to inform interested parties of
+#    ongoing research and to encourage discussion of work in progress. Any views
+#    expressed are those of the authors and not those of the U.S. Census Bureau.
+#    ]
+  - Kimberly F. Sellers
+#^[
+#    <kfs7@georgetown.edu>,
+#    Center for Statistical Research & Methodology,
+#    U.S. Census Bureau and
+#    Department of Mathematics and Statistics,
+#    Georgetown University,
+#    Washington, DC, 20057, U.S.A.
+#    ]
+thanks: |
+  **For correspondence**`:` <andrew.raim@gmail.com>.
+  Center for Statistical Research & Methodology, U.S. Census Bureau,
+  Washington, DC, 20233, U.S.A.
+  Document was compiled `{r} format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")`.
 abstract: >
   `COMPoissonReg` is an R package which supports Conway-Maxwell Poisson (CMP)
   and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models. This vignette
@@ -29,50 +36,62 @@ abstract: >
   those implementing basic distribution functions and regression modeling.
 bibliography: references.bib
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
-output: 
-  pdf_document: 
-    citation_package: natbib
-    number_sections: yes
-    toc: yes
-    toc_depth: 3
-    extra_dependencies:
-      common: null
-    keep_tex: yes
+format: 
+  pdf:
+    mathspec: true
+    fontsize: 11pt
+    cite-method: natbib
+    biblio-style: plainnat
+    natbiboptions:
+      - round
+    number-sections: true
+    toc: true
+    toc-depth: 3
+    keep-tex: true
+    prompt: false
+    fig-pos: H
+    include-in-header:
+      text: |
+        \usepackage{common}
+pdf-engine: pdflatex
 urlcolor: blue
 linkcolor: blue
 citecolor: blue
 vignette: >
-  %\VignetteIndexEntry{COMPoissonReg: Usage, the Normalizing Constant, and Other Computational Details}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{COMPoissonReg}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{quarto::pdf}
+editor_options:
+  chunk_output_type: console
+classoption: abstract
+geometry:
+  - left=0.75in
+  - right=0.75in
+  - top=0.75in
+  - bottom=1.00in
+execute:
+  eval: true
+code-block-bg: "#FAFAFA"
+code-block-border-left: "#B2DEED"
+callout-icon: false
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  prompt = TRUE,
-  comment = ""
-)
-```
-
-```{r setup, include = FALSE}
+```{r}
 library(COMPoissonReg)
 set.seed(1235)
 ```
 
 \newpage
 
-# Introduction
-\label{sec:intro}
+# Introduction {#sec-intro}
 
 The R package `COMPoissonReg` supports Conway-Maxwell Poisson (CMP) and Zero-Inflated Conway-Maxwell Poisson (ZICMP) models for analysis of count data in a flexible manner, to account for data dispersion relative to a Poisson model. The package provides regression functionality in addition to basic distribution functions. Interested users can refer to @SellersShmueli2010 and @SellersRaim2016 regarding the underlying theoretical developments for the CMP and ZICMP regressions, respectively. A full specification of the public `COMPoissonReg` interface can be found in the manual. In addition to package prerequisites `Rcpp` [@Eddelbuettel2013] and `numDeriv` [@numDeriv], `ggplot2` [@Wickham2016] is also used in this vignette.
 
 One of the challenges of working with CMP and ZICMP lies in computing the normalizing constant and related quantities. The normalizing constant does not have a simple closed form in general and can quickly increase or decrease magnitude as parameters are varied. `COMPoissonReg` takes a hybrid approach of either truncating the infinite series or making use of an approximation, depending on parameter values.
 
-The remainder of the vignette proceeds as follows. Section \ref{sec:cmp} describes functions to support the CMP distribution, including numerical handling of the normalizing constant. Section \ref{sec:zicmp} describes functions for ZICMP. Finally, Section \ref{sec:reg} demonstrates regression functions; Sections \ref{sec:cmp-reg} and \ref{sec:zicmp-reg} give specific examples based on CMP and ZICMP outcomes, respectively. The `COMPoissonReg` package is on CRAN at <https://cran.r-project.org/package=COMPoissonReg> and the source code is on Github at <https://github.com/lotze/COMPoissonReg>.
+The remainder of the vignette proceeds as follows. @sec-cmp describes functions to support the CMP distribution, including numerical handling of the normalizing constant. @sec-zicmp describes functions for ZICMP. Finally, @sec-reg demonstrates regression functions; Sections [-@sec-cmp-reg] and [-@sec-zicmp-reg] give specific examples based on CMP and ZICMP outcomes, respectively. The `COMPoissonReg` package is on CRAN at <https://cran.r-project.org/package=COMPoissonReg> and the source code is on Github at <https://github.com/lotze/COMPoissonReg>.
 
-# Conway-Maxwell Poisson Distribution
-\label{sec:cmp}
+# Conway-Maxwell Poisson Distribution {#sec-cmp}
 
 Let $Y \sim \text{CMP}(\lambda, \nu)$ be a Conway-Maxwell Poisson (CMP) random variable with density
 <!-- -->
@@ -89,8 +108,7 @@ a. When $\lambda \in (0,1)$ and $\nu = 0$, the $\text{CMP}(\lambda, \nu)$ distri
 
 a. When $\nu \rightarrow \infty$, $\text{CMP}(\lambda, \nu)$ converges to a $\text{Bernoulli}(\lambda / (1 + \lambda))$ distribution which is underdispersed relative to Poisson.
 
-## Normalizing Constant
-\label{sec:cmp-normconst}
+## Normalizing Constant {#sec-cmp-normconst}
 The normalizing constant $Z(\lambda, \nu)$ presents some challenges in the practical use of CMP models and has been a topic of interest in the CMP literature. In general, there is no simple closed form expression for the series $Z(\lambda, \nu)$. @ShmueliEtAl2005 give the approximation
 <!-- -->
 \begin{align}
@@ -281,7 +299,8 @@ tcmp(lambda = 1.2, nu = 0.03, control = get.control(ymax = 1200))
 
 Now that we have a somewhat robust computation for the normalizing constant, let us create a plot of the interesting behavior when $\lambda > 1$ and $\nu$ is decreasing.
 
-```{r, prompt = FALSE}
+```{r}
+#| prompt: false
 library(ggplot2)
 
 nu_seq = seq(0.03, 1.5, length.out = 20)
@@ -290,7 +309,12 @@ nc2 = ncmp(lambda = 1.05, nu = nu_seq, log = TRUE)
 nc3 = ncmp(lambda = 1.20, nu = nu_seq, log = TRUE)
 ```
 
-```{r, fig.width = 5, fig.height = 3, fig.align = "center", prompt = FALSE, fig.cap = "Log of normalizing constant for $\\lambda = 0.5$ ($\\circ$), $\\lambda = 1.05$ ($\\Delta$), and $\\lambda = 1.20$ ($+$)."}
+```{r}
+#| fig-width: 5
+#| fig-height: 3
+#| fig-align: "center"
+#| prompt: false
+# fig-cap: "Log of normalizing constant for $\\lambda = 0.5$ ($\\circ$), $\\lambda = 1.05$ ($\\Delta$), and $\\lambda = 1.20$ ($+$)."
 
 ggplot() +
 	geom_point(data = data.frame(x = nu_seq, y = nc1), aes(x = x, y = y), pch = 1) +
@@ -302,8 +326,7 @@ ggplot() +
 ```
 We see that with $\lambda = 1.2$ a value of $Z(\lambda, `r round(nu_seq[1], 4)`) \approx e^{`r round(nc3[1], 2)`}$ is obtained, which is an extremely large jump from the next value in the series $Z(\lambda, `r round(nu_seq[2], 4)`) \approx e^{`r round(nc3[2], 2)`}$.
 
-## Density, Generation, CDF, and Quantile Functions
-\label{sec:cmp-dist}
+## Density, Generation, CDF, and Quantile Functions {#sec-cmp-dist}
 
 The respective functions for CMP density, variate generation, CDF, and quantile functions are `dcmp`, `rcmp`, `pcmp` , and `qcmp`. Their usage is similar to distribution functions provided by the R `stats` package.
 
@@ -326,7 +349,7 @@ qq = seq(0, 0.95, length.out = 10)
 qcmp(qq, lambda = 10, nu = 0.9)
 ```
 
-The CMP distribution functions compute the normalizing constant via Section \ref{sec:cmp-normconst}. The density `dcmp` uses the hybrid method, while `rcmp`, `pcmp`, and `qcmp` use the truncation method regardless of condition \eqref{eqn:can_approx}. Variate generation, CDF, and quantiles are then computed on CMP as if it were a discrete distribution on the sample space $\{ 0, \ldots, M \}$. As with `tcmp` and `ncmp`, a warning is emitted in cases where they may not produce reliable results.
+The CMP distribution functions compute the normalizing constant via @sec-cmp-normconst. The density `dcmp` uses the hybrid method, while `rcmp`, `pcmp`, and `qcmp` use the truncation method regardless of condition \eqref{eqn:can_approx}. Variate generation, CDF, and quantiles are then computed on CMP as if it were a discrete distribution on the sample space $\{ 0, \ldots, M \}$. As with `tcmp` and `ncmp`, a warning is emitted in cases where they may not produce reliable results.
 
 ```{r}
 tryCatch({ rcmp(1, lambda = 2, nu = 0.01) }, warning = print_warning)
@@ -352,7 +375,13 @@ tryCatch({
 
 As a sanity check, let us ensure that the empirical density values, cumulative probabilities, and quantiles of draws from `rcmp` align with respective results computed via `dcmp`, `pcmp`, and `qcmp`.
 
-```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| fig-align: "center"
+#| prompt: false
+#| fig-show: "hold"
+
 library(ggplot2)
 
 n = 100000
@@ -370,7 +399,11 @@ qx = qcmp(qq, lambda, nu)
 qx_emp = quantile(x, probs = qq)
 ```
 
-```{r, fig.width = 3, fig.height = 3, prompt = FALSE, fig.cap = "Empirical density of draws (histogram) versus density computed via the dcmp function (points)."}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| prompt: false
+# fig-cap: "Empirical density of draws (histogram) versus density computed via the dcmp function (points)."
 ggplot() +
 	geom_bar(data = data.frame(x = x), aes(x = x, y = ..prop..), fill = "NA",
 		col = "black") +
@@ -379,7 +412,11 @@ ggplot() +
 	theme_bw()
 ```
 
-```{r, fig.width = 3, fig.height = 3, prompt = FALSE, fig.cap = "Empirical CDF of draws (solid line) versus CDF computed via the pcmp function (points)."}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| prompt: false
+# fig-cap: "Empirical CDF of draws (solid line) versus CDF computed via the pcmp function (points)."
 ggplot() +
 	stat_ecdf(data = data.frame(x = x), aes(x), geom = "step") +
 	geom_point(data = data.frame(x = xx, px = px), aes(x, px)) +
@@ -387,7 +424,11 @@ ggplot() +
 	theme_bw()
 ```
 
-```{r, fig.width = 3, fig.height = 3, prompt = FALSE, fig.cap = "Empirical quantiles of draws (`o`) versus quantiles computed via the qcmp function (`+`)."}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| prompt: false
+# fig-cap: "Empirical quantiles of draws (`o`) versus quantiles computed via the qcmp function (`+`)."
 ggplot() +
 	geom_point(data = data.frame(x = qq, qx_emp = qx_emp), aes(qq, qx_emp), pch = 1) +
 	geom_point(data = data.frame(x = qq, qx = qx), aes(qq, qx), pch = 3) +
@@ -396,8 +437,7 @@ ggplot() +
 	theme_bw()
 ```
 
-## Expected Value and Variance
-\label{sec:cmp-ev}
+## Expected Value and Variance {#sec-cmp-ev}
 
 For $Y \sim \text{CMP}(\lambda, \nu)$, we can consider computing the expectation and variance of $Y$ in two ways. First, if there is a moderately-sized $M$ where $\{ 0, \ldots, M \}$ contains all but a negligible amount of the mass of $Y$, we can compute the moments using truncated summations
 <!-- -->
@@ -454,8 +494,7 @@ sum(xx^3 * dcmp(xx, lambda, nu))    # E(X^3)
 sum(xx^4 * dcmp(xx, lambda, nu))    # E(X^4)
 ```
 
-# Zero-Inflated Conway-Maxwell Poisson Distribution
-\label{sec:zicmp}
+# Zero-Inflated Conway-Maxwell Poisson Distribution {#sec-zicmp}
 
 Let $S \sim \text{Bernoulli}(p)$ and $T \sim \text{CMP}(\lambda, \nu)$ be independent random variables. Then $Y = (1-S) T$ follows a Zero-Inflated Conway-Maxwell Poisson distribution $\text{ZICMP}(\lambda, \nu, p)$ with density
 <!-- -->
@@ -499,7 +538,7 @@ F^{-}(\phi \mid \lambda, \nu, p)
 \label{eqn:zicmp-quantiles}
 \end{align}
 
-The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. They make use of the CMP implementation described in Section \ref{sec:cmp} such as the criteria to either truncate or approximate the normalizing constant.
+The respective functions for ZICMP density, variate generation, CDF, and quantile functions are `dzicmp`, `rzicmp`, `pzicmp` , and `qzicmp`. They make use of the CMP implementation described in @sec-cmp such as the criteria to either truncate or approximate the normalizing constant.
 
 ```{r}
 qq = seq(0, 0.95, length.out = 20)
@@ -525,9 +564,14 @@ tryCatch({
 }, warning = print_warning)
 ```
 
-Let us repeat the sanity check from Section \ref{sec:cmp-dist} to ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dzicmp`, `pzicmp`, and `qzicmp`.
+Let us repeat the sanity check from @sec-cmp-dist to ensure that the empirical density values, cumulative probabilities, and quantiles line up with the ones computed via `dzicmp`, `pzicmp`, and `qzicmp`.
 
-```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| fig-align: "center"
+#| prompt: false
+#| fig-show: "hold"
 library(ggplot2)
 
 n = 100000
@@ -546,7 +590,12 @@ qx = qzicmp(qq, lambda, nu, p)
 qx_emp = quantile(x, probs = qq)
 ```
 
-```{r, fig.width = 3, fig.height = 3, prompt = FALSE, fig.cap = "Empirical density of draws (histogram) versus density computed via the dzicmp function (points)."}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| prompt: false
+# fig-cap: "Empirical density of draws (histogram) versus density computed via the dzicmp function (points)."
+
 ggplot() +
 	geom_bar(data = data.frame(x = x), aes(x = x, y = ..prop..), fill = "NA",
 		col = "black") +
@@ -555,7 +604,11 @@ ggplot() +
 	theme_bw()
 ```
 
-```{r, fig.width = 3, fig.height = 3, prompt = FALSE, fig.cap = "Empirical CDF of draws (solid line) versus CDF computed via the pzicmp function (points)."}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| prompt: false
+# fig-cap: "Empirical CDF of draws (solid line) versus CDF computed via the pzicmp function (points)."
 ggplot() +
 	stat_ecdf(data = data.frame(x = x), aes(x), geom = "step") +
 	geom_point(data = data.frame(x = xx, px = px), aes(x, px)) +
@@ -563,7 +616,11 @@ ggplot() +
 	theme_bw()
 ```
 
-```{r, fig.width = 3, fig.height = 3, prompt = FALSE, fig.cap = "Empirical quantiles of draws (`o`) versus quantiles computed via the qzicmp function (`+`)."}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| prompt: false
+# fig-cap: "Empirical quantiles of draws (`o`) versus quantiles computed via the qzicmp function (`+`)."
 ggplot() +
 	geom_point(data = data.frame(x = qq, qx_emp = qx_emp), aes(qq, qx_emp), pch = 1) +
 	geom_point(data = data.frame(x = qq, qx = qx), aes(qq, qx), pch = 3) +
@@ -581,7 +638,7 @@ The expected value and variance of $Y \sim \text{ZICMP}(\lambda, \nu, p)$ are ap
 \Var(Y) = (1-p) \left\{ \Var(T) + p[\E(T)]^2 \right\}
 \end{align*}
 <!-- -->
-may be obtained using formulas for iterated conditional expectations and variances. They are evaluated in `COMPoissonReg` using the `ezicmp` and `vzicmp` functions respectively. These functions make use of the `ecmp` and `vcmp` functions described in Section \ref{sec:cmp-ev} to compute $\E(T)$ and $\Var(T)$.
+may be obtained using formulas for iterated conditional expectations and variances. They are evaluated in `COMPoissonReg` using the `ezicmp` and `vzicmp` functions respectively. These functions make use of the `ecmp` and `vcmp` functions described in @sec-cmp-ev to compute $\E(T)$ and $\Var(T)$.
 
 ```{r}
 ezicmp(lambda = 1.5, nu = 0.5, p = 0.1)
@@ -593,11 +650,9 @@ vzicmp(lambda = 1.5, nu = 0.5, p = 0.1)
 vzicmp(lambda = 1.5, nu = 0.5, p = c(0.1, 0.2, 0.5))
 ```
 
-# Regression Modeling with CMP and ZICMP
-\label{sec:reg}
+# Regression Modeling with CMP and ZICMP {#sec-reg}
 
-Suppose there are $n$ subjects with outcomes $y_1, \ldots, y_n \in \mathbb{N}$ and covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in
-\mathbb{R}^{d_2}$, and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$. The `COMPoissonReg` package fits both CMP and ZICMP regression models.
+Suppose there are $n$ subjects with outcomes $y_1, \ldots, y_n \in \mathbb{N}$ and covariates $\vec{x}_i \in \mathbb{R}^{d_1}$, $\vec{s}_i \in \mathbb{R}^{d_2}$, and $\vec{w}_i \in \mathbb{R}^{d_3}$ for $i = 1, \ldots, n$. The `COMPoissonReg` package fits both CMP and ZICMP regression models.
 
 The CMP regression model assumes that
 <!-- -->
@@ -654,17 +709,18 @@ The `fixed` argument is used to specify indices of the three coefficients which 
 get.fixed(beta = c(1L, 2L), gamma = c(1L))
 ```
 
-The specification above requests the first two elements of `beta` and the first element of `gamma` to be fixed. Notice that indices must be integers and that the default value is an empty integer vector which is interpreted as "no elements are fixed". The `fixed` argument can usually be disregarded but may be useful in some circumstances; an example is given in Section \ref{sec:zicmp-reg}.
+The specification above requests the first two elements of `beta` and the first element of `gamma` to be fixed. Notice that indices must be integers and that the default value is an empty integer vector which is interpreted as "no elements are fixed". The `fixed` argument can usually be disregarded but may be useful in some circumstances; an example is given in Section @sec-zicmp-reg.
 
 Specifying the elements of `init` and `fixed` may be somewhat awkward with the formula interface, as they require knowledge of how formulas will be expanded into design matrices and coefficients. It can be helpful to produce the design matrices using R's `model.matrix` function.
 
-```{r, eval=FALSE}
+```{r}
+#| eval: false
 model.matrix(formula.lambda, data = data)
 model.matrix(formula.nu, data = data)
 model.matrix(formula.p, data = data)
 ```
 
-The `control` argument has been introduced in Section \ref{sec:cmp}; regression modeling makes use of several additional arguments. `COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\btheta}$ for $\btheta$ under the specified model. Several controls are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
+The `control` argument has been introduced in @sec-cmp; regression modeling makes use of several additional arguments. `COMPoissonReg` uses `optim` to compute the maximum likelihood estimate (MLE) $\hat{\btheta}$ for $\btheta$ under the specified model. Several controls are provided to influence how `COMPoissonReg` invokes `optim`; here are their default values.
 
 ```{r}
 control = getOption("COMPoissonReg.control")
@@ -678,11 +734,9 @@ The covariance of $\hat{\btheta}$ is estimated by $\hat{\vec{V}}(\hat{\btheta}) 
 
 We will now illustrate use of the regression tools using two examples whose data are included in the package. Note that these demonstrations are not intended to be complete regression analyses, and results may be slightly different than previously published analyses due to differences in the computations.
 
-## CMP Regression
-\label{sec:cmp-reg}
+## CMP Regression {#sec-cmp-reg}
 
-### Freight Dataset
-\label{sec:cmp-reg-freight}
+### Freight Dataset {#sec-cmp-reg-freight}
 
 The `freight` dataset [@KutnerEtAl2003] was analyzed using CMP regression by @SellersShmueli2010 and found to exhibit underdispersion. The data describe $n = 10$ instances where 1,000 ampules were transported via air shipment. The outcome of interest is the variable `broken` which describes the number of broken ampules in each shipment. The covariate `transfers` describes the number of times the carton was transferred from one aircraft to another during the shipment.
 
@@ -706,8 +760,7 @@ glm.out = glm(broken ~ transfers, data = freight, family = poisson)
 summary(glm.out)
 ```
 
-### CMP Regression
-\label{sec:cmp-reg-initial}
+### CMP Regression {#sec-cmp-reg-initial}
 
 Next, let us fit a similar CMP regression model with
 <!-- -->
@@ -740,8 +793,7 @@ print(cmp2.out)
 
 Model `cmp2.out` provides a slight improvement over `cmp.out` in AIC and BIC, but we may prefer `cmp.out` in the interest of simplicity.
 
-### Adjustments to Optim
-\label{sec:cmp-reg-optim}
+### Adjustments to Optim {#sec-cmp-reg-optim}
 
 To gain some insight into the optimization, we may wish to increase the trace level, which can be done as follows.
 
@@ -752,14 +804,14 @@ cmp3.out = glm.cmp(broken ~ transfers, data = freight, control = control)
 
 Data from the local environment may be passed to the `glm.cmp` function without explicitly using the `data` argument.
 
-```{r, results = 'hide'}
+```{r}
+#| results: 'hide'
 y = freight$broken
 x = freight$transfers
 glm.cmp(y ~ x)
 ```
 
-### Offset Term
-\label{sec:cmp-reg-offset}
+### Offset Term {#sec-cmp-reg-offset}
 
 In a count regression model, it may be desirable to include offset terms such as
 <!-- -->
@@ -770,7 +822,8 @@ In a count regression model, it may be desirable to include offset terms such as
 <!-- -->
 An `offset` term may be used in the formula interface to accomplish this.
 
-```{r, results = 'hide'}
+```{r}
+#| results: 'hide'
 freight$offx = 13
 freight$offs = 1
 glm.cmp(broken ~ transfers + offset(offx), data = freight)
@@ -787,8 +840,7 @@ offs = get.offset(x = rep(13, nrow(freight)), s = rep(1, nrow(freight)))
 cmp.raw.out = glm.cmp.raw(y, X, S, offset = offs)
 ```
 
-### Accessor Functions
-\label{sec:cmp-reg-accessors}
+### Accessor Functions {#sec-cmp-reg-accessors}
 
 Several accessors are provided to extract results from the output object.
 
@@ -803,7 +855,7 @@ sdev(cmp.out)                 ## Standard deviations from vcov(...) diagonals
 sdev(cmp.out, type = "list")  ## Standard deviations as a named list
 ```
 
-The `predict` function computes several useful quantities evaluated at the estimate $\hat{\btheta}$. The argument default `type = "response"` produces a vector of estimates of the response $\hat{y}_i = \E(Y_i)$ for $i = 1, \ldots, n$ using the method described in Section \ref{sec:cmp-ev}. The argument `type = "link"` produces a `data.frame` with columns for the linked parameters $\lambda_i$ and $\nu_i$.
+The `predict` function computes several useful quantities evaluated at the estimate $\hat{\btheta}$. The argument default `type = "response"` produces a vector of estimates of the response $\hat{y}_i = \E(Y_i)$ for $i = 1, \ldots, n$ using the method described in @sec-cmp-ev. The argument `type = "link"` produces a `data.frame` with columns for the linked parameters $\lambda_i$ and $\nu_i$.
 
 ```{r}
 predict(cmp.out)
@@ -814,7 +866,12 @@ Note that the estimated `nu` values are equal for all observations because the m
 
 We can also use `predict` on new covariate values. Note that models fit with the formula interface expect the new data to be provided as a `data.frame` which is interpreted using the formula used to fit the model. If the raw interface was used to fit the model, use the `get.modelmatrix` function to specify design matrices to use for prediction.
 
-```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt=FALSE}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| fig-align: "center"
+#| prompt: false
+
 # Prepare new data to fit by formula interface
 new.df = data.frame(transfers = 0:10)
 
@@ -869,7 +926,13 @@ res.pearson = res.raw / sqrt(vv*(1-hh))
 
 For each type of residual---raw, Pearson, and quantile---we now plot fitted values versus residuals and Q-Q plots.
 
-```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| fig-align: "center"
+#| prompt: false
+#| fig-show: "hold"
+
 plot.fit.res = function(y.hat, res) {
 	ggplot(data.frame(y = y.hat, res = res)) +
 		geom_point(aes(y, res)) +
@@ -905,7 +968,7 @@ plot.qq.res(res.qtl) +
 	ggtitle("Q-Q Plot of Quantile Residuals")
 ```
 
-In this example, with only `r nrow(freight)` observations, it is difficult to see an advantage of using quantile residuals; the benefit will be more apparent in Section \ref{sec:zicmp-reg}. One benefit of raw residuals is that they may be used to compute a mean-squared error.
+In this example, with only `r nrow(freight)` observations, it is difficult to see an advantage of using quantile residuals; the benefit will be more apparent in @sec-zicmp-reg. One benefit of raw residuals is that they may be used to compute a mean-squared error.
 
 ```{r}
 mean(res.raw^2)
@@ -936,8 +999,7 @@ We used $R = `r nrow(cmp.boot)`$ in the display above to keep vignette computati
 t(apply(cmp.boot, 2, quantile, c(0.025,0.975)))
 ```
 
-### Large Covariates
-\label{sec:cmp-reg-large-covariates}
+### Large Covariates {#sec-cmp-reg-large-covariates}
 
 Large covariates can present numerical difficulties in fitting CMP regression. We will briefly demonstrate the difficulties and some possible workarounds. First let us generate a new dataset based on a large covariate in the regression for $\lambda_i$.
 
@@ -995,8 +1057,7 @@ suppressWarnings({
 
 In this case, standardization and logarithmic transformation produce a usable fit. Changing the optimization method to `BFGS` allows the optimization to finish, but there are further numerical problems in computing the Hessian for standard errors.
 
-### Large Outcomes
-\label{sec:cmp-reg-large-outcomes}
+### Large Outcomes {#sec-cmp-reg-large-outcomes}
 
 Now consider a generated dataset with large outcomes but a relatively small covariate. This situation can also present numerical difficulties.
 
@@ -1042,11 +1103,9 @@ glm.cmp(y ~ x, formula.nu = ~ 1, control = control)
 
 Note that this solution is different from the previous one; the log-likelihood of the previous one is slightly better.
 
-## ZICMP Regression
-\label{sec:zicmp-reg}
+## ZICMP Regression {#sec-zicmp-reg}
 
-### Couple Dataset
-\label{sec:zicmp-reg-couple}
+### Couple Dataset {#sec-zicmp-reg-couple}
 
 The `couple` dataset [@LoeysEtAl2012] was analyzed with ZICMP regression in @SellersRaim2016 and found to exhibit overdispersion. The data concern separation trajectories of $n = 387$ couples. The variable `UPB` records the number of unwanted pursuit behavior perpetrations and is considered the outcome of interest. Included covariates are the binary variable `EDUCATION`, which is 1 if at least a bachelor's degree was attained, and a continuous variable `ANXIETY` which measures anxious attachment. A zero-inflated count model is considered for these data because 246 of the 387 records have an outcome of zero.
 
@@ -1070,8 +1129,7 @@ glm.out = glm(UPB ~ EDUCATION + ANXIETY, data = couple, family = poisson)
 summary(glm.out)
 ```
 
-### ZICMP Regression
-\label{sec:zicmp-reg-initial}
+### ZICMP Regression {#sec-zicmp-reg-initial}
 
 Now consider a ZICMP regression with
 <!-- -->
@@ -1149,8 +1207,7 @@ print(dat)
 
 Notice that $g(\gamma_0)$ approaches a limit as $\gamma_0 \rightarrow -\infty$, which coincides with the CMP distribution approaching a Geometric distribution. It may not be surprising that the first and second derivatives approach zero accordingly. This explains the large SE for $\gamma_0$ in the model `zicmp0.out`. With estimates tending to this region of the parameter space, it may be preferable to fix fix $\gamma_0$ at a value such as $-\infty$, which will be done in the next section.
 
-### Fixed Coefficients
-\label{sec:zicmp-reg-fixed}
+### Fixed Coefficients {#sec-zicmp-reg-fixed}
 
 Our attempt to fit the previous model strongly tended to the Zero-Inflated Geometric special case of ZICMP, but SEs computed via the Hessian become large in this region. In this section, we fix $\gamma_0$ at the extreme $-\infty$ and fit the remaining coefficients. Let us use the raw interface to do this.
 
@@ -1172,8 +1229,7 @@ print(zicmp.out)
 
 Notice that an additional `Fixed` column has been added to the display, indicating that the coefficient `gamma` is fixed. Furthermore, its `Estimate` column is set to the initial value and the columns `SE`, `z-value`, and `p-value` are set to `NA`. This model achieves a similar log-likelihood value as our first attempt using `L-BFGS-B` but does not exhibit signs of numerical issues.
 
-### Accessor Functions
-\label{sec:zicmp-reg-accessors}
+### Accessor Functions {#sec-zicmp-reg-accessors}
 
 Here are several of the accessors provided to extract model outputs.
 
@@ -1203,9 +1259,15 @@ head(y.hat)
 head(link.hat)
 ```
 
-In this example, we can see the benefit of using quantile residuals rather than raw residuals for diagnostic plots. The functions `plot.fit.res` and `plot.qq.res` have been defined in Section \ref{sec:cmp-reg}.
+In this example, we can see the benefit of using quantile residuals rather than raw residuals for diagnostic plots. The functions `plot.fit.res` and `plot.qq.res` have been defined in @sec-cmp-reg.
 
-```{r, fig.width = 3, fig.height = 3, fig.align = "center", prompt = FALSE, fig.show = "hold"}
+```{r}
+#| fig-width: 3
+#| fig-height: 3
+#| fig-align: "center"
+#| prompt: false
+#| fig-show: "hold"
+
 res.raw = residuals(zicmp.out, type = "raw")
 res.qtl = residuals(zicmp.out, type = "quantile")
 
@@ -1242,7 +1304,7 @@ y.hat.new = predict(zicmp0.out, newdata = new.df)
 print(y.hat.new)
 ```
 
-As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\btheta}^{(r)}$ of $\btheta$ based on the estimate $\hat{\btheta}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. As in Section \ref{sec:cmp-reg}, we consider using the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
+As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\btheta}^{(r)}$ of $\btheta$ based on the estimate $\hat{\btheta}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. As in @sec-cmp-reg, we consider using the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
 
 ```{r, eval = FALSE}
 zicmp.boot = parametric.bootstrap(zicmp.out, reps = 100)

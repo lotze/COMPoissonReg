@@ -1,21 +1,56 @@
-\usepackage{amsmath}
-\usepackage{amsbsy}
-\usepackage{amsfonts}
-\usepackage{amssymb}
-%\usepackage{amsthm}
-\usepackage{bm}
+% By default, titles and headers get rendered in a sans serif font while the
+% rest of the document is serif. This subtle shift is a little bit jarring to
+% me. The following line changes the sans serif font to be the serif font. It
+% avoids assumptions about which fonts are installed (which might affect
+% portability).
+\renewcommand{\sfdefault}{\rmdefault}
+
+% Latin Modern Roman font
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+
+% Make vectors render as bold symbols rather than symbols with arrows above
+% them. This seems to require the option `mathspec: true` in the Quarto YAML.
+\renewcommand{\vec}{\boldsymbol}
+\usepackage{mathrsfs}
 
 \usepackage{algorithm}
 \usepackage{algorithmicx}
-\usepackage[noend]{algpseudocode}
+\usepackage{algpseudocode}
 
-\renewcommand{\vec}[1]{\bm{#1}}
-\newcommand{\btheta}{{\vec{\theta}}}
-\newcommand{\indep}{\stackrel{\text{ind}}{\sim}}
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}
 
+% Do this to be consistent with remarks, definitions, etc which are numbered
+% within sections by default.
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
+% Math operators
 \DeclareMathOperator{\E}{E}
 \DeclareMathOperator{\Prob}{P}
 \DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator{\logit}{logit}
-\DeclareMathOperator{\ind}{\rm{I}}
+\DeclareMathOperator{\rest}{---}
+\DeclareMathOperator{\Diag}{Diag}
+\DeclareMathOperator{\ind}{\text{I}}
 
+% Math commands
+%\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\iid}{\stackrel{\text{iid}}{\sim}}
+
+% Remove asterisk from title for thanks
+\makeatletter
+\def\thanks#1{\protected@xdef\@thanks{\@thanks
+        \protect\footnotetext{#1}}}
+\makeatother
+
+% From https://tex.stackexchange.com/a/656723
+\newcommand{\remarkqed}{%
+  \begingroup
+  \renewcommand{\qedsymbol}{\ensuremath{\blacksquare}}%
+  \qed
+  \endgroup
