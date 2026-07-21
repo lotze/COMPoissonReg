@@ -134,6 +134,15 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' should beware when increasing this significantly beyond the default, as it
 #' may result in a session which needs to be terminated.
 #' 
+#' A default control structure can be assigned for the R session by setting
+#' the `COMPoissonReg.control` option. This is used by `COMPoissonReg`
+#' functions when no control argument is specified.
+#' \code{
+#'   ctrl1 = get.control(...)
+#'   options(COMPoissonReg.control = ctrl1)
+#'   ctrl2 = getOption("COMPoissonReg.control")
+#' }
+#' 
 #' @return List of controls.
 #' @export
 get.control = function(ymax = 1e6, optim.method = 'L-BFGS-B',

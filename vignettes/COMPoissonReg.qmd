@@ -22,6 +22,7 @@ format:
     mathspec: true
     fontsize: 11pt
     linkcolor: blue
+    colorlinks: true
     cite-method: natbib
     biblio-style: plainnat
     natbiboptions:
@@ -674,7 +675,9 @@ L(\vec{\theta}) =
 <!-- -->
 We will write $d = d_1 + d_2 + d_3$ for the total dimension of $\vec{\theta}$. The $n \times d_1$ design matrix whose rows consist of $\vec{x}_i$ will be denoted $\vec{X}$. Similarly, we will write $\vec{S}$ and $\vec{W}$ as the $n \times d_2$ and $n \times d_3$ design matrices constructed from $\vec{s}_i$ and $\vec{w}_i$, respectively. The `glm.cmp` function provides a formula interface to fit models of both types: \eqref{eqn:likelihood-cmp} and \eqref{eqn:likelihood-zicmp}.
 
-```{r, eval = FALSE, prompt = FALSE}
+```{r}
+#| eval: false
+#| prompt: false
 out = glm.cmp(formula.lambda, formula.nu = ~ 1, formula.p = NULL,
 	data = NULL, init = NULL, fixed = NULL, control = NULL, ...)
 ```
@@ -817,7 +820,8 @@ glm.cmp(broken ~ transfers + offset(offx), formula.nu = ~1 + offset(offs), data 
 
 For users who wish to bypass the formula interface and prepare the $\vec{X}$ and $\vec{S}$ design matrices manually, a "raw" interface to the regression functionality is also provided.
 
-```{r, results = 'hide'}
+```{r}
+#| results: 'hide'
 y = freight$broken
 X = model.matrix(~ transfers, data = freight)
 S = model.matrix(~ 1, data = freight)
@@ -981,14 +985,18 @@ head(cmp.boot)
 We used $R = `r nrow(cmp.boot)`$ in the display above to keep vignette computations small, but a larger number may be desired in practice. Bootstrap repetitions can be used, for example, to compute 95% confidence intervals for each of the coefficients.
 
 ```{r}
-t(apply(cmp.boot, 2, quantile, c(0.025,0.975)))
+out = apply(cmp.boot, 2, quantile, probs = c(0.025,0.975), na.rm = TRUE)
+t(out)
 ```
+
+The `na.rm` argument is used above because `NaN` / `Inf` values have been reported on some architectures when building the vignette.
 
 ### Large Covariates {#sec-cmp-reg-large-covariates}
 
 Large covariates can present numerical difficulties in fitting CMP regression. We will briefly demonstrate the difficulties and some possible workarounds. First let us generate a new dataset based on a large covariate in the regression for $\lambda_i$.
 
-```{r, prompt=FALSE}
+```{r}
+#| prompt: false
 set.seed(1234)
 n = 200
 x = rnorm(n, 500, 10)
@@ -1046,7 +1054,8 @@ In this case, standardization and logarithmic transformation produce a usable fi
 
 Now consider a generated dataset with large outcomes but a relatively small covariate. This situation can also present numerical difficulties.
 
-```{r, prompt=FALSE}
+```{r}
+#| prompt: false
 set.seed(1234)
 n = 200
 x = runif(n, 1, 2)
@@ -1197,7 +1206,8 @@ Notice that $g(\gamma_0)$ approaches a limit as $\gamma_0 \rightarrow -\infty$, 
 
 Our attempt to fit the previous model strongly tended to the Zero-Inflated Geometric special case of ZICMP, but SEs computed via the Hessian become large in this region. In this section, we fix $\gamma_0$ at the extreme $-\infty$ and fit the remaining coefficients. Let us use the raw interface to do this.
 
-```{r, prompt=FALSE}
+```{r}
+#| prompt: false
 init = coef(zicmp0.out, type = "list")
 y = couple$UPB
 X = model.matrix(~ EDUCATION + ANXIETY, data = couple)
@@ -1270,7 +1280,8 @@ plot.qq.res(res.qtl) +
 
 Here is an example of computing fitted values for new covariate data.
 
-```{r, prompt = FALSE}
+```{r}
+#| prompt: false
 new.df = data.frame(EDUCATION = round(1:20 / 20), ANXIETY = seq(-3,3, length.out = 20))
 X.new = model.matrix(~ EDUCATION + ANXIETY, data = new.df)
 S.new = model.matrix(~ 1, data = new.df)
@@ -1292,10 +1303,11 @@ print(y.hat.new)
 
 As with CMP regression, a `parametric.bootstrap` function is provided for convenience to obtain a bootstrap sample $\hat{\vec{\theta}}^{(r)}$ of $\vec{\theta}$ based on the estimate $\hat{\vec{\theta}}$. Because it is too time consuming to run this example within the vignette, we show the code without output below. As in @sec-cmp-reg, we consider using the bootstrap samples to construct a 95% confidence interval for each of the coefficients.
 
-```{r, eval = FALSE}
+```{r}
+#| eval: false
 zicmp.boot = parametric.bootstrap(zicmp.out, reps = 100)
 head(zicmp.boot)
-apply(zicmp.boot, 2, quantile, c(0.025,0.975))
+apply(zicmp.boot, 2, quantile, probs = c(0.025,0.975), na.rm = TRUE)
 ```
 
 # Acknowledgements {.unlisted .unnumbered}

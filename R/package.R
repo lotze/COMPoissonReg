@@ -76,19 +76,3 @@
 #' @importFrom utils head
 #' @importFrom numDeriv grad hessian
 "_PACKAGE"
-
-#' Package options
-#' 
-#' Global options used by the COMPoissonReg package.
-#' 
-#' @details
-#' \itemize{
-#' \item \code{getOption("COMPoissonReg.control")}
-#' }
-#' 
-#' @param COMPoissonReg.control A default control data structure for the
-#' package. See the helper function \link{get.control} for a description of
-#' contents.
-#' 
-#' @name COMPoissonReg-options
-NULL

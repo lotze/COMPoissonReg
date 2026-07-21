@@ -44,4 +44,13 @@ series are truncated to finite summations. More information is given in the
 The element \code{ymax} protects against very long computations. Users
 should beware when increasing this significantly beyond the default, as it
 may result in a session which needs to be terminated.
+
+A default control structure can be assigned for the R session by setting
+the \code{COMPoissonReg.control} option. This is used by \code{COMPoissonReg}
+functions when no control argument is specified.
+\code{
+  ctrl1 = get.control(...)
+  options(COMPoissonReg.control = ctrl1)
+  ctrl2 = getOption("COMPoissonReg.control")
+}
 }
