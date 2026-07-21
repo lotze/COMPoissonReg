@@ -17,9 +17,9 @@ get.control(
 \item{ymax}{Truncate counts to maximum value of \code{y}.}
 
 \item{optim.method}{Optimization method for maximum likelihood. See the
-\code{method} argument in \link[stats]{optim}.}
+\code{method} argument in \link[stats:optim]{stats::optim}.}
 
-\item{optim.control}{\code{control} argument for \link[stats]{optim}.}
+\item{optim.control}{\code{control} argument for \link[stats:optim]{stats::optim}.}
 
 \item{hybrid.tol}{Tolerance to decide when to use truncation method versus
 approximation method to compute quantities based on the normalizing constant.
@@ -46,11 +46,12 @@ should beware when increasing this significantly beyond the default, as it
 may result in a session which needs to be terminated.
 
 A default control structure can be assigned for the R session by setting
-the \code{COMPoissonReg.control} option. This is used by \code{COMPoissonReg}
-functions when no control argument is specified.
-\code{
-  ctrl1 = get.control(...)
+the \code{COMPoissonReg.control} option, as shown in the following display. This
+option used by \code{COMPoissonReg} functions when no control argument is
+specified.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{  ctrl1 = get.control(...)
   options(COMPoissonReg.control = ctrl1)
   ctrl2 = getOption("COMPoissonReg.control")
-}
+}\if{html}{\out{</div>}}
 }

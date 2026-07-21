@@ -9,7 +9,7 @@
 #' @details
 #' This package offers the ability to compute COM-Poisson parameter
 #' estimates and associated standard errors for a regular regression
-#' model or a zero-inflated regression model (via the \code{glm.cmp}
+#' model or a zero-inflated regression model (via the `glm.cmp`
 #' function).
 #' 
 #' Further, the user can perform a hypothesis test to determine the
@@ -19,17 +19,17 @@
 #' 
 #' The main order of functions for COM-Poisson regression is as follows:
 #' \enumerate{
-#' \item Compute Poisson estimates (using \code{glm} for Poisson regression
-#'     or \code{pscl} for ZIP regression).
+#' \item Compute Poisson estimates (using `glm` for Poisson regression
+#'     or `pscl` for ZIP regression).
 #' \item Use Poisson estimates as starting values to determine COM-Poisson
-#'     estimates (using \code{glm.cmp}).
-#' \item Compute associated standard errors (using \code{sdev} function).
+#'     estimates (using `glm.cmp`).
+#' \item Compute associated standard errors (using `sdev` function).
 #' }
 #' 
 #' From here, there are many ways to proceed, so order is irrelevant:
 #' \itemize{
 #' \item Perform a hypothesis test to assess for statistically significant
-#'       dispersion (using \code{equitest} or \code{parametric.bootstrap}).
+#'       dispersion (using `equitest` or `parametric.bootstrap`).
 #' \item Compute leverage (using leverage) and deviance (using deviance).
 #' \item Predict the outcome for new examples, using predict.
 #' }

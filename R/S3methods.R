@@ -108,7 +108,7 @@ sdev = function (object, ...)
 #' @param object a model object
 #' @param ... other parameters which might be required by the model
 #' @param reps Number of bootstrap repetitions.
-#' @param report.period Report progress every \code{report.period} iterations.
+#' @param report.period Report progress every `report.period` iterations.
 #' 
 #' @details
 #' See the documentation of the particular methods for details.

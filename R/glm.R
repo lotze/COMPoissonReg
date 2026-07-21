@@ -1,39 +1,38 @@
 #' Raw Interface to COM-Poisson and Zero-Inflated COM-Poisson Regression
 #' 
 #' Fit COM-Poisson and Zero-Inflated COM-Poisson regression using a "raw"
-#' interface which bypasses the formula-driven interface of \code{glm.cmp}.
+#' interface which bypasses the formula-driven interface of `glm.cmp`.
 #' 
 #' @param y A vector of counts which represent the response .
 #' @param X Design matrix for the `lambda` regression.
 #' @param S Design matrix for the `nu` regression.
 #' @param W Design matrix for the `p` regression.
 #' @param offset A data structure that specifies offsets. See the helper
-#' function \link{get.offset}.
+#' function [get.offset].
 #' @param init A data structure that specifies initial values. See the helper
-#' function \link{get.init}.
+#' function [get.init].
 #' @param fixed A data structure that specifies which coefficients should
 #' remain fixed in the maximum likelihood procedure. See the helper function
-#' \link{get.fixed}.
+#' [get.fixed].
 #' @param control A control data structure. See the helper function
-#' \link{get.control}.
+#' [get.control].
 #' 
 #' @return
-#' See the \link{glm.cmp}.
-#' 
+#' See the [glm.cmp].
 #' @name glm.cmp-raw
 NULL
 
 #' Extract model elements from a formula to use with the raw interface
 #' 
-#' @param formula.lambda regression formula linked to \code{log(lambda)}.
+#' @param formula.lambda regression formula linked to `log(lambda)`.
 #' The response should be specified here.
-#' @param formula.nu regression formula linked to \code{log(nu)}. The
+#' @param formula.nu regression formula linked to`log(nu)`. The
 #' default, is taken to be only an intercept.
-#' @param formula.p regression formula linked to \code{logit(p)}. If NULL
+#' @param formula.p regression formula linked to `logit(p)`. If NULL
 #' (the default), zero-inflation term is excluded from the model.#'
 #' @param data An optional data.frame with variables to be used with regression
 #'   formulas. Variables not found here are read from the envionment.
-#' @param ... other arguments, such as \code{subset} and \code{na.action}.
+#' @param ... other arguments, such as `subset` and `na.action`.
 #'
 #' @noRd
 formula2raw = function(formula.lambda, formula.nu, formula.p, data = NULL, ...)
@@ -96,26 +95,26 @@ formula2raw = function(formula.lambda, formula.nu, formula.p, data = NULL, ...)
 #' Zero-Inflated COM-Poisson can be fit by specifying a regression for the
 #' overdispersion parameter.
 #' 
-#' @param formula.lambda regression formula linked to \code{log(lambda)}.
+#' @param formula.lambda regression formula linked to `log(lambda)`.
 #'   The response should be specified here.
-#' @param formula.nu regression formula linked to \code{log(nu)}. The
+#' @param formula.nu regression formula linked to `log(nu)`. The
 #'   default, is taken to be only an intercept.
-#' @param formula.p regression formula linked to \code{logit(p)}. If NULL
+#' @param formula.p regression formula linked to `logit(p)`. If `NULL`
 #'   (the default), zero-inflation term is excluded from the model.
 #' @param data An optional data.frame with variables to be used with regression
 #'   formulas. Variables not found here are read from the envionment.
 #' @param init A data structure that specifies initial values. See the helper
-#' function \link{get.init}.
+#' function [get.init].
 #' @param fixed A data structure that specifies which coefficients should
 #' remain fixed in the maximum likelihood procedure. See the helper function
-#' \link{get.fixed}.
+#' [get.fixed].
 #' @param control A control data structure. See the helper function
-#' \link{get.control}. If \code{NULL}, a global default will be used.
-#' @param ... other arguments, such as \code{subset} and \code{na.action}.
+#' [get.control]. If `NULL`, a global default will be used.
+#' @param ... other arguments, such as `subset` and `na.action`.
 #' 
 #' @return
-#' \code{glm.cmp} produces an object of either class \code{cmpfit} or
-#' \code{zicmpfit}, depending on whether zero-inflation is used in the model.
+#' `glm.cmp` produces an object of either class `cmpfit` or
+#' `zicmpfit`, depending on whether zero-inflation is used in the model.
 #' From this object, coefficients and other information can be extracted.
 #' 
 #' @details 

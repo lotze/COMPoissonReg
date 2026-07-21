@@ -67,9 +67,8 @@
 Supporting Functions for ZICMP Regression
 }
 \details{
-The function \code{residuals} returns raw residuals when
-\code{type = "raw"}  and quantile residuals when
-\code{type = "quantile"}.
+The function \code{residuals} returns raw residuals when \code{type = "raw"}  and
+quantile residuals when \code{type = "quantile"}.
 
 The function \code{predict} returns expected values of the outcomes,
 eveluated at the computed estimates, when \code{type = "response"}. When
@@ -77,11 +76,11 @@ eveluated at the computed estimates, when \code{type = "response"}. When
 columns corresponding to estimates of \code{lambda}, \code{nu}, and
 \code{p}.
 
-The function \code{coef} returns a vector of coefficient estimates in
-the form \code{c(beta, gamma, zeta)} when \code{type = "vector"}. When
-\code{type = "list"}, the estimates are returned as a list with named
-elements \code{beta} and \code{gamma}, and \code{zeta}.
+The function \code{coef} returns a vector of coefficient estimates in the form
+\code{c(beta, gamma, zeta)} when \code{type = "vector"}. When \code{type = "list"}, the
+estimates are returned as a list with named elements \code{beta} and \code{gamma},
+and \code{zeta}.
 
-The \code{type} argument behaves the same for the \code{sdev} function
-as it does for \code{coef}.
+The \code{type} argument behaves the same for the \code{sdev} function as it does for
+\code{coef}.
 }

@@ -8,7 +8,7 @@
 #' @param lambda rate parameter.
 #' @param p zero-inflation probability parameter.
 #' @param log logical; if TRUE, probabilities are returned on log-scale.
-#' @param log.p logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.
+#' @param log.p logical; if TRUE, probabilities `p` are given as \eqn{\log(p)}.
 #' 
 #' @return 
 #' \describe{
