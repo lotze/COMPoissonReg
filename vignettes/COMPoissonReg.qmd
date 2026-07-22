@@ -138,7 +138,7 @@ Noting that $e^{1 / (12n + 1)} \geq 1$ for $n \geq 1$ and $\sqrt{2\pi} e^{1 / (1
 \sqrt{2\pi} n^{n + 1/2} e^{-n} \leq n! \leq e n^{n + 1/2} e^{-n},
 \end{align*}
 <!-- -->
-which will be convenient in the following calculations.^[These bounds are also stated in the Wikipedia entry for [Stirling's approximation](https://w.wiki/7Znh), last accessed 2022-10-09.] We may then bound the truncation error for $Z^{(M)}(\lambda, \nu)$ using
+which will be convenient in the following calculations.^[These bounds are also stated in the Wikipedia entry for [Stirling's approximation][stirling], last accessed 2022-10-09.] We may then bound the truncation error for $Z^{(M)}(\lambda, \nu)$ using
 <!-- -->
 \begin{align}
 \lvert Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \rvert &= Z(\lambda, \nu) - Z^{(M)}(\lambda, \nu) \nonumber \\
@@ -1317,3 +1317,5 @@ apply(zicmp.boot, 2, quantile, probs = c(0.025,0.975), na.rm = TRUE)
 We acknowledge Thomas Lotze for significant contributions to the initial development of the `COMPoissonReg` package and for service as initial maintainer on CRAN. We thank Darcy Steeg Morris, Eric Slud, and Tommy Wright for reviewing the manuscript. We are grateful to the users of `COMPoissonReg` for their interest and for bringing to light some of the issues which have been considered in this work.
 
 # References
+
+[stirling]: https://en.wikipedia.org/wiki/Stirling%27s_approximation
