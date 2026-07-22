@@ -28,11 +28,9 @@ Imports:
     stats,
     Rcpp,
     numDeriv
-LinkingTo: Rcpp
-<<<<<<< HEAD
+LinkingTo:
+    Rcpp
 Roxygen: list(markdown = TRUE)
-=======
->>>>>>> master
 Encoding: UTF-8
 Suggests:
     testthat (>= 3.0.0),

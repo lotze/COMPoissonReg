@@ -558,6 +558,7 @@ Let us repeat the sanity check from @sec-cmp-dist to ensure that the empirical d
 #| fig-align: "center"
 #| prompt: false
 #| fig-show: "hold"
+
 library(ggplot2)
 
 n = 100000
@@ -921,6 +922,7 @@ For each type of residual---raw, Pearson, and quantile---we now plot fitted valu
 #| fig-align: "center"
 #| prompt: false
 #| fig-show: "hold"
+#| layout-ncol: 2
 
 plot.fit.res = function(y.hat, res) {
 	ggplot(data.frame(y = y.hat, res = res)) +
@@ -1263,6 +1265,7 @@ In this example, we can see the benefit of using quantile residuals rather than 
 #| fig-align: "center"
 #| prompt: false
 #| fig-show: "hold"
+#| layout-ncol: 2
 
 res.raw = residuals(zicmp.out, type = "raw")
 res.qtl = residuals(zicmp.out, type = "quantile")
