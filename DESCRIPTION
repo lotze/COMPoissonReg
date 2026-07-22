@@ -29,7 +29,10 @@ Imports:
     Rcpp,
     numDeriv
 LinkingTo: Rcpp
+<<<<<<< HEAD
 Roxygen: list(markdown = TRUE)
+=======
+>>>>>>> master
 Encoding: UTF-8
 Suggests:
     testthat (>= 3.0.0),
