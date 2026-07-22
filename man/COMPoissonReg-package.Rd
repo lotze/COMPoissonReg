@@ -26,16 +26,16 @@ significant dispersion.
 The main order of functions for COM-Poisson regression is as follows:
 \enumerate{
 \item Compute Poisson estimates (using \code{glm} for Poisson regression
-    or \code{pscl} for ZIP regression).
+or \code{pscl} for ZIP regression).
 \item Use Poisson estimates as starting values to determine COM-Poisson
-    estimates (using \code{glm.cmp}).
+estimates (using \code{glm.cmp}).
 \item Compute associated standard errors (using \code{sdev} function).
 }
 
 From here, there are many ways to proceed, so order is irrelevant:
 \itemize{
 \item Perform a hypothesis test to assess for statistically significant
-      dispersion (using \code{equitest} or \code{parametric.bootstrap}).
+dispersion (using \code{equitest} or \code{parametric.bootstrap}).
 \item Compute leverage (using leverage) and deviance (using deviance).
 \item Predict the outcome for new examples, using predict.
 }

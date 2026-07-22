@@ -5,16 +5,16 @@
 #' Construct an object that specifies which indices of coefficients should
 #' remain fixed in maximum likelihood computation.
 #'
-#' @param beta Vector of indices of \code{beta} to keep fixed.
-#' @param gamma Vector of indices of \code{gamma} to keep fixed.
-#' @param zeta Vector of indices of \code{zeta} to keep fixed.
+#' @param beta Vector of indices of `beta` to keep fixed.
+#' @param gamma Vector of indices of `gamma` to keep fixed.
+#' @param zeta Vector of indices of `zeta` to keep fixed.
 #'
 #' @details
 #' Arguments are expected to be vectors of integers. These are interpreted as
 #' the indices to keep fixed during optimization. For example,
-#' \code{beta = c(1L, 1L, 2L)} indicates that the first and second elements of
-#' \code{beta} should remain fixed. Note that duplicate indices are ignored.
-#' The default value is the empty vector \code{integer(0)}, which requests that
+#' `beta = c(1L, 1L, 2L)` indicates that the first and second elements of
+#' `beta` should remain fixed. Note that duplicate indices are ignored.
+#' The default value is the empty vector `integer(0)`, which requests that
 #' no elements of the given coefficient vector should be fixed. 
 #'
 #' @return List of vectors indicating fixed indices.
@@ -35,9 +35,9 @@ get.fixed = function(beta = integer(0), gamma = integer(0), zeta = integer(0))
 
 #' Construct initial values for coefficients with zeros.
 #'
-#' @param d1 Dimension of \code{beta}.
-#' @param d2 Dimension of \code{gamma}.
-#' @param d3 Dimension of \code{zeta}.
+#' @param d1 Dimension of `beta`.
+#' @param d2 Dimension of `gamma`.
+#' @param d3 Dimension of `zeta`.
 #'
 #' @return List of initial value terms containing all zeros.
 #' @export
@@ -48,12 +48,12 @@ get.init.zero = function(d1 = 0, d2 = 0, d3 = 0)
 
 #' Construct initial values for coefficients.
 #'
-#' @param beta Vector for \code{beta}.
-#' @param gamma Vector for \code{gamma}.
-#' @param zeta Vector for \code{zeta}.
+#' @param beta Vector for `beta`.
+#' @param gamma Vector for `gamma`.
+#' @param zeta Vector for `zeta`.
 #'
 #' @details
-#' The default value \code{NULL} is interpreted as an empty vector, so that the
+#' The default value `NULL` is interpreted as an empty vector, so that the
 #' given component is absent from the model.
 #'
 #' @return List of initial value terms.
@@ -81,12 +81,12 @@ get.offset.zero = function(n)
 
 #' Construct values for offsets.
 #'
-#' @param x Vector of offsets to go with \code{X} matrix.
-#' @param s Vector of offsets to go with \code{S} matrix.
-#' @param w Vector of offsets to go with \code{W} matrix.
+#' @param x Vector of offsets to go with `X` matrix.
+#' @param s Vector of offsets to go with `S` matrix.
+#' @param w Vector of offsets to go with `W` matrix.
 #'
 #' @details
-#' The default value \code{NULL} is interpreted as a vector of zeros. At least
+#' The default value `NULL` is interpreted as a vector of zeros. At least
 #' one component must be non-NULL so that the dimension can be determined.
 #'
 #' @return List of offset terms.
@@ -114,10 +114,10 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' Construct a control object to pass additional arguments to a number of
 #' functions in the package.
 #' 
-#' @param ymax Truncate counts to maximum value of \code{y}.
+#' @param ymax Truncate counts to maximum value of `y`.
 #' @param optim.method Optimization method for maximum likelihood. See the
-#' \code{method} argument in \link[stats]{optim}.
-#' @param optim.control \code{control} argument for \link[stats]{optim}.
+#' `method` argument in [stats::optim].
+#' @param optim.control `control` argument for [stats::optim].
 #' @param hybrid.tol Tolerance to decide when to use truncation method versus
 #' approximation method to compute quantities based on the normalizing constant.
 #' See details.
@@ -126,13 +126,24 @@ get.offset = function(x = NULL, s = NULL, w = NULL)
 #' @details
 #' A hybrid method is used throughout the package to compute the CMP normalizing
 #' constant and related quantities. When \eqn{\lambda^{-1/\nu}} is smaller than
-#' \code{hybrid.tol}, an asymptotic approximation is used; otherwise, infinite
+#' `hybrid.tol`, an asymptotic approximation is used; otherwise, infinite
 #' series are truncated to finite summations. More information is given in the
-#' \code{COMPoissonReg} vignette.
+#' `COMPoissonReg` vignette.
 #' 
-#' The element \code{ymax} protects against very long computations. Users
+#' The element `ymax` protects against very long computations. Users
 #' should beware when increasing this significantly beyond the default, as it
 #' may result in a session which needs to be terminated.
+#' 
+#' A default control structure can be assigned for the R session by setting
+#' the `COMPoissonReg.control` option, as shown in the following display. This
+#' option used by `COMPoissonReg` functions when no control argument is
+#' specified.
+#' 
+#' ```
+#'   ctrl1 = get.control(...)
+#'   options(COMPoissonReg.control = ctrl1)
+#'   ctrl2 = getOption("COMPoissonReg.control")
+#' ```
 #' 
 #' @return List of controls.
 #' @export
@@ -148,10 +159,10 @@ get.control = function(ymax = 1e6, optim.method = 'L-BFGS-B',
 
 #' Construct model matrices and offsets for CMP/ZICMP regression
 #'
-#' @param X An \code{X} matrix to use with \code{beta}.
-#' @param S An \code{S} matrix to use with \code{gamma}.
-#' @param W A \code{W} matrix to use with \code{zeta}.
-#' @param offset An offset object. See helper function \link{get.offset}.
+#' @param X An `X` matrix to use with `beta`.
+#' @param S An `S` matrix to use with `gamma`.
+#' @param W A `W` matrix to use with `zeta`.
+#' @param offset An offset object. See helper function [get.offset].
 #'
 #' @return List of model matrix terms.
 #' @export

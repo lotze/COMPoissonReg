@@ -22,9 +22,9 @@ glm.zicmp.raw(
 \arguments{
 \item{y}{A vector of counts which represent the response .}
 
-\item{X}{Design matrix for the `lambda` regression.}
+\item{X}{Design matrix for the \code{lambda} regression.}
 
-\item{S}{Design matrix for the `nu` regression.}
+\item{S}{Design matrix for the \code{nu} regression.}
 
 \item{offset}{A data structure that specifies offsets. See the helper
 function \link{get.offset}.}
@@ -39,7 +39,7 @@ remain fixed in the maximum likelihood procedure. See the helper function
 \item{control}{A control data structure. See the helper function
 \link{get.control}.}
 
-\item{W}{Design matrix for the `p` regression.}
+\item{W}{Design matrix for the \code{p} regression.}
 }
 \value{
 See the \link{glm.cmp}.

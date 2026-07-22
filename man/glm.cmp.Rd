@@ -22,7 +22,7 @@ The response should be specified here.}
 \item{formula.nu}{regression formula linked to \code{log(nu)}. The
 default, is taken to be only an intercept.}
 
-\item{formula.p}{regression formula linked to \code{logit(p)}. If NULL
+\item{formula.p}{regression formula linked to \code{logit(p)}. If \code{NULL}
 (the default), zero-inflation term is excluded from the model.}
 
 \item{data}{An optional data.frame with variables to be used with regression

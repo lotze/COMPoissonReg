@@ -37,8 +37,8 @@ tcmp(lambda, nu, control = NULL)
 
 \item{log}{logical; if TRUE, probabilities are returned on log-scale.}
 
-\item{control}{a \code{COMPoissonReg.control} object from \code{get.control}
-or \code{NULL} to use global default.}
+\item{control}{a \code{COMPoissonReg.control} object from \code{get.control} or \code{NULL}
+to use global default.}
 
 \item{n}{number of observations.}
 

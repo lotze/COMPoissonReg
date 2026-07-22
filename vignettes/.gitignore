@@ -1,5 +1,8 @@
-vignette.R
-vignette.pdf
-vignette.tex
-vignette_files
+COMPoissonReg.R
+COMPoissonReg.html
+COMPoissonReg.log
+COMPoissonReg.pdf
+COMPoissonReg.rmarkdown
+COMPoissonReg.tex
+COMPoissonReg_files/
 

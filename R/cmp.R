@@ -8,9 +8,9 @@
 #' @param lambda rate parameter.
 #' @param nu dispersion parameter.
 #' @param log logical; if TRUE, probabilities are returned on log-scale.
-#' @param log.p logical; if TRUE, probabilities \code{p} are given as \eqn{\log(p)}.
-#' @param control a \code{COMPoissonReg.control} object from \code{get.control}
-#' or \code{NULL} to use global default.
+#' @param log.p logical; if TRUE, probabilities `p` are given as \eqn{\log(p)}.
+#' @param control a `COMPoissonReg.control` object from `get.control` or `NULL`
+#' to use global default.
 #' 
 #' @return 
 #' \describe{

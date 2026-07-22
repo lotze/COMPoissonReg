@@ -1,31 +1,29 @@
 #' Supporting Functions for COM-Poisson Regression
 #' 
-#' @param object object of type \code{cmp}.
-#' @param x object of type \code{cmp}.
+#' @param object object of type `cmp`.
+#' @param x object of type `cmp`.
 #' @param k Penalty per parameter to be used in AIC calculation.
 #' @param newdata New covariates to be used for prediction.
 #' @param type Specifies quantity to be computed. See details.
 #' @param reps Number of bootstrap repetitions.
-#' @param report.period Report progress every \code{report.period} iterations.
-#' @param ... other arguments, such as \code{subset} and \code{na.action}.
+#' @param report.period Report progress every `report.period` iterations.
+#' @param ... other arguments, such as `subset` and `na.action`.
 #' 
 #' @details
-#' The function \code{residuals} returns raw residuals when
-#' \code{type = "raw"}  and quantile residuals when
-#' \code{type = "quantile"}.
+#' The function `residuals` returns raw residuals when `type = "raw"`  and
+#' quantile residuals when `type = "quantile"`.
 #' 
-#' The function \code{predict} returns expected values of the outcomes,
-#' eveluated at the computed estimates, when \code{type = "response"}. When
-#' \code{type = "link"}, a \code{data.frame} is instead returned with
-#' columns corresponding to estimates of \code{lambda} and \code{nu}.
+#' The function `predict` returns expected values of the outcomes, eveluated at
+#' the computed estimates, when `type = "response"`. When `type = "link"`, a
+#' `data.frame` is instead returned with columns corresponding to estimates of
+#' `lambda` and `nu`.
 #' 
-#' The function \code{coef} returns a vector of coefficient estimates in
-#' the form \code{c(beta, gamma)} when \code{type = "vector"}. When
-#' \code{type = "list"}, the estimates are returned as a list with named
-#' elements \code{beta} and \code{gamma}.
+#' The function `coef` returns a vector of coefficient estimates in the form
+#' `c(beta, gamma)` when `type = "vector"`. When `type = "list"`, the estimates
+#' are returned as a list with named elements `beta` and `gamma`.
 #' 
-#' The \code{type} argument behaves the same for the \code{sdev} function
-#' as it does for \code{coef}.
+#' The `type` argument behaves the same for the `sdev` function as it does for
+#' `coef`.
 #' 
 #' @name glm.cmp, CMP support
 NULL

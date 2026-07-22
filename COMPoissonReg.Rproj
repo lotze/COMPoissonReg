@@ -16,4 +16,4 @@ BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageBuildArgs: --compact-vignettes=gs+qpdf
-PackageRoxygenize: rd,namespace,vignette
+PackageRoxygenize: rd,namespace

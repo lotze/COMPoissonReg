@@ -2,9 +2,13 @@ LICENSE
 internal-tests
 ^.*\.Rproj$
 ^\.Rproj\.user$
-COMPoissonReg.pdf
-Makefile
 README.md
 TODO.md
 ^doc$
 ^Meta$
+^vignettes/*_files$
+^vignettes/*.pdf$
+^vignettes/*.tex$
+^vignettes/*.R$
+^vignettes/*.bib$
+^vignettes/*.sty$

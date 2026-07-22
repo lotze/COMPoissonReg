@@ -1,10 +1,20 @@
 Package: COMPoissonReg
 Type: Package
 Title: Conway-Maxwell Poisson (COM-Poisson) Regression
-Version: 0.8.1
-Author: Kimberly Sellers <kfs7@georgetown.edu>
-	Thomas Lotze <thomas.lotze@thomaslotze.com>
-	Andrew Raim <andrew.raim@gmail.com>
+Version: 0.8.2
+Authors@R: c(
+	person(given = "Kimberly",
+		family = "Sellers",
+		role = "aut",
+		email = "kimberly_sellers@ncsu.edu"),
+	person(given = "Thomas",
+		family = "Lotze",
+		role = "aut",
+		email = "thomas.lotze@thomaslotze.com"),
+	person(given = "Andrew",
+		family = "Raim",
+		role = c("cre", "aut"),
+		email = "andrew.raim@gmail.com"))
 Maintainer: Andrew Raim <andrew.raim@gmail.com>
 URL: https://github.com/lotze/COMPoissonReg
 Description: Fit Conway-Maxwell Poisson (COM-Poisson or CMP) regression models
@@ -14,14 +24,22 @@ Description: Fit Conway-Maxwell Poisson (COM-Poisson or CMP) regression models
     <doi:10.1016/j.csda.2016.01.007> is also supported.
 License: GPL-2 | GPL-3
 LazyLoad: yes
-Depends: stats, Rcpp, numDeriv
+Imports:
+    stats,
+    Rcpp,
+    numDeriv
 LinkingTo: Rcpp
+<<<<<<< HEAD
+Roxygen: list(markdown = TRUE)
+=======
+>>>>>>> master
 Encoding: UTF-8
 Suggests:
     testthat (>= 3.0.0),
     knitr,
+    quarto,
     rmarkdown,
     ggplot2
-VignetteBuilder: knitr
+VignetteBuilder: quarto
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0

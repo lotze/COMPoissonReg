@@ -70,20 +70,18 @@
 Supporting Functions for COM-Poisson Regression
 }
 \details{
-The function \code{residuals} returns raw residuals when
-\code{type = "raw"}  and quantile residuals when
-\code{type = "quantile"}.
+The function \code{residuals} returns raw residuals when \code{type = "raw"}  and
+quantile residuals when \code{type = "quantile"}.
 
-The function \code{predict} returns expected values of the outcomes,
-eveluated at the computed estimates, when \code{type = "response"}. When
-\code{type = "link"}, a \code{data.frame} is instead returned with
-columns corresponding to estimates of \code{lambda} and \code{nu}.
+The function \code{predict} returns expected values of the outcomes, eveluated at
+the computed estimates, when \code{type = "response"}. When \code{type = "link"}, a
+\code{data.frame} is instead returned with columns corresponding to estimates of
+\code{lambda} and \code{nu}.
 
-The function \code{coef} returns a vector of coefficient estimates in
-the form \code{c(beta, gamma)} when \code{type = "vector"}. When
-\code{type = "list"}, the estimates are returned as a list with named
-elements \code{beta} and \code{gamma}.
+The function \code{coef} returns a vector of coefficient estimates in the form
+\code{c(beta, gamma)} when \code{type = "vector"}. When \code{type = "list"}, the estimates
+are returned as a list with named elements \code{beta} and \code{gamma}.
 
-The \code{type} argument behaves the same for the \code{sdev} function
-as it does for \code{coef}.
+The \code{type} argument behaves the same for the \code{sdev} function as it does for
+\code{coef}.
 }
